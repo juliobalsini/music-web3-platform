@@ -1,1 +1,1 @@
-import { ChakraProvider } from "@chakra-ui/react"; export default function RootLayout({ children }) { return ( <html lang="pt-BR"><body><ChakraProvider>{children}</ChakraProvider></body></html> ); }
+import { ChakraProvider } from "@chakra-ui/react"; import { Web3Provider } from "../providers/Web3Provider"; import "@rainbow-me/rainbowkit/styles.css"; export default function RootLayout({ children }) { return ( <html lang="pt-BR"><body><ChakraProvider><Web3Provider>{children}</Web3Provider></ChakraProvider></body></html> ); }
