@@ -1,0 +1,1 @@
+export const POLYGON_MUMBAI = { id: 80001, name: "Polygon Mumbai", network: "mumbai", nativeCurrency: { decimals: 18, name: "MATIC", symbol: "MATIC" }, rpcUrls: { default: { http: ["https://rpc-mumbai.maticvigil.com"] } } }; export const APP_NAME = "RadiOOn";
