@@ -43,6 +43,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
 
       - name: Buscar commit do PR
         run: git fetch --no-tags origin "+refs/pull/${PR}/head:refs/remotes/pr/head"
@@ -79,6 +80,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - name: Lint
@@ -104,6 +106,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
       - run: corepack enable
 
       - name: Exigir suíte E2E

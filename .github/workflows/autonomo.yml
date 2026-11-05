@@ -59,6 +59,7 @@ jobs:
         if: steps.pre.outputs.ok == 'true'
         with:
           node-version: 24
+          package-manager-cache: false
 
       - name: Preparar ambiente
         if: steps.pre.outputs.ok == 'true'
