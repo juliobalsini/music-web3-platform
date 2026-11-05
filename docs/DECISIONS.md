@@ -38,3 +38,16 @@ Formato: data · decisão · motivo. Mais recente no fim.
 10. **Limite diário de pontos “configurável”** ainda não modelado; será
     definido no ciclo de listen-to-earn (provavelmente variável de ambiente
     lida no servidor).
+
+## 2026-11-05 · Etapa D (conexão e publicação)
+
+11. **Migration aplicada sem `supabase link`.** O Supabase CLI estava sem
+    login (access token) no Codespace; o `db push` foi feito com
+    `--remote=<db-url>` pelo pooler de sessão
+    `aws-1-us-west-2.pooler.supabase.com:5432`, usando a senha do banco
+    do `.env.local`. Para rodar `supabase link`, fazer `npx supabase login`.
+12. **Projeto Vercel `radioon`** (escopo `juliobalsinis-projects`, Hobby),
+    conectado a `juliobalsini/music-web3-platform`; deploy de produção a
+    cada push na `main`. `SUPABASE_SERVICE_ROLE_KEY` cadastrada como
+    variável sensível; chave publishable cadastrada como
+    `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o código aceita os dois formatos).
