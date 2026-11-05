@@ -33,6 +33,21 @@ redact() {
     -e 's/(([A-Z0-9_]*(KEY|SECRET|TOKEN|PASSWORD|PRIVATE)[A-Z0-9_]*)[[:space:]]*[=:][[:space:]]*)[^[:space:]]+/\1[REDACTED]/g'
 }
 
+# O GITHUB_TOKEN automático do Codespace não pode disparar workflows
+# (falta actions:write). Ordem de preferência:
+#   1. NOTIFY_GH_TOKEN (secret do Codespaces: PAT fine-grained com Actions: write)
+#   2. login próprio do gh (gh auth login), ignorando o GITHUB_TOKEN do Codespace
+#   3. credencial padrão do gh
+gh_dispatch() {
+  if [ -n "${NOTIFY_GH_TOKEN:-}" ]; then
+    GH_TOKEN="$NOTIFY_GH_TOKEN" gh "$@"
+  elif env -u GITHUB_TOKEN -u GH_TOKEN gh auth status >/dev/null 2>&1; then
+    env -u GITHUB_TOKEN -u GH_TOKEN gh "$@"
+  else
+    gh "$@"
+  fi
+}
+
 dispatch() {
   local title="$1" body="$2" label="$3"
   if [ "${#body}" -gt "$MAX_BODY" ]; then
@@ -40,7 +55,7 @@ dispatch() {
 
 _(truncado)_"
   fi
-  gh workflow run "$WORKFLOW" --ref main \
+  gh_dispatch workflow run "$WORKFLOW" --ref main \
     -f title="$title" \
     -f body="$body" \
     -f label="$label"
