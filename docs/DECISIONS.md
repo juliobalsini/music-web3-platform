@@ -51,3 +51,5 @@ Formato: data · decisão · motivo. Mais recente no fim.
     cada push na `main`. `SUPABASE_SERVICE_ROLE_KEY` cadastrada como
     variável sensível; chave publishable cadastrada como
     `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o código aceita os dois formatos).
+    `vercel.json` declara `"framework": "nextjs"`: o projeto criado pelo CLI
+    veio com preset "Other" e o primeiro deploy falhou procurando `public/`.
