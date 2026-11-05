@@ -18,7 +18,9 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
 
 - [ ] **a) Suíte E2E mínima (Playwright)** — home carrega, identidade visual
   (fundo, logo "radio"+"On" laranja, botão de play), rota `GET /api/health`
-  (200, JSON `{ ok: true }`, sem tocar no banco). Contrato com o gate: script
+  (200, JSON `{ ok: true, commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null }`,
+  dinâmica, sem tocar no banco — o gate usa `commit` para confirmar que a prévia
+  é a do PR). Contrato com o gate: script
   `pnpm e2e`; base em `E2E_BASE_URL` (padrão `http://localhost:3000`); se
   `VERCEL_AUTOMATION_BYPASS_SECRET` existir, enviar os headers
   `x-vercel-protection-bypass` e `x-vercel-set-bypass-cookie: true`.
@@ -41,6 +43,11 @@ do Supabase (foram expostas no chat do Claude Code) e atualizar Vercel, `.env.lo
 e o secret `SUPABASE_DB_URL`.
 
 ## Como o modo autônomo funciona
+
+- **Branches do agente:** só `[a-z0-9-]`, no máx. 28 caracteres (ex.: `item-a-e2e`):
+  o gate acessa a prévia por `radioon-git-<branch>-juliobalsinis-projects.vercel.app`.
+- **Dois projetos Vercel** estão ligados a este repo: `radioon` (o oficial) e o
+  antigo `music-web3-platform` (gera deploys duplicados; o gate o ignora).
 
 - **Agendamento:** `.github/workflows/autonomo.yml`, 08:00 e 20:00 de Brasília
   (STRATEX OS usa 02:00 e 14:00) + disparo manual. **O agendamento do GitHub

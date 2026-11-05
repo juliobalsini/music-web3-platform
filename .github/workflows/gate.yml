@@ -35,12 +35,12 @@ jobs:
       migracoes: ${{ steps.classificar.outputs.migracoes }}
     steps:
       # Scripts de trava SEMPRE da main (base), nunca do PR.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -73,10 +73,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
       - run: corepack enable
@@ -96,12 +96,12 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      deployments: read
+      statuses: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
       - run: corepack enable
@@ -123,27 +123,47 @@ jobs:
         id: previa
         env:
           GH_TOKEN: ${{ github.token }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PROJETO: ${{ vars.VERCEL_PROJECT || 'radioon' }}
+          ESCOPO: ${{ vars.VERCEL_SCOPE || 'juliobalsinis-projects' }}
         run: |
-          # A integração Vercel ↔ GitHub publica um deployment "Preview..." por commit.
+          set -uo pipefail
+          # O projeto "radioon" publica só o commit status "Vercel – radioon"
+          # (os deployments do GitHub vêm do projeto antigo music-web3-platform).
+          contexto="Vercel – ${PROJETO}"
+          estado=""
           for i in $(seq 1 60); do
-            statuses="$(gh api "repos/${GITHUB_REPOSITORY}/deployments?sha=${HEAD_SHA}&per_page=30" \
-              --jq '[.[] | select(.environment | test("^preview"; "i"))][0].statuses_url // empty')"
-            if [ -n "$statuses" ]; then
-              read -r state url < <(gh api "$statuses" \
-                --jq '.[0] | "\(.state // "pending") \(.environment_url // .target_url // "")"')
-              case "$state" in
-                success)
-                  echo "url=$url" >> "$GITHUB_OUTPUT"
-                  echo "Prévia: $url" >> "$GITHUB_STEP_SUMMARY"
-                  exit 0 ;;
-                failure|error)
-                  echo "::error::Deploy de prévia falhou ($state)."
-                  exit 1 ;;
-              esac
-            fi
+            estado="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
+              --jq "[.[] | select(.context == \"${contexto}\")][0].state // empty")"
+            case "$estado" in
+              success) break ;;
+              failure|error) echo "::error::Deploy de prévia ($contexto) falhou."; exit 1 ;;
+            esac
             sleep 20
           done
-          echo "::error::Prévia da Vercel não ficou pronta em 20 min."
+          [ "$estado" = success ] || { echo "::error::Prévia não ficou pronta em 20 min."; exit 1; }
+
+          # URL estável da branch: <projeto>-git-<branch>-<escopo>.vercel.app (rótulo DNS ≤ 63).
+          slug="$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+          host="${PROJETO}-git-${slug}-${ESCOPO}"
+          if [ "${#host}" -gt 63 ]; then
+            echo "::error::Nome de branch longo demais para a URL da prévia (máx. $((63 - ${#PROJETO} - ${#ESCOPO} - 6)) caracteres)."
+            exit 1
+          fi
+          url="https://${host}.vercel.app"
+
+          # Confirmar que a URL da branch já serve exatamente este commit.
+          for i in $(seq 1 30); do
+            commit="$(curl -fsS -H "x-vercel-protection-bypass: ${BYPASS}" "${url}/api/health" | jq -r '.commit // empty' 2>/dev/null || true)"
+            if [ "$commit" = "$HEAD_SHA" ]; then
+              echo "url=$url" >> "$GITHUB_OUTPUT"
+              echo "Prévia: $url" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::${url}/api/health não respondeu com commit=${HEAD_SHA} (rota de saúde ausente ou prévia desatualizada)."
           exit 1
 
       - run: pnpm install --frozen-lockfile

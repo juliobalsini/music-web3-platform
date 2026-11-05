@@ -49,13 +49,13 @@ jobs:
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.pre.outputs.ok == 'true'
         with:
           token: ${{ secrets.AGENT_GH_TOKEN }}
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: steps.pre.outputs.ok == 'true'
         with:
           node-version: 24
