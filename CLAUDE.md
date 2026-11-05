@@ -48,7 +48,16 @@ Logo "radio" branco + "On" laranja. Flat, pouco texto, foco no play.
 - Parar e notificar APENAS quando: faltar credencial ou acesso; uma decisão
   contrariar as regras invioláveis; houver risco de perda de dados;
   a mesma falha persistir após 3 tentativas.
-- Fim de cada ciclo: salvar relatório em docs/reports/AAAA-MM-DD-cicloN.md
-  e rodar "bash scripts/notify.sh report <arquivo>".
+- Relatórios: NÃO gerar a cada ciclo ou item pequeno. Gerar só em 3 situações:
+  1. fim da sessão (relatório consolidado);
+  2. entrega grande em produção;
+  3. bloqueio que exige ação do Julio.
+  Salvar em docs/reports/AAAA-MM-DD-<assunto>.md e rodar
+  "bash scripts/notify.sh report <arquivo>" (título "Relatório radioOn — AAAA-MM-DD").
+- Bloqueios: no máximo uma issue "⚠️ Ação necessária — AAAA-MM-DD" por dia,
+  agrupando tudo; se já existir aberta no dia, o workflow comenta nela.
+- Entre relatórios, apenas mensagens curtas de progresso no chat.
+- Alertas são publicados por .github/workflows/notify.yml (autor
+  github-actions[bot]); scripts/notify.sh só dispara o workflow.
 - Toda PAUSA solicitada em prompt deve rodar
   "bash scripts/notify.sh pause <motivo>" antes de aguardar.
