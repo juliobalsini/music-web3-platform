@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-night-900: #0f0f23;
+  --color-night-800: #16213e;
+  --color-brand: #ff6b35;
+  --color-brand-2: #f7931e;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: linear-gradient(160deg, #0f0f23 0%, #16213e 100%);
+  background-attachment: fixed;
+  color: #ffffff;
+}
