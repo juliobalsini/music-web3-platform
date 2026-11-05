@@ -1,0 +1,297 @@
+name: gate
+
+# Portão de merge dos PRs do agente (arquivo PROTEGIDO).
+# travas → validar (lint, typecheck, testes, build) → e2e na prévia da Vercel
+# → gate-ok (check obrigatório na main) → merge automático.
+# PR que altera arquivos protegidos só passa após aprovação do Julio no
+# ambiente "travas" (Settings → Environments), e vira "⚠️ Ação necessária".
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  PR: ${{ github.event.pull_request.number }}
+  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+jobs:
+  travas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      protegido: ${{ steps.classificar.outputs.protegido }}
+      migracoes: ${{ steps.classificar.outputs.migracoes }}
+    steps:
+      # Scripts de trava SEMPRE da main (base), nunca do PR.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Buscar commit do PR
+        run: git fetch --no-tags origin "+refs/pull/${PR}/head:refs/remotes/pr/head"
+
+      - name: Listar arquivos alterados
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files" \
+            --jq '.[] | {filename, status, previous_filename}' > "$RUNNER_TEMP/arquivos.jsonl"
+
+      - id: classificar
+        name: Classificar PR
+        env:
+          ARQUIVOS: ${{ runner.temp }}/arquivos.jsonl
+          MOTIVOS: ${{ runner.temp }}/motivos.md
+        run: |
+          node scripts/ci/travas.mjs
+          cat "$MOTIVOS" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motivos
+          path: ${{ runner.temp }}/motivos.md
+          retention-days: 7
+
+  validar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Testes
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+
+  e2e:
+    needs: validar
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      statuses: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: corepack enable
+
+      - name: Exigir suíte E2E
+        run: |
+          if ! node -e 'process.exit(require("./package.json").scripts?.e2e ? 0 : 1)'; then
+            echo "::error::Sem script \"e2e\" no package.json: nada é mergeado sem a suíte E2E."
+            exit 1
+          fi
+          if [ -z "${BYPASS}" ]; then
+            echo "::error::Secret VERCEL_AUTOMATION_BYPASS_SECRET ausente."
+            exit 1
+          fi
+        env:
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - name: Aguardar prévia da Vercel
+        id: previa
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PROJETO: ${{ vars.VERCEL_PROJECT || 'radioon' }}
+          ESCOPO: ${{ vars.VERCEL_SCOPE || 'juliobalsinis-projects' }}
+        run: |
+          set -uo pipefail
+          # O projeto "radioon" publica só o commit status "Vercel – radioon"
+          # (os deployments do GitHub vêm do projeto antigo music-web3-platform).
+          contexto="Vercel – ${PROJETO}"
+          estado=""
+          for i in $(seq 1 60); do
+            estado="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
+              --jq "[.[] | select(.context == \"${contexto}\")][0].state // empty")"
+            case "$estado" in
+              success) break ;;
+              failure|error) echo "::error::Deploy de prévia ($contexto) falhou."; exit 1 ;;
+            esac
+            sleep 20
+          done
+          [ "$estado" = success ] || { echo "::error::Prévia não ficou pronta em 20 min."; exit 1; }
+
+          # URL estável da branch: <projeto>-git-<branch>-<escopo>.vercel.app (rótulo DNS ≤ 63).
+          slug="$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+          host="${PROJETO}-git-${slug}-${ESCOPO}"
+          if [ "${#host}" -gt 63 ]; then
+            echo "::error::Nome de branch longo demais para a URL da prévia (máx. $((63 - ${#PROJETO} - ${#ESCOPO} - 6)) caracteres)."
+            exit 1
+          fi
+          url="https://${host}.vercel.app"
+
+          # Confirmar que a URL da branch já serve exatamente este commit.
+          for i in $(seq 1 30); do
+            commit="$(curl -fsS -H "x-vercel-protection-bypass: ${BYPASS}" "${url}/api/health" | jq -r '.commit // empty' 2>/dev/null || true)"
+            if [ "$commit" = "$HEAD_SHA" ]; then
+              echo "url=$url" >> "$GITHUB_OUTPUT"
+              echo "Prévia: $url" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::${url}/api/health não respondeu com commit=${HEAD_SHA} (rota de saúde ausente ou prévia desatualizada)."
+          exit 1
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E na prévia
+        env:
+          E2E_BASE_URL: ${{ steps.previa.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: pnpm e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # PR com arquivos protegidos: espera aprovação manual do Julio.
+  aprovacao:
+    needs: travas
+    if: needs.travas.outputs.protegido == 'true'
+    runs-on: ubuntu-latest
+    environment: travas
+    permissions:
+      actions: read
+    steps:
+      - name: Conferir que o ambiente "travas" exige revisor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Se o ambiente ainda não tiver revisor obrigatório, o GitHub o cria
+          # aberto e este job rodaria sem aprovação: nesse caso, falhar.
+          n="$(gh api "repos/${GITHUB_REPOSITORY}/environments/travas" \
+            --jq '[.protection_rules[]? | select(.type == "required_reviewers")] | length')"
+          if [ "${n:-0}" -lt 1 ]; then
+            echo "::error::Ambiente 'travas' sem revisor obrigatório. Configure em Settings → Environments."
+            exit 1
+          fi
+          echo "Aprovado por revisor do ambiente travas."
+
+  avisar-travas:
+    needs: travas
+    if: needs.travas.outputs.protegido == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: motivos
+          path: ${{ runner.temp }}
+      - name: Rotular PR e abrir "⚠️ Ação necessária" (uma vez por PR)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          if gh pr view "$PR" --json labels --jq '.labels[].name' | grep -qx travas; then
+            echo "PR já sinalizado; sem novo alerta."
+            exit 0
+          fi
+          gh label create travas --color b60205 --description "Altera arquivos protegidos" 2>/dev/null || true
+          gh pr edit "$PR" --add-label travas
+          body="$(printf 'O PR [#%s — %s](%s) altera arquivos protegidos e **não será mergeado sozinho**.\n\n%s\n\nPara liberar: revise o PR e aprove o ambiente **travas** em %s (o gate faz o merge em seguida). Para recusar: feche o PR.\n' \
+            "$PR" "$PR_TITLE" "$PR_URL" "$(cat "$RUNNER_TEMP/motivos.md")" "$RUN_URL")"
+          gh pr comment "$PR" --body "$body"
+          gh workflow run notify.yml --ref main \
+            -f title="⚠️ Ação necessária — $(TZ=America/Sao_Paulo date +%F)" \
+            -f body="$body" -f label=acao-necessaria
+
+  # Check obrigatório da main (ruleset). Resume o resultado de tudo.
+  gate-ok:
+    needs: [travas, validar, e2e, aprovacao]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resultado
+        env:
+          TRAVAS: ${{ needs.travas.result }}
+          VALIDAR: ${{ needs.validar.result }}
+          E2E: ${{ needs.e2e.result }}
+          APROVACAO: ${{ needs.aprovacao.result }}
+          PROTEGIDO: ${{ needs.travas.outputs.protegido }}
+        run: |
+          echo "travas=$TRAVAS validar=$VALIDAR e2e=$E2E aprovacao=$APROVACAO protegido=$PROTEGIDO"
+          [ "$TRAVAS" = success ] && [ "$VALIDAR" = success ] && [ "$E2E" = success ] || exit 1
+          if [ "$PROTEGIDO" = true ]; then
+            [ "$APROVACAO" = success ] || exit 1
+          elif [ "$PROTEGIDO" != false ]; then
+            exit 1
+          fi
+
+  merge:
+    needs: [travas, gate-ok]
+    # Só PRs do próprio repositório, abertos pelo agente, fora de rascunho.
+    if: >-
+      needs.gate-ok.result == 'success' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == (vars.AGENT_LOGIN || 'juliobalsini') &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Merge (squash)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh pr merge "$PR" --squash --delete-branch --match-head-commit "$HEAD_SHA"
+
+      # Merge feito com GITHUB_TOKEN não dispara "push": acionar a migração explicitamente.
+      - name: Disparar migracao
+        if: needs.travas.outputs.migracoes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run migracao.yml --ref main

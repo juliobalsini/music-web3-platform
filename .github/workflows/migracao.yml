@@ -1,0 +1,109 @@
+name: migracao
+
+# Aplica migrations novas no Supabase de produção (arquivo PROTEGIDO).
+# Só SQL aditivo da allowlist (scripts/ci/validar-sql.mjs, versão da main).
+# Qualquer outra instrução: nada é aplicado e vira "⚠️ Ação necessária".
+# A credencial de escrita do banco (SUPABASE_DB_URL) existe SÓ aqui, como
+# secret do ambiente "producao-db", restrito à branch main.
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/migrations/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write # disparar notify.yml
+
+concurrency:
+  group: migracao
+  cancel-in-progress: false
+
+env:
+  SUPABASE_CLI: supabase@3.0.0
+
+jobs:
+  aplicar:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: producao-db
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Sem "pnpm install": nenhum código do app roda com a credencial do banco.
+      - name: Listar migrations pendentes
+        id: pendentes
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_YES: "1"
+        run: |
+          set -euo pipefail
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "motivo=Secret SUPABASE_DB_URL ausente no ambiente producao-db." >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          npx --yes "$SUPABASE_CLI" migration list --remote="$SUPABASE_DB_URL" \
+            --output-format json > "$RUNNER_TEMP/lista.json" 2> "$RUNNER_TEMP/lista.err" || {
+            echo "motivo=Falha ao ler o histórico de migrations do banco (credencial expirada?)." >> "$GITHUB_OUTPUT"
+            exit 1
+          }
+          jq -r '.migrations[] | select((.local // "") != "" and (.remote // "") == "") | .local' \
+            "$RUNNER_TEMP/lista.json" > "$RUNNER_TEMP/versoes.txt"
+          : > "$RUNNER_TEMP/arquivos.txt"
+          while read -r v; do
+            [ -n "$v" ] || continue
+            ls supabase/migrations/"${v}"_*.sql >> "$RUNNER_TEMP/arquivos.txt"
+          done < "$RUNNER_TEMP/versoes.txt"
+          echo "Pendentes:" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/- /' "$RUNNER_TEMP/arquivos.txt" >> "$GITHUB_STEP_SUMMARY"
+          echo "total=$(wc -l < "$RUNNER_TEMP/arquivos.txt")" >> "$GITHUB_OUTPUT"
+
+      - name: Validar allowlist
+        id: validar
+        if: steps.pendentes.outputs.total != '0'
+        run: |
+          set -o pipefail
+          if ! xargs -a "$RUNNER_TEMP/arquivos.txt" node scripts/ci/validar-sql.mjs | tee "$RUNNER_TEMP/validacao.txt"; then
+            {
+              echo "motivo<<EOF"
+              echo "Migration fora da allowlist — nada foi aplicado. Aplicar manualmente após revisão:"
+              cat "$RUNNER_TEMP/validacao.txt"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+      - name: Aplicar (db push)
+        id: aplicar
+        if: steps.pendentes.outputs.total != '0'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_YES: "1"
+        run: |
+          npx --yes "$SUPABASE_CLI" db push --remote="$SUPABASE_DB_URL" --skip-vault --yes || {
+            echo "motivo=Falha no db push (ver log do run)." >> "$GITHUB_OUTPUT"
+            exit 1
+          }
+          echo "Aplicadas: $(tr '\n' ' ' < "$RUNNER_TEMP/arquivos.txt")" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Alertar
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MOTIVO: ${{ steps.pendentes.outputs.motivo || steps.validar.outputs.motivo || steps.aplicar.outputs.motivo || 'Falha inesperada.' }}
+        run: |
+          body="$(printf '**Workflow migracao falhou.**\n\n%s\n\nRun: %s\n' "$MOTIVO" "$RUN_URL")"
+          gh workflow run notify.yml --ref main \
+            -f title="⚠️ Ação necessária — $(TZ=America/Sao_Paulo date +%F)" \
+            -f body="$body" -f label=acao-necessaria

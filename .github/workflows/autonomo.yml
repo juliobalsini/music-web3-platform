@@ -1,0 +1,106 @@
+name: autonomo
+
+# Agente Claude Code do radioOn (arquivo PROTEGIDO).
+# Roda 08:00 e 20:00 de Brasília (UTC-3, sem horário de verão) — horários
+# diferentes do STRATEX OS (02:00 e 14:00). O agendamento do GitHub pode
+# atrasar (às vezes horas) ou pular execuções em horários de pico.
+#
+# Credenciais do agente: CLAUDE_CODE_OAUTH_TOKEN, AGENT_GH_TOKEN (PAT
+# fine-grained sem permissão "Workflows" nem "Administration") e, opcional,
+# VERCEL_TOKEN (rollback). NENHUMA credencial de escrita no banco.
+
+on:
+  schedule:
+    - cron: "0 11,23 * * *"
+  workflow_dispatch:
+    inputs:
+      instrucao:
+        description: Instrução extra para esta execução (opcional)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: write # alerta de falha via notify.yml
+
+concurrency:
+  group: autonomo
+  cancel-in-progress: false
+
+jobs:
+  agente:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Conferir credenciais
+        id: pre
+        env:
+          OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          PAT: ${{ secrets.AGENT_GH_TOKEN }}
+        run: |
+          faltam=""
+          [ -n "$OAUTH" ] || faltam="$faltam CLAUDE_CODE_OAUTH_TOKEN"
+          [ -n "$PAT" ] || faltam="$faltam AGENT_GH_TOKEN"
+          if [ -n "$faltam" ]; then
+            # Configuração inicial pendente: o Julio já tem a lista; não gera alerta.
+            echo "::warning::Secrets ausentes:$faltam — execução ignorada."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.pre.outputs.ok == 'true'
+        with:
+          token: ${{ secrets.AGENT_GH_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        if: steps.pre.outputs.ok == 'true'
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Preparar ambiente
+        if: steps.pre.outputs.ok == 'true'
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          npm install -g @anthropic-ai/claude-code
+          # Autor = conta do Julio (o plano Hobby da Vercel só faz deploy de
+          # commits de membros); o trailer Co-Authored-By identifica o agente.
+          git config user.name "juliobalsini"
+          git config user.email "101837657+juliobalsini@users.noreply.github.com"
+
+      - name: Executar agente
+        if: steps.pre.outputs.ok == 'true'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.AGENT_GH_TOKEN }}
+          NOTIFY_GH_TOKEN: ${{ secrets.AGENT_GH_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          INSTRUCAO: ${{ inputs.instrucao }}
+          RADIOON_AUTONOMO: "1"
+        run: |
+          prompt="Execução autônoma do radioOn (GitHub Actions, sem humano disponível).
+          Siga o CLAUDE.md à risca: leia docs/CONTEXTO.md, pegue o próximo item livre da fila
+          e execute o ciclo completo; continue até acabar a fila ou o limite de uso.
+          Nunca aguarde resposta humana: bloqueios vão para bash scripts/notify.sh.
+          Antes de terminar, atualize docs/CONTEXTO.md (via PR) e rode bash scripts/painel.sh."
+          if [ -n "$INSTRUCAO" ]; then
+            prompt="$prompt
+          Instrução extra do Julio para esta execução: $INSTRUCAO"
+          fi
+          claude -p "$prompt" --dangerously-skip-permissions --output-format text
+
+      - name: Alertar falha
+        if: failure() && steps.pre.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body="$(printf '**Execução do agente autônomo falhou** (token/login expirado, limite de uso ou erro).\n\nRun: %s\n' "$RUN_URL")"
+          gh workflow run notify.yml --ref main \
+            -f title="⚠️ Ação necessária — $(TZ=America/Sao_Paulo date +%F)" \
+            -f body="$body" -f label=acao-necessaria

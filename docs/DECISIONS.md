@@ -53,3 +53,33 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o código aceita os dois formatos).
     `vercel.json` declara `"framework": "nextjs"`: o projeto criado pelo CLI
     veio com preset "Other" e o primeiro deploy falhou procurando `public/`.
+
+## 2026-11-05 · Modo autonomia total
+
+13. **Agente agendado no GitHub Actions** (`autonomo.yml`, 08:00 e 20:00 BRT =
+    `0 11,23 * * *` UTC). Claude Code headless com `--dangerously-skip-permissions`
+    num runner efêmero; credenciais mínimas e nenhuma de escrita no banco.
+14. **PAT do agente = fine-grained do Julio** (não conta-máquina): commits
+    autorados pela conta do Julio porque o plano Hobby da Vercel só faz deploy de
+    commits de membros. Sem permissão *Workflows* (não altera `.github/`, logo
+    não cria workflow para ler secrets) nem *Administration* (não mexe em
+    rulesets/secrets/ambientes).
+15. **Aprovação das travas por ambiente com revisor** (`travas`), não por review
+    de PR: o PR é do mesmo usuário do Julio, então review não distinguiria
+    agente de humano; aprovar ambiente exige o login do Julio (o PAT não tem
+    *Deployments*). O job verifica que o ambiente tem revisor; se não tiver, falha.
+16. **Ruleset na `main`:** exige PR e o check `gate-ok`, sem bypass. Push direto
+    do agente na `main` é impossível; o gate mergeia com `GITHUB_TOKEN`.
+17. **Scripts de trava rodam da main** (checkout do `base.sha`), nunca do PR.
+    Merge por `GITHUB_TOKEN` não dispara `push`, então o gate aciona
+    `migracao.yml` por `workflow_dispatch`.
+18. **Allowlist de SQL** (`scripts/ci/validar-sql.mjs`) mais estrita que a lista
+    pedida em dois pontos, por coerência com as regras invioláveis: tabela nova
+    exige `ENABLE ROW LEVEL SECURITY` no mesmo arquivo, e `SECURITY DEFINER` é
+    recusado (sem `REVOKE` permitido, a função ficaria exposta via RPC).
+    `GRANT`/`REVOKE` vão para revisão humana.
+19. **`SUPABASE_DB_URL` como secret de ambiente** (`producao-db`, só branch main),
+    não de repositório: nenhum outro workflow nem branch acessa. `migracao.yml`
+    não roda `pnpm install` (nenhum código do app executa com a credencial).
+20. **`.claude/settings.json` versionado** com hook de Notification → notify.sh,
+    ignorado quando `GITHUB_ACTIONS` está definido.
