@@ -83,3 +83,9 @@ Formato: data · decisão · motivo. Mais recente no fim.
     não roda `pnpm install` (nenhum código do app executa com a credencial).
 20. **`.claude/settings.json` versionado** com hook de Notification → notify.sh,
     ignorado quando `GITHUB_ACTIONS` está definido.
+21. **Skill `impeccable` vendorizada** em `.claude/skills/impeccable` (commit
+    `687bc38` da `pbakaus/impeccable`, sem alterações) e obrigatória em tarefas de UI.
+    SKILL.md revisado: nenhuma instrução acessa secrets ou tokens; o único acesso a
+    rede é o launcher `scripts/impeccable`, que baixa um binário do GitHub Releases.
+    Ele fica negado em `.claude/settings.json` e a skill roda pelo caminho sem launcher
+    (perde `live`/`hooks`/`pin`/`doctor`). Reversível: remover a regra de deny.

@@ -8,6 +8,8 @@ Next.js App Router + TypeScript strict + Tailwind + pnpm · Supabase (Postgres, 
 via @supabase/ssr · Cloudflare R2 via @aws-sdk/client-s3 · Vercel pdx1 (Supabase
 us-west-2) · GitHub Actions · lucide-react · Playwright. Visual: fundo #0f0f23→#16213e,
 laranja #ff6b35/#f7931e, logo "radio" branco + "On" laranja; flat, pouco texto, foco no play.
+**UI:** toda tarefa de UI usa a skill `impeccable` (.claude/skills/impeccable), sem rodar
+o launcher dela (bloqueado; usar o caminho "Launcher unavailable"). Ver UPSTREAM.md.
 ## Regras invioláveis
 1. Pontos, permissões e validação de escuta só no servidor.
 2. RLS habilitado em todas as tabelas, com policies.
