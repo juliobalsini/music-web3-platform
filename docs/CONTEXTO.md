@@ -45,9 +45,12 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
-**Pendência pré-lançamento (Julio):** rotacionar a secret key e a senha do banco
-do Supabase (foram expostas no chat do Claude Code) e atualizar Vercel, `.env.local`
-e o secret `SUPABASE_DB_URL`.
+**Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
+1. Rodar a skill `security-audit` da Cloudflare
+   (https://github.com/cloudflare/security-audit-skill) sobre o repositório.
+2. Na mesma sessão, rotacionar a secret key e a senha do banco do Supabase (foram
+   expostas no chat do Claude Code) e atualizar Vercel, `.env.local` e o secret
+   `SUPABASE_DB_URL`.
 
 ## Como o modo autônomo funciona
 

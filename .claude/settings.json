@@ -12,5 +12,10 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "deny": [
+      "Bash(*impeccable/scripts/impeccable*)"
+    ]
   }
 }
