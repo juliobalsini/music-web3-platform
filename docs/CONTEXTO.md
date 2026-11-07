@@ -16,8 +16,14 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 
 Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
 
-- [x] **a) Suíte E2E mínima (Playwright)** — concluído em 2026-11-07 (`e2e/`,
-  `playwright.config.ts`, `app/api/health/route.ts`). — home carrega, identidade visual
+- [x] **a) Suíte E2E mínima (Playwright)** — concluído em 2026-11-07 (PR #10:
+  `e2e/`, `playwright.config.ts`, `app/api/health/route.ts`). O #10 também corrigiu
+  o `gate.yml`: o status da prévia do projeto `radioon` tem contexto `Vercel` e
+  agora é identificado pelo `target_url` (`/juliobalsinis-projects/radioon/`).
+- [~] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — atualizado
+  com a main; gate verde, aguardando aprovação do Julio no ambiente `travas`
+  (`.claude/**`); alerta na issue #9. Agente: não refazer em outro PR; se o #11
+  já estiver mergeado, marcar `[x]` e fechar a issue #9; senão, seguir para o b). — home carrega, identidade visual
   (fundo, logo "radio"+"On" laranja, botão de play), rota `GET /api/health`
   (200, JSON `{ ok: true, commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null }`,
   dinâmica, sem tocar no banco — o gate usa `commit` para confirmar que a prévia
@@ -85,3 +91,7 @@ e o secret `SUPABASE_DB_URL`.
 ## Histórico de execuções
 
 - 2026-11-05 — configuração do modo autônomo (PR manual, única exceção às travas).
+- 2026-11-07 — sessão manual: o gate falhava por falta do script `e2e` e por buscar o
+  status `Vercel – radioon` (o real é `Vercel`). Suíte E2E + correção do gate no
+  #10 (mergeado). #8 fechado (branch longo demais para a URL da prévia) e
+  substituído pelo #11. Issue #7 (configuração inicial) fechada.
