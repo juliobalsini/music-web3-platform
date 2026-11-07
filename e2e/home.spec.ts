@@ -1,0 +1,35 @@
+import { expect, test } from "@playwright/test";
+
+test("home carrega com a identidade visual do radioOn", async ({ page }) => {
+  const resposta = await page.goto("/");
+  expect(resposta?.status()).toBe(200);
+  await expect(page).toHaveTitle("radioOn");
+
+  // Fundo em gradiente #0f0f23 → #16213e.
+  const fundo = await page.evaluate(
+    () => getComputedStyle(document.body).backgroundImage,
+  );
+  expect(fundo).toContain("rgb(15, 15, 35)");
+  expect(fundo).toContain("rgb(22, 33, 62)");
+
+  // Logo: "radio" branco + "On" laranja.
+  const radio = page.getByText("radio", { exact: true });
+  const on = page.getByText("On", { exact: true });
+  await expect(radio).toBeVisible();
+  await expect(on).toBeVisible();
+  await expect(radio).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(on).toHaveCSS("color", "rgb(255, 107, 53)");
+
+  // Botão de play em destaque.
+  await expect(page.getByTestId("play")).toBeVisible();
+});
+
+test("GET /api/health responde ok com o commit", async ({ request }) => {
+  const resposta = await request.get("/api/health");
+  expect(resposta.status()).toBe(200);
+  expect(resposta.headers()["content-type"]).toContain("application/json");
+  const corpo = await resposta.json();
+  expect(corpo.ok).toBe(true);
+  expect("commit" in corpo).toBe(true);
+  if (process.env.E2E_BASE_URL) expect(typeof corpo.commit).toBe("string");
+});

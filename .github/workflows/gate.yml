@@ -132,16 +132,17 @@ jobs:
           ESCOPO: ${{ vars.VERCEL_SCOPE || 'juliobalsinis-projects' }}
         run: |
           set -uo pipefail
-          # O projeto "radioon" publica só o commit status "Vercel – radioon"
-          # (os deployments do GitHub vêm do projeto antigo music-web3-platform).
-          contexto="Vercel – ${PROJETO}"
+          # O projeto "radioon" publica o commit status com contexto "Vercel"
+          # (o texto do contexto varia); identificá-lo pelo target_url, que
+          # contém "/<escopo>/<projeto>/". Status mais recente primeiro.
+          alvo="/${ESCOPO}/${PROJETO}/"
           estado=""
           for i in $(seq 1 60); do
             estado="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/statuses?per_page=100" \
-              --jq "[.[] | select(.context == \"${contexto}\")][0].state // empty")"
+              --jq "[.[] | select((.context | startswith(\"Vercel\")) and ((.target_url // \"\") | contains(\"${alvo}\")))][0].state // empty")"
             case "$estado" in
               success) break ;;
-              failure|error) echo "::error::Deploy de prévia ($contexto) falhou."; exit 1 ;;
+              failure|error) echo "::error::Deploy de prévia do projeto ${PROJETO} falhou."; exit 1 ;;
             esac
             sleep 20
           done
