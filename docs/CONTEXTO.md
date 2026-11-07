@@ -16,7 +16,8 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 
 Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
 
-- [ ] **a) Suíte E2E mínima (Playwright)** — home carrega, identidade visual
+- [x] **a) Suíte E2E mínima (Playwright)** — concluído em 2026-11-07 (`e2e/`,
+  `playwright.config.ts`, `app/api/health/route.ts`). — home carrega, identidade visual
   (fundo, logo "radio"+"On" laranja, botão de play), rota `GET /api/health`
   (200, JSON `{ ok: true, commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null }`,
   dinâmica, sem tocar no banco — o gate usa `commit` para confirmar que a prévia
