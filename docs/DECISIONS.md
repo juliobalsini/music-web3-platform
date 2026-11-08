@@ -89,3 +89,37 @@ Formato: data · decisão · motivo. Mais recente no fim.
     rede é o launcher `scripts/impeccable`, que baixa um binário do GitHub Releases.
     Ele fica negado em `.claude/settings.json` e a skill roda pelo caminho sem launcher
     (perde `live`/`hooks`/`pin`/`doctor`). Reversível: remover a regra de deny.
+
+## 2026-11-08 · Áudio no Backblaze B2 (substitui o Cloudflare R2)
+
+22. **Backblaze B2 no lugar do R2.** O R2 exige cartão cadastrado mesmo no plano
+    gratuito, o que contraria a regra 6 (nenhum serviço que exija plano pago) e expõe
+    a conta a cobrança. A conta B2 (e-mail do Julio) não tem cartão e tem os caps de
+    gasto em US$ 0: ao estourar a cota, o B2 bloqueia em vez de cobrar. Acesso pela
+    API S3-compatível com `@aws-sdk/client-s3`, então o código não fica preso ao
+    provedor. Variáveis genéricas `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`,
+    `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` (Vercel, só Production; só servidor).
+    A coluna `tracks.r2_key` mantém o nome (renomear seria migration destrutiva) e
+    passa a significar "chave do objeto no bucket".
+23. **Limites diários da conta gratuita** (zeram à meia-noite UTC):
+    - 10 GB de armazenamento total;
+    - 1 GB/dia de download (≈ 200 reproduções completas de uma faixa de 5 MB);
+    - 2.500 transações Class B/dia (download: `GetObject`, `HeadObject` — **cada
+      requisição com Range conta uma**);
+    - 2.500 transações Class C/dia (listagens e operações de bucket, ex. `ListObjects`);
+    - Class A (upload, `PutObject`, delete) é gratuita.
+    Ao atingir qualquer limite diário, o bucket recusa as requisições e **o streaming
+    para até o dia seguinte**. É o custo aceito de não ter cartão; reavaliar quando
+    houver público (B2 pago, ou CDN com cache na frente do bucket).
+24. **Player econômico em requisições:** `preload="none"`, nada de pré-carregar a
+    próxima faixa, um único `<audio>` reaproveitado, uma URL assinada por faixa
+    reusada até perto de expirar (pausa, retomada e seek não pedem URL nova), nenhum
+    HEAD/LIST no bucket (metadados vêm do banco) e no máximo 1 nova tentativa em erro
+    do bucket, com aviso de "limite diário atingido". Upload limitado a 25 MB por
+    arquivo, assinado com `ContentLength`, para preservar os 10 GB.
+25. **CORS do bucket** só para `https://radioon-ten.vercel.app` e
+    `http://localhost:3000`, operações `s3_put`, `s3_get`, `s3_head`, preflight em
+    cache por 1 dia. Aplicado por `scripts/b2-cors.mjs` (API nativa do B2, sem
+    dependência), que exige uma chave com `writeBuckets`; a chave do app não deve ter
+    essa capability. Prévias da Vercel ficam fora do CORS de propósito (não usam o
+    bucket de produção).
