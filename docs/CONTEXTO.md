@@ -45,8 +45,9 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   - Testes: unitários com mock do S3; E2E só com rotas públicas (prévias não têm
     as variáveis S3). Bucket de produção nunca é escrito por testes.
   - UI (upload e player) com a skill `impeccable`.
-  - **Pendente do Julio, não bloqueia o código:** aplicar o CORS do bucket
-    (`node --env-file=.env.local scripts/b2-cors.mjs`, chave com `writeBuckets`).
+  - **CORS aplicado em 2026-11-08** no bucket `radioon-audio` (allPrivate): regra
+    `radioon-s3`, `s3_put`/`s3_get`/`s3_head` para `https://radioon-ten.vercel.app` e
+    `http://localhost:3000`; preflight conferido (200 nessas origens, 403 em outra).
     Se o upload do navegador falhar por CORS em produção, registrar aqui e seguir.
 - [ ] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
   (troca de `role` só no servidor), RLS testado por perfil.
