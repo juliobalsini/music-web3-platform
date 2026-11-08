@@ -63,6 +63,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 2. Na mesma sessão, rotacionar a secret key e a senha do banco do Supabase (foram
    expostas no chat do Claude Code) e atualizar Vercel, `.env.local` e o secret
    `SUPABASE_DB_URL`.
+3. Rotacionar a application key do Backblaze B2 usada pelo app (exposta em conversa):
+   criar outra com escopo só no bucket `radioon-audio` (sem `writeBuckets`), atualizar
+   `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` na Vercel e apagar a antiga. Apagar também a
+   chave temporária de CORS (secrets do Codespaces `B2_TEMP_KEY_ID`/`B2_TEMP_APP_KEY`).
 
 ## Como o modo autônomo funciona
 
