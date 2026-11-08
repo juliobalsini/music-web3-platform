@@ -20,10 +20,10 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   `e2e/`, `playwright.config.ts`, `app/api/health/route.ts`). O #10 também corrigiu
   o `gate.yml`: o status da prévia do projeto `radioon` tem contexto `Vercel` e
   agora é identificado pelo `target_url` (`/juliobalsinis-projects/radioon/`).
-- [~] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — atualizado
+- [x] **a2) PR #11 — mergeado em 2026-11-07; issue #9 fechada.** (histórico: (hook de Notification só em `permission_prompt`)** — atualizado
   com a main; gate verde, aguardando aprovação do Julio no ambiente `travas`
   (`.claude/**`); alerta na issue #9. Agente: não refazer em outro PR; se o #11
-  já estiver mergeado, marcar `[x]` e fechar a issue #9; senão, seguir para o b). — home carrega, identidade visual
+  já estiver mergeado, marcar `[x]` e fechar a issue #9; senão, seguir para o b).) — home carrega, identidade visual
   (fundo, logo "radio"+"On" laranja, botão de play), rota `GET /api/health`
   (200, JSON `{ ok: true, commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null }`,
   dinâmica, sem tocar no banco — o gate usa `commit` para confirmar que a prévia
@@ -32,10 +32,11 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   `VERCEL_AUTOMATION_BYPASS_SECRET` existir, enviar os headers
   `x-vercel-protection-bypass` e `x-vercel-set-bypass-cookie: true`.
   **Sem ela, nada é mergeado** (o gate exige o script `e2e`).
-- [ ] **b) Ciclo 1 — R2 + upload de faixa + player real.** Depende das credenciais
+- [!] **b) Ciclo 1 — R2 + upload de faixa + player real.** Depende das credenciais
   R2 (não existem ainda). Se faltarem: abrir "⚠️ Ação necessária" com o passo a
   passo (criar bucket, token R2 com escopo só no bucket, cadastrar na Vercel como
   variáveis de servidor) e pular para o próximo item que não dependa delas.
+  **2026-11-08:** credenciais R2 ausentes; alerta aberto, item pulado (retomar quando existirem).
 - [ ] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
   (troca de `role` só no servidor), RLS testado por perfil.
 - [ ] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
