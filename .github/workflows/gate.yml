@@ -272,7 +272,13 @@ jobs:
   merge:
     needs: [travas, gate-ok]
     # Só PRs do próprio repositório, abertos pelo agente, fora de rascunho.
+    # `!cancelled()` é necessário: sem função de status, o GitHub aplica
+    # `success()` implícito sobre TODA a cadeia de needs, e `aprovacao` (pulado
+    # em PR sem arquivo protegido) fazia este job ser pulado sempre (#14, #16).
+    # O resultado real continua decidido por gate-ok e travas.
     if: >-
+      !cancelled() &&
+      needs.travas.result == 'success' &&
       needs.gate-ok.result == 'success' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login == (vars.AGENT_LOGIN || 'juliobalsini') &&
