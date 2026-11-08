@@ -52,8 +52,13 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   - **Pendente do Julio, não bloqueia o código:** aplicar o CORS do bucket
     (`node --env-file=.env.local scripts/b2-cors.mjs`, chave com `writeBuckets`).
     Se o upload do navegador falhar por CORS em produção, registrar aqui e seguir.
-- [ ] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
-  (troca de `role` só no servidor), RLS testado por perfil.
+- [x] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
+  (troca de `role` só no servidor), RLS testado por perfil. Concluído em 2026-11-08
+  (PR item-c-auth: `/login`, `/auth/callback`, `/onboarding`, `proxy.ts`, `lib/auth/roles.ts`).
+  Pendências: RLS testado só por análise estática da migration (sem credencial de banco
+  no agente); Julio deve conferir no Supabase Auth: Site URL e Redirect URLs com
+  `https://radioon-ten.vercel.app/auth/callback`, e o limite do e-mail embutido (gratuito).
+  `lib/auth.ts` virou `lib/session.ts`.
 - [ ] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
 - [ ] **e) Ciclo 4 — heartbeats de escuta**, validação no Postgres, `points_ledger`,
   painel de pontos.
