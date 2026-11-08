@@ -65,8 +65,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
    `SUPABASE_DB_URL`.
 3. Rotacionar a application key do Backblaze B2 usada pelo app (exposta em conversa):
    criar outra com escopo só no bucket `radioon-audio` (sem `writeBuckets`), atualizar
-   `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` na Vercel e apagar a antiga. Apagar também a
-   chave temporária de CORS (secrets do Codespaces `B2_TEMP_KEY_ID`/`B2_TEMP_APP_KEY`).
+   `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` na Vercel e apagar a antiga.
+4. Apagar os secrets do Codespaces `B2_TEMP_KEY_ID` e `B2_TEMP_APP_KEY` (guardam a
+   master key do Backblaze, usada em 2026-11-08 para aplicar o CORS) e gerar nova
+   master key no Backblaze (invalida a anterior).
 
 ## Como o modo autônomo funciona
 
@@ -118,3 +120,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Backblaze B2 (S3-compatível; variáveis `S3_*` na Vercel Production). Item b)
   liberado; PR #14 (marcava o b) como bloqueado por falta de R2) substituído; issue
   #15 obsoleta.
+- 2026-11-08 — CORS do bucket aplicado com a master key do B2 (conferido por
+  preflight). Gate corrigido no #17: o job `merge` era sempre pulado pelo `success()`
+  implícito sobre o `aprovacao` pulado; o próprio #17 foi mergeado pelo gate.
