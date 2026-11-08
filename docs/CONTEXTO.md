@@ -20,22 +20,34 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   `e2e/`, `playwright.config.ts`, `app/api/health/route.ts`). O #10 também corrigiu
   o `gate.yml`: o status da prévia do projeto `radioon` tem contexto `Vercel` e
   agora é identificado pelo `target_url` (`/juliobalsinis-projects/radioon/`).
-- [~] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — atualizado
-  com a main; gate verde, aguardando aprovação do Julio no ambiente `travas`
-  (`.claude/**`); alerta na issue #9. Agente: não refazer em outro PR; se o #11
-  já estiver mergeado, marcar `[x]` e fechar a issue #9; senão, seguir para o b). — home carrega, identidade visual
-  (fundo, logo "radio"+"On" laranja, botão de play), rota `GET /api/health`
-  (200, JSON `{ ok: true, commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null }`,
-  dinâmica, sem tocar no banco — o gate usa `commit` para confirmar que a prévia
-  é a do PR). Contrato com o gate: script
-  `pnpm e2e`; base em `E2E_BASE_URL` (padrão `http://localhost:3000`); se
-  `VERCEL_AUTOMATION_BYPASS_SECRET` existir, enviar os headers
-  `x-vercel-protection-bypass` e `x-vercel-set-bypass-cookie: true`.
-  **Sem ela, nada é mergeado** (o gate exige o script `e2e`).
-- [ ] **b) Ciclo 1 — R2 + upload de faixa + player real.** Depende das credenciais
-  R2 (não existem ainda). Se faltarem: abrir "⚠️ Ação necessária" com o passo a
-  passo (criar bucket, token R2 com escopo só no bucket, cadastrar na Vercel como
-  variáveis de servidor) e pular para o próximo item que não dependa delas.
+- [x] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — mergeado
+  em 2026-11-07; issue #9 fechada.
+- [ ] **b) Ciclo 1 — armazenamento S3 (Backblaze B2) + upload de faixa + player real.**
+  Liberado em 2026-11-08 (R2 trocado por B2; decisões 22–25 no DECISIONS.md).
+  Credenciais já na Vercel (**só Production**): `S3_ENDPOINT`, `S3_REGION`,
+  `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`. Escopo:
+  - `lib/storage/` (só servidor, `import "server-only"`): cliente
+    `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` com `forcePathStyle`,
+    `requestChecksumCalculation`/`responseChecksumValidation: "WHEN_REQUIRED"`
+    (o B2 não aceita os checksums padrão do SDK). Sem as variáveis (prévias,
+    testes), as rotas respondem 503 "armazenamento indisponível", sem quebrar a página.
+  - Upload: rota de servidor assina `PutObject` (10 min) com `ContentType` e
+    `ContentLength` fixos; aceita só áudio (`audio/mpeg`, `audio/mp4`, `audio/ogg`,
+    `audio/flac`) até 25 MB; exige `rights_confirmed`; chave `tracks/<artist_id>/<uuid>`;
+    upload direto do navegador ao bucket (não passa pela Vercel).
+  - Playback: rota de servidor assina `GetObject` (1 h) só para faixa `published`.
+  - **Player econômico (cota diária):** `<audio preload="none">`, sem pré-buscar a
+    próxima faixa; um único elemento `<audio>` reaproveitado; uma URL assinada por
+    faixa, guardada no cliente e reusada em pausa/retomada/seek até ~5 min antes de
+    expirar; nenhum HEAD/LIST no bucket (duração vem de `tracks.duration_sec`, chaves
+    vêm do banco); em 403/429 do bucket, mensagem curta "limite diário atingido" e no
+    máximo 1 nova tentativa (sem loop).
+  - Testes: unitários com mock do S3; E2E só com rotas públicas (prévias não têm
+    as variáveis S3). Bucket de produção nunca é escrito por testes.
+  - UI (upload e player) com a skill `impeccable`.
+  - **Pendente do Julio, não bloqueia o código:** aplicar o CORS do bucket
+    (`node --env-file=.env.local scripts/b2-cors.mjs`, chave com `writeBuckets`).
+    Se o upload do navegador falhar por CORS em produção, registrar aqui e seguir.
 - [ ] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
   (troca de `role` só no servidor), RLS testado por perfil.
 - [ ] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
@@ -81,8 +93,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   CREATE FUNCTION (sql/plpgsql, sem SECURITY DEFINER, corpo sem DDL/DELETE/EXECUTE)
   e CREATE TRIGGER, nunca `OR REPLACE`. GRANT/REVOKE e o resto → "⚠️ Ação
   necessária". `SUPABASE_DB_URL` só existe no ambiente `producao-db` (branch main).
-- **Testes sem cota:** prévias e testes nunca usam produção. R2 e serviços com
-  cota gratuita: mocks, ou prefixo isolado `test/` (bucket de produção nunca é
+- **Testes sem cota:** prévias e testes nunca usam produção. Bucket S3 (B2) e serviços
+  com cota gratuita: mocks, ou prefixo isolado `test/` (bucket de produção nunca é
   escrito por testes). E2E só lê páginas públicas e `/api/health`.
 - **Alertas:** `scripts/notify.sh` → `notify.yml` (github-actions[bot],
   "@juliobalsini" na 1ª linha); no máximo uma issue "⚠️ Ação necessária" por dia.
@@ -98,3 +110,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   status `Vercel – radioon` (o real é `Vercel`). Suíte E2E + correção do gate no
   #10 (mergeado). #8 fechado (branch longo demais para a URL da prévia) e
   substituído pelo #11. Issue #7 (configuração inicial) fechada.
+- 2026-11-08 — sessão manual: armazenamento de áudio trocado de Cloudflare R2 para
+  Backblaze B2 (S3-compatível; variáveis `S3_*` na Vercel Production). Item b)
+  liberado; PR #14 (marcava o b) como bloqueado por falta de R2) substituído; issue
+  #15 obsoleta.

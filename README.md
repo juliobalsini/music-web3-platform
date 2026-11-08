@@ -11,7 +11,7 @@ Streaming de música independente global. Entre e dê play.
 | App           | Next.js (App Router) · TypeScript strict · Tailwind CSS |
 | Pacotes       | pnpm (via corepack)                                     |
 | Dados / Auth  | Supabase (Postgres, Auth, RLS) via `@supabase/ssr`      |
-| Áudio         | Cloudflare R2 (URLs assinadas) via `@aws-sdk/client-s3` |
+| Áudio         | Backblaze B2 (S3, URLs assinadas) via `@aws-sdk/client-s3` |
 | Deploy        | Vercel — região `pdx1` (Supabase em `us-west-2`)        |
 | CI            | GitHub Actions (lint, typecheck, testes, build)         |
 | Ícones        | lucide-react                                            |
@@ -35,6 +35,11 @@ pnpm dev
 | `SUPABASE_SERVICE_ROLE_KEY`             | servidor  | ou `SUPABASE_SECRET_KEY` — nunca no browser  |
 | `SUPABASE_DB_PASSWORD`                  | CLI       | usada em `supabase link` / `db push`         |
 | `SUPABASE_PROJECT_REF`                  | CLI       |                                              |
+| `S3_ENDPOINT`                           | servidor  | ex.: `https://s3.us-west-004.backblazeb2.com` |
+| `S3_REGION`                             | servidor  | ex.: `us-west-004`                           |
+| `S3_ACCESS_KEY_ID`                      | servidor  | keyID da application key do B2               |
+| `S3_SECRET_ACCESS_KEY`                  | servidor  | applicationKey — nunca no browser            |
+| `S3_BUCKET`                             | servidor  | bucket privado de áudio                      |
 
 ## Scripts
 

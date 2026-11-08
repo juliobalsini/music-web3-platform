@@ -5,23 +5,24 @@ vem depois. MVP com 3 perfis: listener, artist, curator. Fora do MVP: gravadoras
 produtores, marcas, tokens on-chain, NFTs (ciclo 6 só quando o Julio liberar).
 ## Stack
 Next.js App Router + TypeScript strict + Tailwind + pnpm · Supabase (Postgres, Auth, RLS)
-via @supabase/ssr · Cloudflare R2 via @aws-sdk/client-s3 · Vercel pdx1 (Supabase
-us-west-2) · GitHub Actions · lucide-react · Playwright. Visual: fundo #0f0f23→#16213e,
+via @supabase/ssr · Backblaze B2 (S3-compatível) via @aws-sdk/client-s3 · Vercel pdx1
+(Supabase us-west-2) · GitHub Actions · lucide-react · Playwright. Visual: fundo #0f0f23→#16213e,
 laranja #ff6b35/#f7931e, logo "radio" branco + "On" laranja; flat, pouco texto, foco no play.
 **UI:** toda tarefa de UI usa a skill `impeccable` (.claude/skills/impeccable), sem rodar
 o launcher dela (bloqueado; usar o caminho "Launcher unavailable"). Ver UPSTREAM.md.
 ## Regras invioláveis
 1. Pontos, permissões e validação de escuta só no servidor.
 2. RLS habilitado em todas as tabelas, com policies.
-3. service_role e credenciais R2 só no servidor.
-4. Áudio só no R2, com URLs assinadas (upload 10 min, playback 1 h).
+3. service_role e credenciais S3 (S3_*) só no servidor.
+4. Áudio só no bucket S3 (B2), com URLs assinadas (upload 10 min, playback 1 h).
+   Cota grátis diária: o player economiza requisições (ver DECISIONS.md, 22).
 5. points_ledger é append-only.
 6. Nenhuma dependência ou serviço que exija plano pago.
 7. Schema só via migrations novas em supabase/migrations/.
 8. Nunca commitar .env* nem credenciais, nem imprimir valores de chaves.
 ## Modelo de dados e listen-to-earn (off-chain)
 profiles(id = auth.users.id, role enum[listener|artist|curator], display_name)
-tracks(id, artist_id, title, r2_key, duration_sec, isrc null,
+tracks(id, artist_id, title, r2_key (= chave no bucket), duration_sec, isrc null,
   status enum[processing|published|removed], rights_confirmed bool)
 playlists(id, curator_id, title, is_public) · playlist_tracks(playlist_id, track_id, position)
 listen_events(id, user_id, track_id, started_at, seconds_listened, is_valid)
