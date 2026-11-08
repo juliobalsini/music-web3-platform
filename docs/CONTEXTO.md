@@ -22,8 +22,12 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   agora é identificado pelo `target_url` (`/juliobalsinis-projects/radioon/`).
 - [x] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — mergeado
   em 2026-11-07; issue #9 fechada.
-- [ ] **b) Ciclo 1 — armazenamento S3 (Backblaze B2) + upload de faixa + player real.**
-  Liberado em 2026-11-08 (R2 trocado por B2; decisões 22–25 no DECISIONS.md).
+- [x] **b) Ciclo 1 — armazenamento S3 (Backblaze B2) + upload de faixa + player real.**
+  **Concluído em 2026-11-08** (PR item-b-storage-upload: `lib/storage/`, rotas
+  `/api/tracks/upload`, `/[id]/publish`, `/[id]/play`, `components/player.tsx`, `/enviar`).
+  Pendências: o `Player` ainda não está montado em nenhuma página (sem listagem de
+  faixas até o ciclo 3/5); upload exige login de artista (ciclo 2); CORS segue pendente
+  do Julio se não aplicado. Liberado em 2026-11-08 (R2 trocado por B2; decisões 22–25 no DECISIONS.md).
   Credenciais já na Vercel (**só Production**): `S3_ENDPOINT`, `S3_REGION`,
   `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`. Escopo:
   - `lib/storage/` (só servidor, `import "server-only"`): cliente
