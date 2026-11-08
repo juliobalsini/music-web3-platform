@@ -33,3 +33,10 @@ test("GET /api/health responde ok com o commit", async ({ request }) => {
   expect("commit" in corpo).toBe(true);
   if (process.env.E2E_BASE_URL) expect(typeof corpo.commit).toBe("string");
 });
+
+test("rotas de faixa sem armazenamento/sessão não quebram", async ({ request }) => {
+  const play = await request.get("/api/tracks/not-a-uuid/play");
+  expect(play.status()).toBe(404);
+  const up = await request.post("/api/tracks/upload", { data: {} });
+  expect([401, 503]).toContain(up.status());
+});
