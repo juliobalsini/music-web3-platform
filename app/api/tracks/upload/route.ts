@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { getSessionRole } from "@/lib/auth";
+import { getSessionRole } from "@/lib/session";
 import { isStorageConfigured, signUpload } from "@/lib/storage/client";
 import { parseUploadInput, trackKey } from "@/lib/storage/rules";
 import { createAdminClient } from "@/lib/supabase/admin";

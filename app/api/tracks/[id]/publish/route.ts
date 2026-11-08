@@ -1,4 +1,4 @@
-import { getSessionRole } from "@/lib/auth";
+import { getSessionRole } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const noStore = { "Cache-Control": "no-store" };

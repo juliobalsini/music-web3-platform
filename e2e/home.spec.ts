@@ -40,3 +40,11 @@ test("rotas de faixa sem armazenamento/sessão não quebram", async ({ request }
   const up = await request.post("/api/tracks/upload", { data: {} });
   expect([401, 503]).toContain(up.status());
 });
+
+test("página de login carrega e callback inválido volta ao login", async ({ page }) => {
+  const r = await page.goto("/login");
+  expect(r?.status()).toBe(200);
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await page.goto("/auth/callback");
+  await expect(page).toHaveURL(/\/login\?erro=1/);
+});
