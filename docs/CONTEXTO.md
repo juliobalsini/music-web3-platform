@@ -141,3 +141,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-08 — CORS do bucket aplicado com a master key do B2 (conferido por
   preflight). Gate corrigido no #17: o job `merge` era sempre pulado pelo `success()`
   implícito sobre o `aprovacao` pulado; o próprio #17 foi mergeado pelo gate.
+- 2026-11-09 — execução autônoma: itens d) (#24) e e) (#25) concluídos e em produção
+  (migration do ciclo 4 aplicada pelo `migracao.yml`). Item f) fica para a próxima
+  execução (usa a skill `impeccable` de forma completa). Julio: testar uma escuta real
+  logado e conferir `/pontos`.
