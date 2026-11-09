@@ -131,3 +131,9 @@ Formato: data · decisão · motivo. Mais recente no fim.
     quando o ciclo 4 existir. Escritas do curador usam o cliente do usuário (RLS),
     nunca service_role. UI seguiu os tokens existentes sem rodar a skill `impeccable`
     por inteiro (telas utilitárias); polimento fica para o ciclo 5.
+27. **Heartbeats** a cada 10 s; o servidor mede o tempo (intervalo <5 s ignorado, >20 s
+    zera a continuidade). Validação em plpgsql (`listen_beat`) sob lock por usuário.
+    Funções sem SECURITY DEFINER (allowlist) e com checagem do papel do JWT
+    (`service_role`); anon/authenticated também não têm privilégio nas tabelas.
+    Pausar encerra o evento. Limites: 3 válidas/faixa/dia, teto diário de pontos
+    (UTC), artista não pontua na própria faixa. Config via env, sem tabela nova.

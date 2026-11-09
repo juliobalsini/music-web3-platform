@@ -64,8 +64,13 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   ranking, `lib/playlists/`). Sem migration (schema/RLS do ciclo 0 bastaram). Pendências:
   RLS das escritas só por análise estática; ranking = nº de faixas (decisão 26); sem
   reordenar/ocultar playlist na UI ainda.
-- [ ] **e) Ciclo 4 — heartbeats de escuta**, validação no Postgres, `points_ledger`,
-  painel de pontos.
+- [x] **e) Ciclo 4 — heartbeats de escuta**, validação no Postgres, `points_ledger`,
+  painel de pontos. Concluído em 2026-11-09 (PR item-e-heartbeats: migration
+  `20261109000000` com `listen_start`/`listen_beat`, rotas `/api/listen/*`, `/pontos`,
+  heartbeat de 10 s no `Player`). Pendências: a lógica SQL não foi testada contra um
+  banco (agente sem credencial) — Julio deve fazer uma escuta real logado e conferir
+  `/pontos`; env opcionais `POINTS_PER_LISTEN` (10) e `POINTS_DAILY_LIMIT` (200);
+  `SUPABASE_SECRET_KEY` precisa existir na Vercel Production.
 - [ ] **f) Ciclo 5 — home "play primeiro" polida**, métricas básicas.
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.

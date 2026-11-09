@@ -1,7 +1,7 @@
 "use client";
 
 import { Pause, Play } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { createUrlCache } from "@/lib/player/url-cache";
 
@@ -23,6 +23,37 @@ export function Player({ trackId, title }: { trackId: string; title: string }) {
   const atual = useRef<string | null>(null);
   const tentou = useRef(false);
   const [estado, setEstado] = useState<Estado>("parado");
+  const evento = useRef<string | null>(null);
+  const logado = useRef(true);
+
+  // Heartbeat a cada 10 s só enquanto toca. O servidor mede o tempo e valida;
+  // aqui apenas avisamos. Sem login (401) ou erro: para em silêncio.
+  useEffect(() => {
+    if (estado !== "tocando" || !logado.current) return;
+    const post = (url: string, corpo: object) =>
+      fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+    const batida = async () => {
+      try {
+        if (!evento.current) {
+          const r = await post("/api/listen/start", { trackId });
+          if (r.status === 401) logado.current = false;
+          if (r.ok) evento.current = ((await r.json()) as { eventId: string }).eventId;
+          return;
+        }
+        const r = await post("/api/listen/beat", { eventId: evento.current });
+        if (r.status === 401) logado.current = false;
+        if (r.status === 404) evento.current = null;
+      } catch {
+        /* ignora: escuta não pontua, o áudio segue */
+      }
+    };
+    void batida();
+    const t = setInterval(() => void batida(), 10_000);
+    return () => {
+      clearInterval(t);
+      evento.current = null; // pausa encerra o evento: retomar abre outro (sem contar a pausa)
+    };
+  }, [estado, trackId]);
 
   async function tocar(forcar = false) {
     const el = audio.current;
@@ -87,7 +118,10 @@ export function Player({ trackId, title }: { trackId: string; title: string }) {
         preload="none"
         onPlay={() => setEstado("tocando")}
         onPause={() => setEstado((e) => (e === "tocando" ? "parado" : e))}
-        onEnded={() => setEstado("parado")}
+        onEnded={() => {
+          evento.current = null;
+          setEstado("parado");
+        }}
         onError={aoErrar}
       />
     </div>
