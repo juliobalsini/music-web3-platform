@@ -42,6 +42,11 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   exige o Julio → docs/reports/AAAA-MM-DD-<assunto>.md + `bash scripts/notify.sh report <arq>`.
   Entre relatórios, só mensagens curtas. Ao fim de cada execução: `bash scripts/painel.sh`.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
+- Fim de cada execução: fechar (`gh issue close`) as issues "Ação necessária" e "Relatório"
+  já resolvidas ou substituídas; deixar aberta só a do dia, se houver pendência real.
+- Erro do Supabase: (a) antes de abrir "Ação necessária", consultar status.supabase.com; com
+  incidente ativo, registrar no CONTEXTO.md e tentar na próxima execução, sem alertar;
+  (b) consultar o Supabase Knowledge Base antes de tentar soluções.
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);
   credenciais em arquivos versionados; aprovar ou contornar mudanças nas próprias travas.
