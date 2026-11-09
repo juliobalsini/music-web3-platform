@@ -123,3 +123,11 @@ Formato: data · decisão · motivo. Mais recente no fim.
     dependência), que exige uma chave com `writeBuckets`; a chave do app não deve ter
     essa capability. Prévias da Vercel ficam fora do CORS de propósito (não usam o
     bucket de produção).
+
+## 2026-11-09 · Playlists
+
+26. **Ranking de playlists** = nº de faixas (desempate: mais recente), só públicas e
+    não vazias, top 12 na home. Métrica simples e reversível; trocar por escutas
+    quando o ciclo 4 existir. Escritas do curador usam o cliente do usuário (RLS),
+    nunca service_role. UI seguiu os tokens existentes sem rodar a skill `impeccable`
+    por inteiro (telas utilitárias); polimento fica para o ciclo 5.

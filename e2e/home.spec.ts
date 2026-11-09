@@ -48,3 +48,10 @@ test("página de login carrega e callback inválido volta ao login", async ({ pa
   await page.goto("/auth/callback");
   await expect(page).toHaveURL(/\/login\?erro=1/);
 });
+
+test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => {
+  const r = await page.goto("/playlist/not-a-uuid");
+  expect(r?.status()).toBe(404);
+  await page.goto("/curador");
+  await expect(page).toHaveURL(/\/login/);
+});

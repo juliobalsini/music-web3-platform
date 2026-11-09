@@ -59,7 +59,11 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   no agente); Julio deve conferir no Supabase Auth: Site URL e Redirect URLs com
   `https://radioon-ten.vercel.app/auth/callback`, e o limite do e-mail embutido (gratuito).
   `lib/auth.ts` virou `lib/session.ts`.
-- [ ] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
+- [x] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
+  Concluído em 2026-11-09 (PR item-d-playlists: `/curador`, `/playlist/[id]`, home com
+  ranking, `lib/playlists/`). Sem migration (schema/RLS do ciclo 0 bastaram). Pendências:
+  RLS das escritas só por análise estática; ranking = nº de faixas (decisão 26); sem
+  reordenar/ocultar playlist na UI ainda.
 - [ ] **e) Ciclo 4 — heartbeats de escuta**, validação no Postgres, `points_ledger`,
   painel de pontos.
 - [ ] **f) Ciclo 5 — home "play primeiro" polida**, métricas básicas.
