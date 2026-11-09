@@ -20,8 +20,32 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   await expect(radio).toHaveCSS("color", "rgb(255, 255, 255)");
   await expect(on).toHaveCSS("color", "rgb(255, 107, 53)");
 
-  // Botão de play em destaque.
-  await expect(page.getByTestId("play")).toBeVisible();
+  // Play em destaque: botão (com faixas) ou marca inerte (sem faixas).
+  await expect(page.getByTestId("play").or(page.getByTestId("play-vazio"))).toBeVisible();
+});
+
+test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Principal" });
+  await expect(nav.getByRole("link", { name: "Entrar" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
+  await nav.getByRole("link", { name: "Entrar" }).click();
+  await expect(page).toHaveURL(/\/login/);
+  // Fora da home, o logo pequeno volta ao início.
+  await page.getByRole("link", { name: "radioOn, início" }).click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("estado vazio: play inerte e convite ao artista (quando não há faixas)", async ({ page }) => {
+  await page.goto("/");
+  const vazio = page.getByTestId("play-vazio");
+  test.skip(!(await vazio.isVisible()), "há faixas publicadas neste ambiente");
+  await expect(page.getByRole("button")).toHaveCount(0);
+  await expect(vazio).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
+  await page.getByRole("link", { name: "Enviar primeira faixa" }).click();
+  // Deslogado, /enviar leva ao login.
+  await expect(page).toHaveURL(/\/login/);
 });
 
 test("GET /api/health responde ok com o commit", async ({ request }) => {
@@ -54,5 +78,11 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   // Página em streaming: o status já saiu 200; o 404 aparece no conteúdo.
   await expect(page.getByText(/could not be found|404/i).first()).toBeVisible();
   await page.goto("/curador");
+  await expect(page).toHaveURL(/\/login/);
+  await page.goto("/enviar");
+  await expect(page).toHaveURL(/\/login/);
+  await page.goto("/metricas");
+  await expect(page).toHaveURL(/\/login/);
+  await page.goto("/pontos");
   await expect(page).toHaveURL(/\/login/);
 });
