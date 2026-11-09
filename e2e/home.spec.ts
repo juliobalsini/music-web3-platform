@@ -21,7 +21,7 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   await expect(on).toHaveCSS("color", "rgb(255, 107, 53)");
 
   // Play em destaque: botão (com faixas) ou marca inerte (sem faixas).
-  await expect(page.getByTestId("play").or(page.getByTestId("play-vazio"))).toBeVisible();
+  await expect(page.locator("[data-testid=play]:visible, [data-testid=play-vazio]:visible").first()).toBeVisible();
 });
 
 test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
@@ -38,8 +38,8 @@ test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
 
 test("estado vazio: play inerte e convite ao artista (quando não há faixas)", async ({ page }) => {
   await page.goto("/");
-  const vazio = page.getByTestId("play-vazio");
-  test.skip(!(await vazio.isVisible()), "há faixas publicadas neste ambiente");
+  const vazio = page.locator("[data-testid=play-vazio]:visible");
+  test.skip(!(await vazio.first().isVisible()), "há faixas publicadas neste ambiente");
   await expect(page.getByRole("button")).toHaveCount(0);
   await expect(vazio).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
