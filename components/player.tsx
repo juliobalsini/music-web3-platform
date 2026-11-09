@@ -18,7 +18,7 @@ const cache = createUrlCache(async (id) => {
  * Player econômico: um único <audio> com preload="none", sem pré-busca,
  * URL assinada reaproveitada e no máx. 1 nova tentativa em erro do bucket.
  */
-export function Player({ trackId, title }: { trackId: string; title: string }) {
+export function Player({ trackId, title, grande = false }: { trackId: string; title: string; grande?: boolean }) {
   const audio = useRef<HTMLAudioElement>(null);
   const atual = useRef<string | null>(null);
   const tentou = useRef(false);
@@ -90,21 +90,22 @@ export function Player({ trackId, title }: { trackId: string; title: string }) {
 
   const tocando = estado === "tocando";
   return (
-    <div className="flex items-center gap-4">
+    <div className={grande ? "flex flex-col items-center gap-5" : "flex items-center gap-4"}>
       <button
         type="button"
         onClick={alternar}
         aria-label={tocando ? `Pausar ${title}` : `Tocar ${title}`}
-        className="flex size-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#ff6b35] transition-transform duration-200 ease-out hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+        data-testid={grande ? "play" : undefined}
+        className={`flex ${grande ? "size-28" : "size-14"} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#ff6b35] transition-transform duration-200 ease-out hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60`}
         disabled={estado === "carregando"}
       >
         {tocando ? (
-          <Pause className="size-6 fill-white text-white" strokeWidth={0} />
+          <Pause className={`${grande ? "size-12" : "size-6"} fill-white text-white`} strokeWidth={0} />
         ) : (
-          <Play className="ml-0.5 size-6 fill-white text-white" strokeWidth={0} />
+          <Play className={`ml-0.5 ${grande ? "size-12" : "size-6"} fill-white text-white`} strokeWidth={0} />
         )}
       </button>
-      <div className="min-w-0 text-left">
+      <div className={grande ? "min-w-0 text-center" : "min-w-0 text-left"}>
         <p className="truncate font-medium">{title}</p>
         {estado === "limite" && (
           <p role="status" className="text-sm text-brand-2">limite diário atingido</p>

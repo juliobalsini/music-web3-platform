@@ -137,3 +137,11 @@ Formato: data · decisão · motivo. Mais recente no fim.
     (`service_role`); anon/authenticated também não têm privilégio nas tabelas.
     Pausar encerra o evento. Limites: 3 válidas/faixa/dia, teto diário de pontos
     (UTC), artista não pontua na própria faixa. Config via env, sem tabela nova.
+
+## 2026-11-09 · Home e métricas
+
+28. **Home "play primeiro":** o botão grande é o `Player` real da faixa publicada mais recente
+    (sem faixas, play inativo + "Nenhuma faixa ainda"). Sem pré-carga (decisão 24 mantida).
+29. **Métricas básicas** só para o artista, em `/metricas`: escutas válidas e ouvintes únicos
+    por faixa, agregados no servidor (service_role restrito às faixas da sessão). Sem tabela
+    nova nem métricas públicas; reversível.
