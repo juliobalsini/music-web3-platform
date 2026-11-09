@@ -78,6 +78,13 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   faixas do próprio artista) e ainda não tem link na UI; skill `impeccable` seguiu o caminho
   "Launcher unavailable", sem PRODUCT.md/DESIGN.md (não existem).
 
+- [x] **g) Home/navegação (pedido do Julio, teste real em produção)** — cabeçalho com
+  Entrar (deslogado) e, logado, Enviar música/Métricas (artista), Playlists (curador),
+  Escolher perfil (sem perfil) e Pontos; estado vazio com convite ao artista e play inerte;
+  `/enviar` agora redireciona (login/onboarding). E2E do estado vazio e da navegação.
+  Concluído em 2026-11-09 (branch item-g-cabecalho-vazio). Obs.: E2E local de redirects
+  exige `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` (podem ser fictícias).
+
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 **Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
