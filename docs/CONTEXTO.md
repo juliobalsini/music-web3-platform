@@ -71,7 +71,12 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   banco (agente sem credencial) — Julio deve fazer uma escuta real logado e conferir
   `/pontos`; env opcionais `POINTS_PER_LISTEN` (10) e `POINTS_DAILY_LIMIT` (200);
   `SUPABASE_SECRET_KEY` precisa existir na Vercel Production.
-- [ ] **f) Ciclo 5 — home "play primeiro" polida**, métricas básicas.
+- [x] **f) Ciclo 5 — home "play primeiro" polida**, métricas básicas. Concluído em 2026-11-09
+  (PR item-f-home: home com `Player` grande na faixa mais recente + lista de faixas,
+  `/metricas` para artistas, `lib/tracks/`). Sem migration. Pendências: sem faixas
+  publicadas a home mostra o play inativo; `/metricas` usa service_role (só lê escutas das
+  faixas do próprio artista) e ainda não tem link na UI; skill `impeccable` seguiu o caminho
+  "Launcher unavailable", sem PRODUCT.md/DESIGN.md (não existem).
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
@@ -145,3 +150,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (migration do ciclo 4 aplicada pelo `migracao.yml`). Item f) fica para a próxima
   execução (usa a skill `impeccable` de forma completa). Julio: testar uma escuta real
   logado e conferir `/pontos`.
+- 2026-11-09 (2ª execução) — issues #18 e #20 fechadas a pedido do Julio; CLAUDE.md ganhou as
+  regras de fechar issues resolvidas ao fim da execução e de checar status.supabase.com /
+  Knowledge Base em erros do Supabase (PR #27); ciclo 5 (item f) concluído.
