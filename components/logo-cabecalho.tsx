@@ -9,7 +9,7 @@ import { Logo } from "@/components/logo";
 export function LogoCabecalho() {
   if (usePathname() === "/") return <span />;
   return (
-    <Link href="/" aria-label="radioOn, início" className="rounded text-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand">
+    <Link href="/" aria-label="radioOn, início" className="rounded text-xl">
       <Logo />
     </Link>
   );

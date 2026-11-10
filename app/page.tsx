@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { Logo } from "@/components/logo";
 import { Player } from "@/components/player";
+import { botao } from "@/components/ui";
 import { listarPlaylistsPublicas } from "@/lib/playlists/queries";
 import { listarFaixasRecentes } from "@/lib/tracks/queries";
 
@@ -12,12 +13,13 @@ async function Playlists() {
   if (lista.length === 0) return null;
   return (
     <nav aria-label="Playlists" className="w-full max-w-md">
+      <h2 className="mb-3 text-left text-lg font-semibold">Playlists</h2>
       <ul className="flex flex-col gap-2 text-left">
         {lista.map((p) => (
           <li key={p.id}>
-            <Link href={`/playlist/${p.id}`} className="flex items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-3 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-brand">
+            <Link href={`/playlist/${p.id}`} className="flex items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-3 transition-colors hover:bg-white/15">
               <span className="truncate font-medium">{p.title}</span>
-              <span className="shrink-0 text-sm text-white/60">{p.trackCount}</span>
+              <span className="shrink-0 text-sm text-white/70 tabular-nums">{p.trackCount} faixas</span>
             </Link>
           </li>
         ))}
@@ -51,7 +53,7 @@ function EstadoVazio() {
       </div>
       <Link
         href="/enviar"
-        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 py-3 font-semibold text-night-900 transition-transform duration-200 ease-out hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className={botao}
       >
         <Upload className="size-5" aria-hidden="true" /> Enviar primeira faixa
       </Link>
@@ -81,7 +83,7 @@ async function Destaque() {
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16 text-center">
+    <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10 text-center sm:py-16">
       <Logo className="text-5xl sm:text-7xl" />
       <h1 className="sr-only">radioOn</h1>
 

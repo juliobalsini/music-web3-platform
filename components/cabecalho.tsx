@@ -16,7 +16,7 @@ const icones = {
 } as const;
 
 const base =
-  "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  "foco-claro inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold";
 
 async function Menu() {
   let sessao: Awaited<ReturnType<typeof getSessionRole>> = null;
