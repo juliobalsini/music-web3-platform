@@ -129,7 +129,7 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
 
 ### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
 
-Fila vazia em 2026-11-10; itens **propostos**, só executar após "aprovado" do Julio na issue do
+Itens k–n concluídos em 2026-11-10 (relatório `2026-11-10-fase-descoberta.md`); restam os **propostos**, só executar após "aprovado" do Julio na issue do
 relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem credencial nova.
 
 - [x] **k) Busca de faixas e playlists** (título/artista/curador) — concluído em 2026-11-10 (PR item-k-busca): campo na Rádio e em `/explorar?q=` (GET, sem JS), filtro em memória sem acento (`buscar` em `lib/radio/rules.ts`). Sem migration. Limite: busca só no catálogo já carregado pela Rádio.
