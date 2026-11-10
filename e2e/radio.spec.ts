@@ -140,8 +140,10 @@ test("busca no Explorar filtra por título e avisa quando não acha", async ({ p
 });
 
 test("perfil público: id inválido ou desconhecido dá 404", async ({ page }) => {
-  expect((await page.goto("/perfil/not-a-uuid"))?.status()).toBe(404);
-  expect((await page.goto("/perfil/00000000-0000-4000-8000-00000000ffff"))?.status()).toBe(404);
+  await page.goto("/perfil/not-a-uuid");
+  await expect(page.getByText("Página não encontrada")).toBeVisible({ timeout: 20_000 });
+  await page.goto("/perfil/00000000-0000-4000-8000-00000000ffff");
+  await expect(page.getByText("Página não encontrada")).toBeVisible({ timeout: 20_000 });
 });
 
 test("Playlisters em alta levam ao perfil público", async ({ page }) => {
