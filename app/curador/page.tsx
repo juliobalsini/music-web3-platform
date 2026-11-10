@@ -1,4 +1,4 @@
-import { Check, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Eye, EyeOff, Plus, Star, X } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -7,7 +7,7 @@ import { botao, campo, Mensagem, Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
-import { adicionarFaixa, criarPlaylist, criarPrograma, removerFaixa, removerPrograma, salvarNota } from "./actions";
+import { adicionarFaixa, alternarMarca, criarPlaylist, moverFaixa, criarPrograma, removerFaixa, removerPrograma, salvarNota } from "./actions";
 
 export const metadata = { title: "Minhas playlists · radioOn" };
 
@@ -18,11 +18,23 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
   const { erro } = await searchParams;
   const { supabase, userId } = sessao;
 
-  const { data: playlists, error: erroLista } = await supabase
+  type Item = { position: number; note: string | null; hidden?: boolean | null; featured?: boolean | null; tracks: { id: string; title: string } | { id: string; title: string }[] | null };
+  type Lista = { id: string; title: string; playlist_tracks: Item[] };
+  // Colunas hidden/featured vêm de migration nova: sem elas (ainda não aplicada) cai para a leitura antiga.
+  let lido: { data: unknown; error: unknown } = await supabase
     .from("playlists")
-    .select("id,title,playlist_tracks(position,note,tracks(id,title))")
+    .select("id,title,playlist_tracks(position,note,hidden,featured,tracks(id,title))")
     .eq("curator_id", userId)
     .order("created_at", { ascending: false });
+  if (lido.error) {
+    lido = await supabase
+      .from("playlists")
+      .select("id,title,playlist_tracks(position,note,tracks(id,title))")
+      .eq("curator_id", userId)
+      .order("created_at", { ascending: false });
+  }
+  const erroLista = lido.error;
+  const playlists = lido.data as unknown as Lista[] | null;
   const { data: publicadas } = await supabase
     .from("tracks")
     .select("id,title")
@@ -57,13 +69,41 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
               <Link href={`/playlist/${p.id}`} className="rounded text-lg font-semibold hover:text-brand-2">{p.title}</Link>
               {itens.length === 0 && <p className="text-sm text-white/70">Playlist vazia. Adicione faixas abaixo.</p>}
               <ul className="flex flex-col gap-1">
-                {itens.map((i) => {
+                {itens.map((i, pos) => {
                   const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
                   if (!t) return null;
+                  const oculta = !!i.hidden;
+                  const destaque = !!i.featured;
+                  const acao = "flex size-11 shrink-0 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-30";
+                  const marca = (campo: "hidden" | "featured", ligado: boolean, rotulo: string, Icone: typeof Star) => (
+                    <form action={alternarMarca}>
+                      <input type="hidden" name="playlist" value={p.id} />
+                      <input type="hidden" name="faixa" value={t.id} />
+                      <input type="hidden" name="campo" value={campo} />
+                      <input type="hidden" name="valor" value={ligado ? "0" : "1"} />
+                      <button aria-label={`${rotulo} ${t.title}`} aria-pressed={ligado} className={`${acao} ${ligado ? "text-brand" : ""}`}>
+                        <Icone className="size-4" aria-hidden="true" />
+                      </button>
+                    </form>
+                  );
+                  const mover = (dir: "up" | "down", rotulo: string, Icone: typeof ArrowUp, desligado: boolean) => (
+                    <form action={moverFaixa}>
+                      <input type="hidden" name="playlist" value={p.id} />
+                      <input type="hidden" name="faixa" value={t.id} />
+                      <input type="hidden" name="dir" value={dir} />
+                      <button disabled={desligado} aria-label={`${rotulo} ${t.title}`} className={acao}>
+                        <Icone className="size-4" aria-hidden="true" />
+                      </button>
+                    </form>
+                  );
                   return (
                     <li key={t.id} className="flex flex-col gap-1 pl-1 text-white/80">
                      <div className="flex items-center justify-between gap-2">
-                      <span className="truncate">{t.title}</span>
+                      <span className={`min-w-0 flex-1 truncate ${oculta ? "text-white/50 line-through" : ""}`}>{t.title}{oculta && <span className="sr-only"> (oculta)</span>}</span>
+                      {mover("up", "Subir", ArrowUp, pos === 0)}
+                      {mover("down", "Descer", ArrowDown, pos === itens.length - 1)}
+                      {marca("featured", destaque, destaque ? "Tirar destaque de" : "Destacar", Star)}
+                      {marca("hidden", oculta, oculta ? "Mostrar" : "Ocultar", oculta ? EyeOff : Eye)}
                       <form action={removerFaixa}>
                         <input type="hidden" name="playlist" value={p.id} />
                         <input type="hidden" name="faixa" value={t.id} />

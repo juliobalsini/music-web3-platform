@@ -26,7 +26,7 @@ export async function listarPlaylistsPublicas(limite = 12): Promise<PlaylistResu
   }
 }
 
-export type FaixaDaPlaylist = { id: string; note: string | null };
+export type FaixaDaPlaylist = { id: string; note: string | null; featured: boolean };
 
 export async function obterPlaylist(id: string) {
   try {
@@ -37,15 +37,27 @@ export async function obterPlaylist(id: string) {
       .eq("id", id)
       .maybeSingle();
     if (!p) return null;
-    const { data: itens } = await supabase
+    // hidden/featured vêm de migration nova: sem elas cai para a leitura antiga.
+    let lidos: { data: unknown; error: unknown } = await supabase
       .from("playlist_tracks")
-      .select("position,note,tracks(id,title,status)")
+      .select("position,note,hidden,featured,tracks(id,title,status)")
       .eq("playlist_id", id)
       .order("position");
+    if (lidos.error) {
+      lidos = await supabase
+        .from("playlist_tracks")
+        .select("position,note,tracks(id,title,status)")
+        .eq("playlist_id", id)
+        .order("position");
+    }
     const faixas: FaixaDaPlaylist[] = [];
-    for (const i of itens ?? []) {
+    for (const i of (lidos.data ?? []) as unknown as {
+      note: string | null; hidden?: boolean | null; featured?: boolean | null;
+      tracks: { id: string; status: string } | { id: string; status: string }[] | null;
+    }[]) {
+      if (i.hidden) continue;
       const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
-      if (t && t.status === "published") faixas.push({ id: t.id as string, note: (i.note as string | null) ?? null });
+      if (t && t.status === "published") faixas.push({ id: t.id, note: i.note ?? null, featured: !!i.featured });
     }
     const prof = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
     return { id: p.id as string, title: p.title as string, curator: (prof?.display_name as string | null) ?? null, curatorId: p.curator_id as string, faixas };

@@ -17,12 +17,14 @@ async function Conteudo({ params }: Pick<PageProps<"/playlist/[id]">, "params">)
   const radio = await carregarRadio();
   const porId = new Map(radio.faixas.map((f) => [f.id, f]));
   // A nota mostrada é a do curador desta playlist.
-  const faixas = playlist.faixas
+  const todas = playlist.faixas
     .map((i) => {
       const f = porId.get(i.id);
-      return f ? ({ ...f, note: i.note, playlister: playlist.curator } satisfies FaixaListada) : null;
+      return f ? { faixa: { ...f, note: i.note, playlister: playlist.curator } satisfies FaixaListada, destaque: i.featured } : null;
     })
-    .filter((f): f is FaixaListada => !!f);
+    .filter((f): f is { faixa: FaixaListada; destaque: boolean } => !!f);
+  const faixas = todas.map((x) => x.faixa);
+  const destaques = todas.filter((x) => x.destaque).map((x) => x.faixa);
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -32,7 +34,15 @@ async function Conteudo({ params }: Pick<PageProps<"/playlist/[id]">, "params">)
       {faixas.length === 0 ? (
         <p className="text-white/70 text-pretty">Esta playlist ainda não tem faixas. Volte em breve.</p>
       ) : (
-        <ListaFaixas rotulo="Faixas da playlist" faixas={faixas} />
+        <>
+          {destaques.length > 0 && (
+            <section aria-label="Em destaque" className="flex flex-col gap-1">
+              <h2 className="text-lg font-bold">Em destaque</h2>
+              <ListaFaixas rotulo="Faixas em destaque" faixas={destaques} />
+            </section>
+          )}
+          <ListaFaixas rotulo="Faixas da playlist" faixas={faixas} />
+        </>
       )}
     </>
   );

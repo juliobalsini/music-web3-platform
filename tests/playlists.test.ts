@@ -21,3 +21,18 @@ describe("playlists", () => {
     assert.deepEqual(r.map((x) => x.id), ["b", "c", "a"]);
   });
 });
+
+import { trocarPosicao } from "../lib/playlists/rules.ts";
+
+describe("trocarPosicao", () => {
+  const itens = [{ trackId: "a", position: 0 }, { trackId: "b", position: 1 }, { trackId: "c", position: 4 }];
+  it("troca com a vizinha", () => {
+    assert.deepEqual(trocarPosicao(itens, "b", "down"), [{ trackId: "b", position: 4 }, { trackId: "c", position: 1 }]);
+    assert.deepEqual(trocarPosicao(itens, "b", "up"), [{ trackId: "b", position: 0 }, { trackId: "a", position: 1 }]);
+  });
+  it("não move além das pontas nem faixa inexistente", () => {
+    assert.equal(trocarPosicao(itens, "a", "up"), null);
+    assert.equal(trocarPosicao(itens, "c", "down"), null);
+    assert.equal(trocarPosicao(itens, "x", "up"), null);
+  });
+});

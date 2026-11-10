@@ -61,7 +61,7 @@ type LinhaTrack = {
 };
 type LinhaPlaylist = {
   id: string; title: string; curator_id: string; created_at: string;
-  playlist_tracks: { track_id: string; note?: string | null; position: number }[];
+  playlist_tracks: { track_id: string; note?: string | null; position: number; hidden?: boolean | null; featured?: boolean | null }[];
 };
 type LinhaPrograma = { id: string; title: string; start_hour: number; end_hour: number; playlist_id: string; curator_id: string };
 
@@ -128,11 +128,15 @@ async function lerNomes(supabase: Cliente, ids: string[]): Promise<Map<string, s
 
 async function lerPlaylists(supabase: Cliente): Promise<LinhaPlaylist[]> {
   for (const colunas of [
+    "id,title,curator_id,created_at,playlist_tracks(track_id,note,position,hidden,featured)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,position)",
   ]) {
     const { data, error } = await supabase.from("playlists").select(colunas).eq("is_public", true).order("created_at", { ascending: false }).limit(100);
-    if (!error) return (data ?? []) as unknown as LinhaPlaylist[];
+    // Faixas ocultas pelo curador não entram em contagens, notas nem na fila "No ar".
+    if (!error) {
+      return ((data ?? []) as unknown as LinhaPlaylist[]).map((p) => ({ ...p, playlist_tracks: p.playlist_tracks.filter((i) => !i.hidden) }));
+    }
     console.error("[radio] playlists:", error.message);
   }
   return [];
