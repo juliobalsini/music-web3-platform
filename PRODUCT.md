@@ -52,8 +52,9 @@ faixa em segundos, volta, e eventualmente envia música ou cura uma playlist.
 
 ## Brand Commitments
 
-- Logo: "radio" em branco + "On" em laranja (`#ff6b35`).
-- Fundo em gradiente `#0f0f23` → `#16213e`; laranja `#ff6b35` / `#f7931e`.
+- Logo: gramofone do cartão da marca (`public/brand/`), "radio" branco + "On" âmbar.
+- Fundo marinho `#00112A`; destaque âmbar `#E89A3C` (texto sobre âmbar sempre marinho).
+- Frase: "Música para os melhores ouvintes."
 - Estilo flat, pouco texto, foco no play. (Detalhes visuais em DESIGN.md.)
 
 ## Evidence on Hand

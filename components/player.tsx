@@ -96,7 +96,7 @@ export function Player({ trackId, title, grande = false }: { trackId: string; ti
         onClick={alternar}
         aria-label={tocando ? `Pausar ${title}` : `Tocar ${title}`}
         data-testid={grande ? "play" : undefined}
-        className={`flex ${grande ? "size-28" : "size-14"} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#ff6b35] transition-transform duration-200 ease-out hover:scale-105 foco-claro disabled:opacity-60`}
+        className={`flex ${grande ? "size-28" : "size-14"} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#e89a3c] transition-transform duration-200 ease-out hover:scale-105 foco-claro disabled:opacity-60`}
         disabled={estado === "carregando"}
       >
         {tocando ? (

@@ -1,16 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/logo";
 
-/** Logo pequeno que leva à home. Na própria home o logo grande já está na página. */
+/** Logo pequeno no cabeçalho; leva à Rádio. */
 export function LogoCabecalho() {
-  if (usePathname() === "/") return <span />;
   return (
-    <Link href="/" aria-label="radioOn, início" className="rounded text-xl">
-      <Logo />
+    <Link href="/" aria-label="radioOn, início" className="inline-flex min-h-11 items-center rounded">
+      <Logo className="h-10" />
     </Link>
   );
 }

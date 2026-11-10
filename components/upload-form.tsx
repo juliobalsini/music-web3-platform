@@ -68,7 +68,7 @@ export function UploadForm() {
         className={campo}
       />
       <label className="flex min-h-11 items-center gap-3 text-white/80">
-        <input name="direitos" type="checkbox" required className="size-5 accent-[#ff6b35]" />
+        <input name="direitos" type="checkbox" required className="size-5 accent-[#e89a3c]" />
         Tenho os direitos desta faixa
       </label>
       <button type="submit" disabled={enviando} className={botao}>

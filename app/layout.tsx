@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import { Abertura } from "@/components/abertura";
 import { Cabecalho } from "@/components/cabecalho";
 
 const geistSans = Geist({
@@ -16,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "radioOn",
-  description: "Streaming de música independente. Dê play.",
+  description: "Música para os melhores ouvintes.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f0f23",
+  themeColor: "#00112a",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
+        <Abertura />
         <Cabecalho />
         {children}
       </body>

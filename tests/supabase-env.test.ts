@@ -41,3 +41,19 @@ describe("lib/supabase/env", () => {
     assert.throws(() => getSupabasePublicKey(), /ANON_KEY/);
   });
 });
+
+describe("lib/env limpar", () => {
+  it("aparta espaços e quebras de linha; vazio vira undefined", async () => {
+    const { limpar } = await import("../lib/env.ts");
+    assert.equal(limpar("  abc\n"), "abc");
+    assert.equal(limpar("   "), undefined);
+    assert.equal(limpar(undefined), undefined);
+  });
+
+  it("URL e chave do Supabase vêm sem espaços", () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = " https://x.supabase.co\n";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "  sb_publishable_x ";
+    assert.equal(getSupabaseUrl(), "https://x.supabase.co");
+    assert.equal(getSupabasePublicKey(), "sb_publishable_x");
+  });
+});
