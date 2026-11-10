@@ -41,6 +41,15 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 - Relatórios só: fim da execução (consolidado), entrega grande em produção, bloqueio que
   exige o Julio → docs/reports/AAAA-MM-DD-<assunto>.md + `bash scripts/notify.sh report <arq>`.
   Entre relatórios, só mensagens curtas. Ao fim de cada execução: `bash scripts/painel.sh`.
+## Autoplanejamento
+- Ao iniciar cada execução, ler os comentários do Julio nas issues de relatório abertas
+  (`gh api repos/{owner}/{repo}/issues/<n>/comments`) para colher aprovações.
+- Quando a fila do CONTEXTO.md acabar, propor a próxima fase (até 5 itens) com base em
+  docs/PLANO.md, registrando-a no CONTEXTO.md como "proposto" e no relatório.
+- Itens de qualidade (bugs, testes, acessibilidade, desempenho, UI, textos) são executados direto.
+- Funcionalidade nova ou mudança de escopo ficam "proposto" até o comentário "aprovado" do Julio
+  na issue do relatório (aceitar "aprovado g, h" ou "recusado j"). Sem aprovação, não executar.
+- Nunca propor: serviço pago, credencial nova, mudança de provedor, nada do Ciclo 6.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);

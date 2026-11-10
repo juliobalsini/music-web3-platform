@@ -155,3 +155,10 @@ Formato: data · decisão · motivo. Mais recente no fim.
 31. **Destino pós-login em cookie**, não em query do `emailRedirectTo`: evita depender da
     allowlist de Redirect URLs do Supabase (pendência do Julio) e mantém `safeNext` contra
     open redirect. Reversível; sem migration.
+
+## 2026-11-10 · Autoplanejamento
+
+32. **Autoplanejamento:** `docs/PLANO.md` é a fonte do roadmap. Fila vazia → propor até 5 itens;
+    qualidade direto, funcionalidade nova só com "aprovado" do Julio na issue do relatório.
+    A regra fica no `CLAUDE.md` fora da seção de travas (que não foi alterada). Itens da fase
+    proposta levam as letras k–o.
