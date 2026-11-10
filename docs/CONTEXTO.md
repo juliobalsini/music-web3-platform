@@ -123,7 +123,7 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
 ### Instrução prioritária do Julio (2026-11-10, teste real no celular)
 
 - [x] **p0) Bug das faixas / dados de demo / fidelidade ao protótipo / envio no celular / login / PWA**
-  — PR item-p0-radio-faixas; ver DECISIONS 41–45 e `docs/reports/2026-11-10-correcoes-celular.md`.
+  — PR #47, em produção (commit 265268d) em 2026-11-10; ver DECISIONS 41–45 e `docs/reports/2026-11-10-correcoes-celular.md`.
   Pendências: confirmar em produção com faixa real; criar a credencial Google (passo a passo no
   relatório); Explorar do protótipo (busca, "por clima", gêneros) fica para o item k.
 
@@ -215,6 +215,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Knowledge Base em erros do Supabase (PR #27); ciclo 5 (item f) concluído.
 - 2026-11-10 — Fase UX (g2–j2) concluída: PRs #33–#36 em produção. Relatório em
   `docs/reports/2026-11-10-fase-ux.md`. Ciclo 6 segue fora da fila.
+- 2026-11-10 (3ª execução) — instrução prioritária do Julio: bug do play (currentTarget nulo), Rádio
+  resiliente, demo + E2E sem skip, envio no celular, login e PWA (PR #47). k–n aprovados (#45), próximos.
 - 2026-11-10 (2ª execução) — fila vazia; criado `docs/PLANO.md` (roadmap), regra de autoplanejamento
   no `CLAUDE.md` (fora das travas) e proposta da próxima fase (k–o). Sem comentários do Julio nas
   issues de relatório abertas (#32, #38).
