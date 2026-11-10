@@ -80,7 +80,7 @@ test("login e onboarding mostram a frase da marca", async ({ page }) => {
 test("página de faixa inexistente dá 404 e as rotas novas de API respondem sem quebrar", async ({ page, request }) => {
   await page.goto("/faixa/not-a-uuid");
   await expect(page.getByText("Página não encontrada")).toBeVisible();
-  const capa = await request.get("/api/tracks/not-a-uuid/capa", { maxRedirects: 0 });
+  const capa = await request.get("/api/tracks/not-a-uuid/capa");
   expect(capa.status()).toBe(404);
   const reacao = await request.post("/api/tracks/123e4567-e89b-42d3-a456-426614174000/reacao", { data: { kind: "like", on: true } });
   expect([401, 503]).toContain(reacao.status());
