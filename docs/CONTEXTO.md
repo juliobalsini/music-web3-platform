@@ -85,6 +85,18 @@ Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído �
   Concluído em 2026-11-09 (branch item-g-cabecalho-vazio). Obs.: E2E local de redirects
   exige `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` (podem ser fictícias).
 
+### Fase UX (pedido do Julio em 2026-11-10; relatório único só ao fim da fase)
+
+Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo 2 (decisão 30).
+
+- [~] **g2) PRODUCT.md e DESIGN.md** para a skill `impeccable` (tentativas: 1). Escritos sem
+  entrevista (não há humano); fatos inferidos estão marcados em PRODUCT.md.
+- [ ] **h2) Impeccable em todas as telas** (home, login, onboarding, enviar, métricas, curador,
+  playlist, pontos): polimento visual, textos curtos, acessibilidade, mobile.
+- [ ] **i2) Login preservando o destino** (`next` no magic link, validado por `safeNext`).
+- [ ] **j2) Estados vazios e mensagens de erro** de todas as telas (upload falho, limite diário
+  do B2, sem pontos ainda).
+
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 **Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
