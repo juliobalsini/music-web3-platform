@@ -32,6 +32,8 @@ test("Rádio tem os 4 filtros e eles filtram pela URL", async ({ page }) => {
   await expect(page.getByRole("region", { name: "No ar" })).toHaveCount(0);
 });
 
+const DEMO = /Madrugada no Convés|Faróis|Ondas curtas|Vitrola azul|Porto sem pressa|Sinal âmbar|Maré de domingo|Fio de prata/;
+
 // Fora de produção a Rádio tem o catálogo de demonstração (lib/radio/demo.ts, áudio local): estes
 // testes nunca são pulados e exercitam lista, play, mini player e player cheio.
 test("Rádio cheia: cartão No ar, grade, abas, playlisters e playlists", async ({ page }) => {
@@ -72,17 +74,18 @@ test("toda faixa publicada aparece no Explorar e toca de lá", async ({ page }) 
   const lista = page.getByRole("list", { name: "Todas as faixas" });
   await expect(lista.getByRole("button").first()).toBeVisible({ timeout: 20_000 });
   expect(await lista.getByRole("button").count()).toBeGreaterThanOrEqual(8);
-  await lista.getByRole("button").nth(1).click();
+  // A prévia pode ter faixas reais (sem B2 não tocam): o play é conferido numa faixa de demonstração.
+  await lista.getByRole("button", { name: DEMO }).first().click();
   const mini = page.getByTestId("mini-player");
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
 });
 
 test("toca da grade 'Para começar' e de uma aba de lista", async ({ page }) => {
   await radioCarregada(page);
-  await page.getByRole("region", { name: "Para começar" }).getByRole("button").first().click();
+  await page.getByRole("region", { name: "Para começar" }).getByRole("button", { name: DEMO }).first().click();
   const mini = page.getByTestId("mini-player");
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("list", { name: "Descobertas" }).getByRole("button").first().click();
+  await page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: DEMO }).first().click();
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
 });
 
