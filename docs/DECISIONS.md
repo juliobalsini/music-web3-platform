@@ -145,3 +145,10 @@ Formato: data · decisão · motivo. Mais recente no fim.
 29. **Métricas básicas** só para o artista, em `/metricas`: escutas válidas e ouvintes únicos
     por faixa, agregados no servidor (service_role restrito às faixas da sessão). Sem tabela
     nova nem métricas públicas; reversível.
+
+## 2026-11-10 · Fase UX
+
+30. **Numeração da fase:** o pedido chamava os itens de g–j, mas g)/f) já existem no CONTEXTO.md;
+    a fase usa g2–j2. PRODUCT.md e DESIGN.md foram escritos sem entrevista (execução
+    autônoma, ninguém para responder); o que é inferência está rotulado no arquivo. Texto
+    sobre laranja passa a ser `night-900` (branco sobre #ff6b35 dá ~2,8:1, abaixo de AA).
