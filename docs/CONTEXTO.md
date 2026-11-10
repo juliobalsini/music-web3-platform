@@ -91,11 +91,16 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
 
 - [x] **g2) PRODUCT.md e DESIGN.md** para a skill `impeccable` — concluído em 2026-11-10 (PR #33).
   Escritos sem entrevista (não há humano); fatos inferidos estão marcados em PRODUCT.md.
-- [~] **h2) Impeccable em todas as telas** (home, login, onboarding, enviar, métricas, curador,
+- [x] **h2) Impeccable em todas as telas** (home, login, onboarding, enviar, métricas, curador,
   playlist, pontos): polimento visual, textos curtos, acessibilidade, mobile (tentativas: 1;
   `components/ui.tsx` com `campo`/`botao`/`Mensagem`/`Tela`; foco global, seleção, alvos 44 px,
   texto `night-900` sobre laranja; E2E local sem browser do Playwright, validado no gate).
-- [ ] **i2) Login preservando o destino** (`next` no magic link, validado por `safeNext`).
+  Concluído em 2026-11-10 (PR #34).
+- [x] **i2) Login preservando o destino** — concluído em 2026-11-10 (PR item-i2-login-destino).
+  Páginas protegidas redirecionam a `/login?next=<caminho>`; o destino vai num cookie httpOnly
+  (`radioon_next`, path `/auth`, 1 h) e não na URL do magic link, porque o Supabase só aceita
+  redirects da allowlist (query no `emailRedirectTo` poderia cair no Site URL). `/auth/callback`
+  valida com `safeNext`. Limite: link aberto em outro navegador perde o destino (vai a `/onboarding`).
 - [ ] **j2) Estados vazios e mensagens de erro** de todas as telas (upload falho, limite diário
   do B2, sem pontos ainda).
 

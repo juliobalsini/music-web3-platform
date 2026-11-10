@@ -6,7 +6,7 @@ import { useActionState } from "react";
 import { enviarLink, type LoginState } from "@/app/login/actions";
 import { botao, campo, Mensagem } from "@/components/ui";
 
-export function LoginForm() {
+export function LoginForm({ next = "" }: { next?: string }) {
   const [state, action, pendente] = useActionState<LoginState, FormData>(enviarLink, {});
   if (state.ok) {
     return (
@@ -18,6 +18,7 @@ export function LoginForm() {
   }
   return (
     <form action={action} className="flex flex-col gap-4">
+      <input type="hidden" name="next" value={next} />
       <input
         name="email"
         type="email"

@@ -80,7 +80,8 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   await page.goto("/curador");
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/enviar");
-  await expect(page).toHaveURL(/\/login/);
+  // O login lembra o destino pedido.
+  await expect(page).toHaveURL(/\/login\?next=%2Fenviar/);
   await page.goto("/metricas");
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/pontos");

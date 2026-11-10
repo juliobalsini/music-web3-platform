@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import { parseEmail, parseRole, safeNext } from "../lib/auth/roles.ts";
+import { loginPath, parseEmail, parseRole, safeNext } from "../lib/auth/roles.ts";
 
 describe("auth", () => {
   it("parseRole só aceita os 3 perfis do MVP", () => {
@@ -15,6 +15,12 @@ describe("auth", () => {
     assert.equal(safeNext("//evil.com"), "/");
     assert.equal(safeNext("https://evil.com"), "/");
     assert.equal(safeNext("/\\evil.com"), "/");
+  });
+  it("loginPath lembra o destino e ignora destino inseguro", () => {
+    assert.equal(loginPath("/enviar"), "/login?next=%2Fenviar");
+    assert.equal(loginPath("/playlist/abc?x=1"), "/login?next=%2Fplaylist%2Fabc%3Fx%3D1");
+    assert.equal(loginPath("/"), "/login");
+    assert.equal(loginPath("//evil.com"), "/login");
   });
   it("parseEmail", () => {
     assert.equal(parseEmail(" A@b.co "), "a@b.co");

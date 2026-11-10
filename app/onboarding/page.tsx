@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { Mensagem, Tela, campo } from "@/components/ui";
+import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
 import { escolherPerfil } from "./actions";
@@ -17,7 +18,7 @@ const perfis = [
 
 async function Conteudo({ searchParams }: Pick<PageProps<"/onboarding">, "searchParams">) {
   const sessao = await getSessionRole();
-  if (!sessao) redirect("/login");
+  if (!sessao) redirect(loginPath("/onboarding"));
   const { erro } = await searchParams;
   return (
     <>

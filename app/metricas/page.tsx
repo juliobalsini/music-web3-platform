@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { linha, Mensagem, Tela } from "@/components/ui";
+import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 import { metricasDoArtista } from "@/lib/tracks/queries";
 
@@ -9,7 +10,7 @@ export const metadata = { title: "Métricas · radioOn" };
 
 async function Conteudo() {
   const sessao = await getSessionRole();
-  if (!sessao) redirect("/login");
+  if (!sessao) redirect(loginPath("/metricas"));
   if (sessao.role !== "artist") redirect("/");
   const linhas = await metricasDoArtista(sessao.userId);
   return (

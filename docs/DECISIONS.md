@@ -152,3 +152,6 @@ Formato: data · decisão · motivo. Mais recente no fim.
     a fase usa g2–j2. PRODUCT.md e DESIGN.md foram escritos sem entrevista (execução
     autônoma, ninguém para responder); o que é inferência está rotulado no arquivo. Texto
     sobre laranja passa a ser `night-900` (branco sobre #ff6b35 dá ~2,8:1, abaixo de AA).
+31. **Destino pós-login em cookie**, não em query do `emailRedirectTo`: evita depender da
+    allowlist de Redirect URLs do Supabase (pendência do Julio) e mantém `safeNext` contra
+    open redirect. Reversível; sem migration.
