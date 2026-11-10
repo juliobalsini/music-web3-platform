@@ -19,3 +19,20 @@ export function rankPlaylists<T extends PlaylistResumo>(lista: T[]): T[] {
     .filter((p) => p.trackCount > 0)
     .sort((a, b) => b.trackCount - a.trackCount || b.createdAt.localeCompare(a.createdAt));
 }
+
+export type ItemOrdem = { trackId: string; position: number };
+
+/**
+ * Troca a faixa com a vizinha na direção pedida. Devolve as novas posições (só das duas
+ * faixas) ou null se já estiver na ponta ou a faixa não existir.
+ */
+export function trocarPosicao(itens: ItemOrdem[], trackId: string, dir: "up" | "down"): [ItemOrdem, ItemOrdem] | null {
+  const ord = [...itens].sort((a, b) => a.position - b.position);
+  const i = ord.findIndex((x) => x.trackId === trackId);
+  const j = dir === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= ord.length) return null;
+  return [
+    { trackId: ord[i].trackId, position: ord[j].position },
+    { trackId: ord[j].trackId, position: ord[i].position },
+  ];
+}

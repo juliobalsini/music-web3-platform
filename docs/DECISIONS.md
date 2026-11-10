@@ -213,3 +213,10 @@ Formato: data · decisão · motivo. Mais recente no fim.
     (POST multipart em `/compartilhar`); o service worker guarda o arquivo no Cache
     `radioon-share-v1` e redireciona a `/enviar`, onde o formulário o recolhe. Sem o SW ativo,
     `/compartilhar` só avisa. Share target funciona no Android/Chrome (iOS não suporta).
+46. **Curadoria de playlists (item m):** `playlist_tracks.hidden`/`featured` (booleanos anuláveis, migration
+    `20261111000000`; o validador só aceita colunas anuláveis e não aceita GRANT). O usuário autenticado só tem
+    UPDATE em `position` (grants do ciclo 0), então nota, ocultar, destacar e reordenar gravam com service_role
+    no servidor, **depois** de confirmar pelo RLS do cliente do usuário que a playlist é do curador. Isso também
+    corrige `salvarNota`, que dependia de um grant inexistente em `note`. Reordenar troca com a vizinha em 3
+    UPDATEs (a unicidade de posição é conferida por instrução no PostgREST). Leituras caem para o select antigo
+    se as colunas novas ainda não existirem. Ocultas saem da Rádio e da página pública; destaques aparecem no topo.
