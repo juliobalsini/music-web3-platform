@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { linha, Tela } from "@/components/ui";
 import { getSessionRole } from "@/lib/session";
 
 export const metadata = { title: "Meus pontos · radioOn" };
+
+const motivos: Record<string, string> = { listen: "Escuta" };
 
 async function Conteudo() {
   const sessao = await getSessionRole();
@@ -18,13 +21,20 @@ async function Conteudo() {
   const total = linhas.reduce((s, l) => s + l.amount, 0);
   return (
     <>
-      <p className="text-6xl font-bold text-brand" data-testid="saldo">{total}</p>
-      <h1 className="text-lg text-white/70">pontos</h1>
+      <div className="flex flex-col">
+        <h1 className="text-lg text-white/70">Pontos</h1>
+        <p className="text-6xl font-bold text-brand tabular-nums" data-testid="saldo">{total}</p>
+      </div>
       <ul className="flex flex-col gap-2">
         {linhas.map((l) => (
-          <li key={l.id} className="flex justify-between rounded-lg bg-white/10 px-4 py-2">
-            <span className="text-white/70">{new Date(l.created_at).toLocaleString("pt-BR")}</span>
-            <span className="font-semibold">+{l.amount}</span>
+          <li key={l.id} className={linha}>
+            <span className="flex flex-col">
+              <span>{motivos[l.reason] ?? l.reason}</span>
+              <time dateTime={l.created_at} className="text-sm text-white/70">
+                {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+              </time>
+            </span>
+            <span className="font-semibold text-brand tabular-nums">+{l.amount}</span>
           </li>
         ))}
       </ul>
@@ -34,10 +44,10 @@ async function Conteudo() {
 
 export default function PontosPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-6 py-16">
+    <Tela>
       <Suspense>
         <Conteudo />
       </Suspense>
-    </main>
+    </Tela>
   );
 }

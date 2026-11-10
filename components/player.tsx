@@ -96,7 +96,7 @@ export function Player({ trackId, title, grande = false }: { trackId: string; ti
         onClick={alternar}
         aria-label={tocando ? `Pausar ${title}` : `Tocar ${title}`}
         data-testid={grande ? "play" : undefined}
-        className={`flex ${grande ? "size-28" : "size-14"} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#ff6b35] transition-transform duration-200 ease-out hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60`}
+        className={`flex ${grande ? "size-28" : "size-14"} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 shadow-[0_8px_24px_-8px_#ff6b35] transition-transform duration-200 ease-out hover:scale-105 foco-claro disabled:opacity-60`}
         disabled={estado === "carregando"}
       >
         {tocando ? (
@@ -105,13 +105,13 @@ export function Player({ trackId, title, grande = false }: { trackId: string; ti
           <Play className={`ml-0.5 ${grande ? "size-12" : "size-6"} fill-white text-white`} strokeWidth={0} />
         )}
       </button>
-      <div className={grande ? "min-w-0 text-center" : "min-w-0 text-left"}>
+      <div className={grande ? "min-w-0 max-w-full text-center" : "min-w-0 text-left"}>
         <p className="truncate font-medium">{title}</p>
         {estado === "limite" && (
-          <p role="status" className="text-sm text-brand-2">limite diário atingido</p>
+          <p role="status" className="text-sm text-brand-2">Limite diário atingido. Volte amanhã.</p>
         )}
         {estado === "erro" && (
-          <p role="status" className="text-sm text-brand-2">não foi possível tocar</p>
+          <p role="status" className="text-sm text-brand-2">Não foi possível tocar. Tente de novo.</p>
         )}
       </div>
       <audio

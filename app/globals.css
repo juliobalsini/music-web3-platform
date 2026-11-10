@@ -18,3 +18,51 @@ body {
   background-attachment: fixed;
   color: #ffffff;
 }
+
+/* Superfícies do navegador que também carregam a marca. */
+::selection {
+  background: #ff6b35;
+  color: #0f0f23;
+}
+
+input,
+textarea,
+select {
+  caret-color: #ff6b35;
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid #ff6b35;
+  outline-offset: 2px;
+}
+
+/* Foco sobre laranja precisa de contraste: contorno branco. */
+.foco-claro:focus-visible {
+  outline-color: #ffffff;
+}
+
+html {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #ff6b35;
+  color: #0f0f23;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
