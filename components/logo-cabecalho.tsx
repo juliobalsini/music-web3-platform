@@ -6,7 +6,7 @@ import { Logo } from "@/components/logo";
 export function LogoCabecalho() {
   return (
     <Link href="/" aria-label="radioOn, início" className="inline-flex min-h-11 items-center rounded">
-      <Logo className="h-10" />
+      <Logo className="h-12" />
     </Link>
   );
 }

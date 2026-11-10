@@ -10,6 +10,8 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 - **Banco:** Supabase `radioon` (us-west-2), 6 tabelas com RLS (`profiles`, `tracks`,
   `playlists`, `playlist_tracks`, `listen_events`, `points_ledger`); migration
   `20261105000000` aplicada; `supabase link` confirmado no Codespace.
+- **Redesenho mobile-first** em produção desde 2026-11-10 (r1–r2): Rádio/Explorar/Minha rádio,
+  player global; migration `20261110000000` aplicada.
 - **CI verde** na `main`. Modo autônomo configurado em 2026-11-05 (ver abaixo).
 
 ## Fila
@@ -106,6 +108,17 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
   `lib/storage/messages.ts` (erros do envio, 403/429 do bucket = limite diário), vazios em
   `/pontos`, `/metricas`, `/curador`, `/playlist`, `app/not-found.tsx` e `app/error.tsx` em pt-BR.
   Obs.: erro de rede no PUT ao B2 pode ser cota (sem CORS na resposta); a mensagem diz isso.
+
+### Redesenho mobile-first (pedido do Julio em 2026-11-10; instrução extra da execução)
+
+- [x] **r1) Identidade** (marinho/âmbar, gramofone, abertura, grão, frase, env com trim, e-mails em
+  `docs/emails-autenticacao.md`, proposta "faixa bônus" no PLANO.md) — concluído em 2026-11-10 (PR #42).
+- [x] **r2) Rádio, Explorar, Minha rádio, player global, envio com capa/ficha, curador com notas e
+  programação** — concluído em 2026-11-10 (PR #43; migration aditiva `20261110000000`).
+  Pendências: policies/consultas novas só revisadas por leitura (sem credencial de banco); catálogo
+  de produção vazio, então listas e player cheio não foram vistos com dados; o `.jpeg` do pedido era
+  um print do Audius, não o site de 2012 (ver relatório 2026-11-10-redesenho-mobile.md).
+- [x] **r3) DESIGN.md/PRODUCT.md, DECISIONS 33–40, relatório e prints** — esta execução.
 
 ### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
 
