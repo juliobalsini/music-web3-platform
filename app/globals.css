@@ -28,7 +28,7 @@ body::before {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ambiente) 26%, transparent), transparent 70%),
+    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ambiente) 15%, transparent), transparent 70%),
     linear-gradient(180deg, #00112a 0%, #062244 100%);
   transition: background 1.2s ease;
 }

@@ -1,19 +1,34 @@
-export type ItemMenu = { href: string; label: string; icone: "entrar" | "enviar" | "metricas" | "playlists" | "perfil" | "pontos"; destaque?: boolean };
+export type AcaoMinhaRadio = { href: string; label: string; icone: "enviar" | "playlists" | "perfil"; destaque?: boolean };
 
-/** Itens do cabeçalho por estado de sessão/perfil. */
-export function itensDoCabecalho(sessao: { role: string | null } | null): ItemMenu[] {
-  if (!sessao) return [{ href: "/login", label: "Entrar", icone: "entrar", destaque: true }];
-  const itens: ItemMenu[] = [];
-  if (sessao.role === "artist") {
-    itens.push(
-      { href: "/enviar", label: "Enviar música", icone: "enviar", destaque: true },
-      { href: "/metricas", label: "Métricas", icone: "metricas" },
-    );
-  } else if (sessao.role === "curator") {
-    itens.push({ href: "/curador", label: "Playlists", icone: "playlists" });
-  } else if (!sessao.role) {
-    itens.push({ href: "/onboarding", label: "Escolher perfil", icone: "perfil", destaque: true });
-  }
-  itens.push({ href: "/pontos", label: "Pontos", icone: "pontos" });
-  return itens;
+/** Atalhos de papel dentro de "Minha rádio" (a navegação inferior só tem 3 abas). */
+export function acoesMinhaRadio(role: string | null): AcaoMinhaRadio[] {
+  if (role === "artist") return [{ href: "/enviar", label: "Enviar música", icone: "enviar", destaque: true }];
+  if (role === "curator") return [{ href: "/curador", label: "Minhas playlists", icone: "playlists", destaque: true }];
+  if (!role) return [{ href: "/onboarding", label: "Escolher perfil", icone: "perfil", destaque: true }];
+  return [];
+}
+
+/** Filtros da Rádio e abas de listas (parâmetros de URL, renderizados no servidor). */
+export const FILTROS = [
+  { id: "tudo", label: "Tudo" },
+  { id: "faixas", label: "Faixas" },
+  { id: "playlists", label: "Playlists" },
+  { id: "playlisters", label: "Playlisters" },
+] as const;
+export type Filtro = (typeof FILTROS)[number]["id"];
+
+export const ABAS = [
+  { id: "descobertas", label: "Descobertas" },
+  { id: "alta", label: "Em alta" },
+  { id: "novidades", label: "Novidades" },
+] as const;
+export type Aba = (typeof ABAS)[number]["id"];
+
+export function lerFiltro(v: string | string[] | undefined): Filtro {
+  const x = Array.isArray(v) ? v[0] : v;
+  return FILTROS.find((f) => f.id === x)?.id ?? "tudo";
+}
+export function lerAba(v: string | string[] | undefined): Aba | null {
+  const x = Array.isArray(v) ? v[0] : v;
+  return ABAS.find((a) => a.id === x)?.id ?? null;
 }

@@ -54,3 +54,25 @@ describe("mensagens de erro do envio", () => {
     assert.doesNotMatch(erroDoBucket(500), /Limite/);
   });
 });
+
+describe("capa e ficha técnica opcionais", () => {
+  const base = { title: "Faixa", contentType: "audio/mpeg", size: 1000, rightsConfirmed: true };
+  it("sem capa nem ficha: campos nulos", () => {
+    const r = parseUploadInput(base);
+    assert.ok(r.ok);
+    assert.equal(r.value.cover, null);
+    assert.deepEqual(r.value.credits, { composer: null, performers: null, album: null, label: null });
+  });
+  it("aceita capa de imagem até 2 MB e ficha com trim", () => {
+    const r = parseUploadInput({ ...base, cover: { contentType: "image/webp", size: 5000 }, credits: { composer: "  Ana ", label: "" } });
+    assert.ok(r.ok);
+    assert.deepEqual(r.value.cover, { contentType: "image/webp", size: 5000 });
+    assert.equal(r.value.credits.composer, "Ana");
+    assert.equal(r.value.credits.label, null);
+  });
+  it("recusa capa grande, formato errado e ficha longa", () => {
+    assert.equal(parseUploadInput({ ...base, cover: { contentType: "image/png", size: 3 * 1024 * 1024 } }).ok, false);
+    assert.equal(parseUploadInput({ ...base, cover: { contentType: "image/gif", size: 10 } }).ok, false);
+    assert.equal(parseUploadInput({ ...base, credits: { album: "x".repeat(121) } }).ok, false);
+  });
+});

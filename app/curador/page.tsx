@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -7,7 +7,7 @@ import { botao, campo, Mensagem, Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
-import { adicionarFaixa, criarPlaylist, removerFaixa } from "./actions";
+import { adicionarFaixa, criarPlaylist, criarPrograma, removerFaixa, removerPrograma, salvarNota } from "./actions";
 
 export const metadata = { title: "Minhas playlists · radioOn" };
 
@@ -20,7 +20,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
 
   const { data: playlists, error: erroLista } = await supabase
     .from("playlists")
-    .select("id,title,playlist_tracks(position,tracks(id,title))")
+    .select("id,title,playlist_tracks(position,note,tracks(id,title))")
     .eq("curator_id", userId)
     .order("created_at", { ascending: false });
   const { data: publicadas } = await supabase
@@ -29,6 +29,13 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(200);
+
+  const { data: programas } = await supabase
+    .from("programs")
+    .select("id,title,start_hour,end_hour,playlist_id")
+    .eq("curator_id", userId)
+    .order("start_hour");
+  const horas = Array.from({ length: 25 }, (_, h) => h);
 
   return (
     <>
@@ -54,7 +61,8 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
                   const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
                   if (!t) return null;
                   return (
-                    <li key={t.id} className="flex items-center justify-between gap-2 pl-1 text-white/80">
+                    <li key={t.id} className="flex flex-col gap-1 pl-1 text-white/80">
+                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate">{t.title}</span>
                       <form action={removerFaixa}>
                         <input type="hidden" name="playlist" value={p.id} />
@@ -63,6 +71,15 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
                           <X className="size-4" aria-hidden="true" />
                         </button>
                       </form>
+                     </div>
+                     <form action={salvarNota} className="flex gap-2">
+                       <input type="hidden" name="playlist" value={p.id} />
+                       <input type="hidden" name="faixa" value={t.id} />
+                       <input name="nota" maxLength={280} defaultValue={i.note ?? ""} placeholder="Nota do playlister (opcional)" aria-label={`Nota sobre ${t.title}`} className={`${campo} min-h-11 text-sm`} />
+                       <button aria-label={`Salvar nota de ${t.title}`} className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15">
+                         <Check className="size-4" aria-hidden="true" />
+                       </button>
+                     </form>
                     </li>
                   );
                 })}
@@ -81,6 +98,47 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
           );
         })}
       </ul>
+      <section aria-label="Programação" className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Programação</h2>
+        <p className="text-sm text-white/70 text-pretty">Um bloco por horário (Brasília). O cartão &quot;No ar&quot; da Rádio toca a playlist do bloco atual.</p>
+        {(programas ?? []).length > 0 && (
+          <ul className="flex flex-col gap-2">
+            {(programas ?? []).map((g) => (
+              <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/10 pl-4">
+                <span className="min-w-0 truncate">
+                  <span className="font-semibold">{g.title}</span>{" "}
+                  <span className="text-sm text-white/70 tabular-nums">{String(g.start_hour).padStart(2, "0")}h–{String(g.end_hour % 24).padStart(2, "0")}h</span>
+                </span>
+                <form action={removerPrograma}>
+                  <input type="hidden" name="programa" value={g.id} />
+                  <button aria-label={`Remover bloco ${g.title}`} className="flex size-11 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white">
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+        {(playlists ?? []).length === 0 ? (
+          <p className="text-sm text-white/70">Crie uma playlist para montar um bloco.</p>
+        ) : (
+          <form action={criarPrograma} className="flex flex-col gap-3">
+            <input name="titulo" required maxLength={80} placeholder="Nome do bloco" aria-label="Nome do bloco" className={campo} />
+            <select name="playlist" aria-label="Playlist do bloco" className={campo} defaultValue={playlists?.[0]?.id}>
+              {(playlists ?? []).map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+            </select>
+            <div className="grid grid-cols-2 gap-3">
+              <select name="inicio" aria-label="Início" className={campo} defaultValue="18">
+                {horas.slice(0, 24).map((h) => <option key={h} value={h}>Das {String(h).padStart(2, "0")}h</option>)}
+              </select>
+              <select name="fim" aria-label="Fim" className={campo} defaultValue="22">
+                {horas.slice(1).map((h) => <option key={h} value={h}>Até {String(h % 24).padStart(2, "0")}h</option>)}
+              </select>
+            </div>
+            <button className={botao}><Plus className="size-5" aria-hidden="true" /> Adicionar bloco</button>
+          </form>
+        )}
+      </section>
     </>
   );
 }

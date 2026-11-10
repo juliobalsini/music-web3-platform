@@ -36,9 +36,12 @@ faixa em segundos, volta, e eventualmente envia música ou cura uma playlist.
 
 ## Operating Context
 
-- Home com play grande na faixa mais recente, lista de faixas e ranking de playlists.
-- Telas: home, login (magic link), onboarding (perfil), enviar faixa, métricas (artista),
-  curador (playlists), playlist, pontos.
+- **Mobile primeiro** (decisão do Julio, 2026-11-10): navegação inferior de 3 abas (Rádio,
+  Explorar, Minha rádio), mini player persistente e player cheio imersivo. A home é uma
+  **rádio**: cartão "No ar" (programa atual e próximo), contador "N ouvindo", filtros e listas
+  densas (Descobertas, Em alta, Novidades).
+- Telas: Rádio (home), Explorar, Minha rádio (substitui Métricas e Pontos), faixa, login
+  (magic link), onboarding (perfil), enviar faixa, curador (playlists e programação), playlist.
 - Áudio em bucket S3 (Backblaze B2) com URLs assinadas; a **cota diária gratuita** pode
   acabar, e o player precisa dizer isso sem alarme.
 - Pontos, permissões e validação de escuta só no servidor.
@@ -61,6 +64,22 @@ faixa em segundos, volta, e eventualmente envia música ou cura uma playlist.
 
 - Código das 8 telas em `app/`, componentes em `components/`.
 - Não há depoimentos, números de usuários, nem catálogo real: não inventar.
+
+## Decisões de produto do redesenho (2026-11-10)
+
+- **Programação:** blocos curados por horário (curador cria em /curador; fuso de Brasília). Sem
+  bloco ativo, o "No ar" mostra o programa da casa (faixa mais ouvida da semana).
+- **Descobertas** = faixas pouco ouvidas (≤ 50 escutas válidas) escolhidas por playlisters
+  (estão em playlists públicas). **Em alta** = escutas válidas dos últimos 7 dias, com
+  tendência contra a semana anterior e selo NOVO (< 7 dias). **Novidades** = por data.
+- **Notas do playlister:** texto curto (até 280) do curador sobre a faixa na playlist.
+- **Ficha técnica** opcional no envio: compositor, intérpretes, álbum, selo. **Capa**
+  opcional (JPG/PNG/WebP até 2 MB, no B2); sem capa, arte gerada do título.
+- **Curtir, salvar, apoiar:** reações gravadas só no servidor. "Apoiar" é gratuito (sem
+  pagamento). Compartilhar usa a Web Share API ou copia o link `/faixa/<id>`.
+- **Minha rádio:** meta diária de pontos, escutas válidas, minutos, descobertas; artistas
+  veem suas faixas e Enviar música; curadores, atalho às playlists.
+- **Proposta (depende do Julio):** faixa bônus desbloqueada com pontos (`docs/PLANO.md`).
 
 ## Product Principles
 

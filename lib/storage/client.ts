@@ -72,3 +72,13 @@ export async function signPlayback(key: string) {
     expiresIn: PLAYBACK_TTL_SECONDS,
   });
 }
+
+/** URL assinada de capa (1 h); o navegador pode guardar a imagem por 1 h. */
+export async function signCover(key: string) {
+  const { s3, bucket } = getClient();
+  return getSignedUrl(
+    s3,
+    new GetObjectCommand({ Bucket: bucket, Key: key, ResponseCacheControl: "public, max-age=3600" }),
+    { expiresIn: PLAYBACK_TTL_SECONDS },
+  );
+}

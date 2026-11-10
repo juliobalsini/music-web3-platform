@@ -162,3 +162,31 @@ Formato: data · decisão · motivo. Mais recente no fim.
     qualidade direto, funcionalidade nova só com "aprovado" do Julio na issue do relatório.
     A regra fica no `CLAUDE.md` fora da seção de travas (que não foi alterada). Itens da fase
     proposta levam as letras k–o.
+
+## 2026-11-10 · Redesenho mobile-first
+
+33. **Identidade do cartão da marca:** marinho `#00112A` + âmbar `#E89A3C` substituem
+    `#0f0f23`/`#ff6b35`; texto sobre âmbar é `night-900`. Logo e ícones recortados do cartão
+    por `scripts/brand/recortar-logo.mjs` (alfa pela distância ao marinho). Detalhes em DESIGN.md.
+34. **Referências do pedido:** o `.png` era o cartão da marca; o `.jpeg` era um print do
+    Audius, não o site de 2012. Foi para `public/brand/referencia-audius.jpeg` (não
+    `radioon-2012`, para não rotular errado). Inspiração de 2012 (notas e ficha técnica)
+    seguiu o texto do pedido; o Julio pode enviar a captura certa.
+35. **Player único no layout** (`PlayerProvider`): um `<audio>`, `preload="none"`, URL assinada
+    reaproveitada, no máx. 1 nova tentativa, sem pré-busca da próxima faixa (decisão 22 mantida).
+    Heartbeat de 10 s igual ao ciclo 4. Mini player e player cheio (`<dialog>`) leem o mesmo estado.
+36. **Migration aditiva `20261110000000`:** `tracks` (+`cover_key`, ficha técnica),
+    `playlist_tracks.note`, `track_reactions` (curtir/salvar/apoiar; só o servidor escreve),
+    `programs` (blocos por hora, fuso de Brasília). Sem DROP/DELETE de dados.
+37. **Capa no B2** (`covers/<artista>/<uuid>`, JPG/PNG/WebP ≤ 2 MB), servida por
+    `/api/tracks/[id]/capa` (302 para URL assinada de 1 h, cache de 15 min no navegador/CDN)
+    para não gastar uma assinatura/requisição por visita (cota diária). Falha da capa não
+    impede publicar: a faixa sai sem capa e a arte é gerada do título.
+38. **Rádio:** descobertas = ≤ 50 escutas válidas e em playlist pública; em alta = escutas dos
+    últimos 7 dias + tendência vs. semana anterior; NOVO < 7 dias; "N ouvindo" = usuários
+    distintos com heartbeat nos últimos 3 min (service_role só lê contagens, no servidor).
+    "No ar" = rodízio de 10 min na playlist do bloco atual; sem bloco, faixa mais ouvida.
+39. **Apoiar artista = gesto gratuito** (reação `support`), sem pagamento (regra 6). Pagamento
+    ou token ficam para o Ciclo 6. "Faixa bônus com pontos" ficou como proposta no PLANO.md.
+40. **Minha rádio substitui /metricas e /pontos** (redirect 308). Meta diária usa
+    `POINTS_DAILY_LIMIT`; dia em UTC, igual ao banco.
