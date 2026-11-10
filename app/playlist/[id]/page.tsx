@@ -15,7 +15,7 @@ async function Conteudo({ params }: Pick<PageProps<"/playlist/[id]">, "params">)
     <>
       <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
       {playlist.faixas.length === 0 ? (
-        <p className="text-white/70">Nenhuma faixa ainda.</p>
+        <p className="text-white/70 text-pretty">Esta playlist ainda não tem faixas. Volte em breve.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {playlist.faixas.map((f) => (

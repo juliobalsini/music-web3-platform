@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 
 import { botao, campo, Mensagem } from "@/components/ui";
+import { erroDaRotaDeUpload, erroDoBucket } from "@/lib/storage/messages";
 
 
 export function UploadForm() {
@@ -32,19 +33,24 @@ export function UploadForm() {
           durationSec: null,
         }),
       });
-      const j = await r.json();
-      if (!r.ok) return falha(j.error ?? "Falha no envio.");
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return falha(erroDaRotaDeUpload(r.status, j.error));
       const put = await fetch(j.uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": j.contentType },
         body: arquivo,
       });
-      if (!put.ok) return falha("O envio ao armazenamento falhou. Tente de novo.");
+      if (!put.ok) return falha(erroDoBucket(put.status));
       const pub = await fetch(`/api/tracks/${j.trackId}/publish`, { method: "POST" });
       if (pub.ok) setMsg({ texto: "Faixa publicada.", erro: false });
-      else falha("Enviada, mas não foi possível publicar.");
+      else falha("Enviada, mas não publicada. Tente enviar de novo.");
     } catch {
-      falha("Sem conexão. Tente de novo.");
+      // Erro de rede no PUT também acontece quando o B2 recusa por cota (sem CORS na resposta).
+      falha(
+        navigator.onLine
+          ? "Envio interrompido. Pode ser o limite diário ou a conexão. Tente mais tarde."
+          : "Sem conexão. Confira a internet e tente de novo.",
+      );
     } finally {
       setEnviando(false);
     }

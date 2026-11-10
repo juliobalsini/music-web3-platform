@@ -1,7 +1,9 @@
+import { Play } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { linha, Tela } from "@/components/ui";
+import { botao, linha, Mensagem, Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
@@ -13,7 +15,7 @@ async function Conteudo() {
   const sessao = await getSessionRole();
   if (!sessao) redirect(loginPath("/pontos"));
   // RLS: cada usuário só enxerga o próprio extrato.
-  const { data } = await sessao.supabase
+  const { data, error } = await sessao.supabase
     .from("points_ledger")
     .select("id,amount,reason,created_at")
     .order("created_at", { ascending: false })
@@ -26,6 +28,16 @@ async function Conteudo() {
         <h1 className="text-lg text-white/70">Pontos</h1>
         <p className="text-6xl font-bold text-brand tabular-nums" data-testid="saldo">{total}</p>
       </div>
+      {error ? (
+        <Mensagem>Pontos indisponíveis agora. Tente de novo em instantes.</Mensagem>
+      ) : linhas.length === 0 ? (
+        <div className="flex flex-col items-start gap-4">
+          <p className="text-white/70 text-pretty">Sem pontos ainda. Ouça uma faixa por 30 segundos e ganhe os primeiros.</p>
+          <Link href="/" className={botao}>
+            <Play className="size-5" aria-hidden="true" /> Ouvir agora
+          </Link>
+        </div>
+      ) : null}
       <ul className="flex flex-col gap-2">
         {linhas.map((l) => (
           <li key={l.id} className={linha}>

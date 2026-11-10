@@ -1,7 +1,9 @@
+import { Upload } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { linha, Mensagem, Tela } from "@/components/ui";
+import { botao, linha, Mensagem, Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 import { metricasDoArtista } from "@/lib/tracks/queries";
@@ -17,9 +19,14 @@ async function Conteudo() {
     <>
       <h1 className="text-2xl font-semibold text-balance">Métricas</h1>
       {linhas === null ? (
-        <Mensagem>Métricas indisponíveis agora.</Mensagem>
+        <Mensagem>Métricas indisponíveis agora. Tente de novo em instantes.</Mensagem>
       ) : linhas.length === 0 ? (
-        <p className="text-white/70">Nenhuma faixa publicada ainda.</p>
+        <div className="flex flex-col items-start gap-4">
+          <p className="text-white/70 text-pretty">Nenhuma faixa publicada ainda. Suas escutas aparecem aqui.</p>
+          <Link href="/enviar" className={botao}>
+            <Upload className="size-5" aria-hidden="true" /> Enviar faixa
+          </Link>
+        </div>
       ) : (
         <ul className="flex flex-col gap-2">
           {linhas.map(({ faixa, metrica }) => (

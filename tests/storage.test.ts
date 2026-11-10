@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { createUrlCache } from "../lib/player/url-cache.ts";
+import { erroDaRotaDeUpload, erroDoBucket } from "../lib/storage/messages.ts";
 import { MAX_UPLOAD_BYTES, parseUploadInput, trackKey } from "../lib/storage/rules.ts";
 
 const ok = { title: "Faixa", contentType: "audio/mpeg", size: 1000, rightsConfirmed: true };
@@ -32,5 +33,24 @@ describe("cache de URL assinada", () => {
     assert.equal(await c.get("x"), "u2");
     assert.equal(await c.get("x", true), "u3");
     assert.equal(n, 3);
+  });
+});
+
+
+describe("mensagens de erro do envio", () => {
+  it("rota: sessão, perfil e armazenamento", () => {
+    assert.match(erroDaRotaDeUpload(401), /sessão expirou/);
+    assert.match(erroDaRotaDeUpload(403), /artistas/);
+    assert.match(erroDaRotaDeUpload(503), /indisponível/);
+  });
+  it("rota: validação traduzida e fallback", () => {
+    assert.match(erroDaRotaDeUpload(400, "formato de áudio não aceito"), /Formato/);
+    assert.match(erroDaRotaDeUpload(400, "arquivo vazio ou maior que 25 MB"), /25 MB/);
+    assert.match(erroDaRotaDeUpload(500, "falha ao registrar a faixa"), /Tente de novo/);
+  });
+  it("bucket: 403/429 = limite diário; outros = falha comum", () => {
+    assert.match(erroDoBucket(403), /Limite diário/);
+    assert.match(erroDoBucket(429), /Limite diário/);
+    assert.doesNotMatch(erroDoBucket(500), /Limite/);
   });
 });

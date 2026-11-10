@@ -18,7 +18,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
   const { erro } = await searchParams;
   const { supabase, userId } = sessao;
 
-  const { data: playlists } = await supabase
+  const { data: playlists, error: erroLista } = await supabase
     .from("playlists")
     .select("id,title,playlist_tracks(position,tracks(id,title))")
     .eq("curator_id", userId)
@@ -33,17 +33,22 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Minhas playlists</h1>
-      {erro && <Mensagem tipo="erro">Não deu certo. Tente de novo.</Mensagem>}
+      {erro && <Mensagem tipo="erro">Não deu certo. Confira o título e tente de novo.</Mensagem>}
+      {erroLista && <Mensagem tipo="erro">Não foi possível carregar suas playlists. Recarregue a página.</Mensagem>}
       <form action={criarPlaylist} className="flex gap-3">
         <input name="titulo" required maxLength={200} placeholder="Nova playlist" aria-label="Título" className={campo} />
         <button className={`${botao} shrink-0`} aria-label="Criar playlist"><Plus className="size-5" aria-hidden="true" /></button>
       </form>
+      {(playlists ?? []).length === 0 && (
+        <p className="text-white/70 text-pretty">Nenhuma playlist ainda. Dê um nome à primeira acima.</p>
+      )}
       <ul className="flex flex-col gap-6">
         {(playlists ?? []).map((p) => {
           const itens = [...(p.playlist_tracks ?? [])].sort((a, b) => a.position - b.position);
           return (
             <li key={p.id} className="flex flex-col gap-3 rounded-xl bg-white/5 p-3 sm:p-4">
               <Link href={`/playlist/${p.id}`} className="rounded text-lg font-semibold hover:text-brand-2">{p.title}</Link>
+              {itens.length === 0 && <p className="text-sm text-white/70">Playlist vazia. Adicione faixas abaixo.</p>}
               <ul className="flex flex-col gap-1">
                 {itens.map((i) => {
                   const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
@@ -65,7 +70,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
               <form action={adicionarFaixa} className="flex gap-2">
                 <input type="hidden" name="playlist" value={p.id} />
                 <select name="faixa" aria-label="Faixa" className={campo} defaultValue="">
-                  <option value="" disabled>Adicionar faixa…</option>
+                  <option value="" disabled>{(publicadas ?? []).length === 0 ? "Sem faixas publicadas ainda" : "Adicionar faixa…"}</option>
                   {(publicadas ?? [])
                     .filter((t) => !itens.some((i) => (Array.isArray(i.tracks) ? i.tracks[0] : i.tracks)?.id === t.id))
                     .map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
