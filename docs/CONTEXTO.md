@@ -133,7 +133,7 @@ Fila vazia em 2026-11-10; itens **propostos**, só executar após "aprovado" do 
 relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem credencial nova.
 
 - [x] **k) Busca de faixas e playlists** (título/artista/curador) — concluído em 2026-11-10 (PR item-k-busca): campo na Rádio e em `/explorar?q=` (GET, sem JS), filtro em memória sem acento (`buscar` em `lib/radio/rules.ts`). Sem migration. Limite: busca só no catálogo já carregado pela Rádio.
-- [ ] **l) Páginas públicas de artista e de curador** (perfil, faixas, playlists) — aprovado (#45).
+- [x] **l) Páginas públicas de artista e de curador** — concluído em 2026-11-10 (PR item-l-perfil): `/perfil/[id]` (nome, faixas publicadas, playlists públicas; 404 sem conteúdo), ligada por Playlisters em alta e pelo curador na playlist. Sem migration. Pendência: nome do artista ainda não é link nas listas de faixas.
 - [ ] **m) Curador: reordenar, ocultar e destacar faixas** nas playlists — aprovado (#45).
 - [ ] **n) Ranking de playlists por escutas válidas** (troca a decisão 26) — aprovado (#45).
 - [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto.

@@ -23,7 +23,7 @@ import {
 
 
 export type PlaylisterResumo = { id: string; name: string; playlists: number; faixas: number; topPlaylistId: string };
-export type PlaylistSemana = { id: string; title: string; curator: string | null; trackCount: number };
+export type PlaylistSemana = { id: string; title: string; curator: string | null; curatorId: string; trackCount: number };
 
 export type Radio = {
   faixas: FaixaListada[];
@@ -32,6 +32,8 @@ export type Radio = {
   novidades: FaixaListada[];
   playlisters: PlaylisterResumo[];
   playlists: PlaylistSemana[];
+  /** Todas as playlists públicas com faixas (perfis públicos). */
+  todasPlaylists: PlaylistSemana[];
   programa: { atual: Programa | null; proximo: Programa | null };
   /** Faixa "No ar" e a fila que segue (faixas da playlist do programa; sem programa, a mais ouvida da semana). */
   noAr: { faixa: FaixaListada; fila: FaixaListada[] } | null;
@@ -46,6 +48,7 @@ const VAZIO: Radio = {
   novidades: [],
   playlisters: [],
   playlists: [],
+  todasPlaylists: [],
   programa: { atual: null, proximo: null },
   noAr: null,
   ouvindo: null,
@@ -232,6 +235,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       r.faixas += p.playlist_tracks.length;
       porCurador.set(p.curator_id, r);
     }
+    const resumo = (p: LinhaPlaylist): PlaylistSemana => ({ id: p.id, title: p.title, curator: nomeDe(p.curator_id), curatorId: p.curator_id, trackCount: p.playlist_tracks.length });
     const semana = playlists.filter((p) => agora - Date.parse(p.created_at) < SEMANA);
     const base = semana.length > 0 ? semana : playlists;
 
@@ -267,7 +271,8 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       playlists: base
         .sort((a, b) => b.playlist_tracks.length - a.playlist_tracks.length || b.created_at.localeCompare(a.created_at))
         .slice(0, 8)
-        .map((p) => ({ id: p.id, title: p.title, curator: nomeDe(p.curator_id), trackCount: p.playlist_tracks.length })),
+        .map(resumo),
+      todasPlaylists: playlists.map(resumo),
       programa,
       ouvindo,
     };

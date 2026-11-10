@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -26,7 +27,7 @@ async function Conteudo({ params }: Pick<PageProps<"/playlist/[id]">, "params">)
     <>
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
-        {playlist.curator && <p className="text-white/70">Playlist de {playlist.curator}</p>}
+        {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
       </div>
       {faixas.length === 0 ? (
         <p className="text-white/70 text-pretty">Esta playlist ainda não tem faixas. Volte em breve.</p>
