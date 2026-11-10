@@ -40,7 +40,7 @@ export function PlaylistersEmAlta({ lista }: { lista: PlaylisterResumo[] }) {
       <ul className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
         {lista.map((p) => (
           <li key={p.id} className="w-20 shrink-0">
-            <Link href={`/playlist/${p.topPlaylistId}`} className="flex flex-col items-center gap-1 rounded-lg py-1 text-center">
+            <Link href={`/perfil/${p.id}`} className="flex flex-col items-center gap-1 rounded-lg py-1 text-center">
               <span
                 aria-hidden="true"
                 className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900"

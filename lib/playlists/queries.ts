@@ -48,7 +48,7 @@ export async function obterPlaylist(id: string) {
       if (t && t.status === "published") faixas.push({ id: t.id as string, note: (i.note as string | null) ?? null });
     }
     const prof = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
-    return { id: p.id as string, title: p.title as string, curator: (prof?.display_name as string | null) ?? null, faixas };
+    return { id: p.id as string, title: p.title as string, curator: (prof?.display_name as string | null) ?? null, curatorId: p.curator_id as string, faixas };
   } catch {
     return null;
   }

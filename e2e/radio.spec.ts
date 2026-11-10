@@ -138,3 +138,17 @@ test("busca no Explorar filtra por título e avisa quando não acha", async ({ p
   await expect(page.getByRole("search")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/Nada encontrado|Ainda não|vazio/i).first()).toBeVisible({ timeout: 20_000 });
 });
+
+test("perfil público: id inválido ou desconhecido dá 404", async ({ page }) => {
+  expect((await page.goto("/perfil/not-a-uuid"))?.status()).toBe(404);
+  expect((await page.goto("/perfil/00000000-0000-4000-8000-00000000ffff"))?.status()).toBe(404);
+});
+
+test("Playlisters em alta levam ao perfil público", async ({ page }) => {
+  await radioCarregada(page);
+  const link = page.getByRole("region", { name: "Playlisters em alta" }).getByRole("link").first();
+  await link.click();
+  await expect(page).toHaveURL(/\/perfil\/[0-9a-f-]{36}/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Playlists" })).toBeVisible();
+});
