@@ -28,6 +28,7 @@ test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
 
 test("estado vazio: play inerte e convite ao artista (quando não há faixas)", async ({ page }) => {
   await page.goto("/");
+  await page.waitForLoadState("networkidle"); // espera o conteúdo em streaming trocar o fallback
   const vazio = page.locator("[data-testid=play-vazio]:visible");
   test.skip(!(await vazio.first().isVisible()), "há faixas publicadas neste ambiente");
   await expect(page.getByRole("button")).toHaveCount(0);
