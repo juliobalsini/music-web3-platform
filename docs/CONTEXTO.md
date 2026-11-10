@@ -107,6 +107,17 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
   `/pontos`, `/metricas`, `/curador`, `/playlist`, `app/not-found.tsx` e `app/error.tsx` em pt-BR.
   Obs.: erro de rede no PUT ao B2 pode ser cota (sem CORS na resposta); a mensagem diz isso.
 
+### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
+
+Fila vazia em 2026-11-10; itens **propostos**, só executar após "aprovado" do Julio na issue do
+relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem credencial nova.
+
+- [ ] **k) Busca de faixas e playlists** (título/artista/curador) na home — proposto.
+- [ ] **l) Páginas públicas de artista e de curador** (perfil, faixas, playlists) — proposto.
+- [ ] **m) Curador: reordenar, ocultar e destacar faixas** nas playlists — proposto.
+- [ ] **n) Ranking de playlists por escutas válidas** (troca a decisão 26) — proposto.
+- [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto.
+
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 **Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
@@ -184,3 +195,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Knowledge Base em erros do Supabase (PR #27); ciclo 5 (item f) concluído.
 - 2026-11-10 — Fase UX (g2–j2) concluída: PRs #33–#36 em produção. Relatório em
   `docs/reports/2026-11-10-fase-ux.md`. Ciclo 6 segue fora da fila.
+- 2026-11-10 (2ª execução) — fila vazia; criado `docs/PLANO.md` (roadmap), regra de autoplanejamento
+  no `CLAUDE.md` (fora das travas) e proposta da próxima fase (k–o). Sem comentários do Julio nas
+  issues de relatório abertas (#32, #38).
