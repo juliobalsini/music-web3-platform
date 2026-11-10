@@ -76,7 +76,7 @@ test("página de login carrega e callback inválido volta ao login", async ({ pa
 test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => {
   await page.goto("/playlist/not-a-uuid");
   // Página em streaming: o status já saiu 200; o 404 aparece no conteúdo.
-  await expect(page.getByText(/could not be found|404/i).first()).toBeVisible();
+  await expect(page.getByText("Página não encontrada")).toBeVisible();
   await page.goto("/curador");
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/enviar");

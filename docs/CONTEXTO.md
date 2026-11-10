@@ -101,8 +101,11 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
   (`radioon_next`, path `/auth`, 1 h) e não na URL do magic link, porque o Supabase só aceita
   redirects da allowlist (query no `emailRedirectTo` poderia cair no Site URL). `/auth/callback`
   valida com `safeNext`. Limite: link aberto em outro navegador perde o destino (vai a `/onboarding`).
-- [ ] **j2) Estados vazios e mensagens de erro** de todas as telas (upload falho, limite diário
-  do B2, sem pontos ainda).
+- [x] **j2) Estados vazios e mensagens de erro** de todas as telas (upload falho, limite diário
+  do B2, sem pontos ainda) — concluído em 2026-11-10 (PR item-j2-estados-erros):
+  `lib/storage/messages.ts` (erros do envio, 403/429 do bucket = limite diário), vazios em
+  `/pontos`, `/metricas`, `/curador`, `/playlist`, `app/not-found.tsx` e `app/error.tsx` em pt-BR.
+  Obs.: erro de rede no PUT ao B2 pode ser cota (sem CORS na resposta); a mensagem diz isso.
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
