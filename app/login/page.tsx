@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { LoginForm } from "@/components/login-form";
 import { Mensagem, Tela } from "@/components/ui";
+import { safeNext } from "@/lib/auth/roles";
 
 export const metadata = { title: "Entrar · radioOn" };
 
@@ -9,6 +10,11 @@ async function Erro({ searchParams }: Pick<PageProps<"/login">, "searchParams">)
   const { erro } = await searchParams;
   if (!erro) return null;
   return <Mensagem tipo="erro">O link expirou ou é inválido. Peça outro.</Mensagem>;
+}
+
+async function Formulario({ searchParams }: Pick<PageProps<"/login">, "searchParams">) {
+  const { next } = await searchParams;
+  return <LoginForm next={safeNext(Array.isArray(next) ? next[0] : next, "")} />;
 }
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
@@ -21,7 +27,9 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <Suspense>
         <Erro searchParams={searchParams} />
       </Suspense>
-      <LoginForm />
+      <Suspense>
+        <Formulario searchParams={searchParams} />
+      </Suspense>
     </Tela>
   );
 }

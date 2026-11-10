@@ -14,6 +14,15 @@ export function safeNext(value: unknown, fallback = "/"): string {
   return value;
 }
 
+/** Cookie curto (httpOnly) com o destino pedido antes do login. */
+export const NEXT_COOKIE = "radioon_next";
+
+/** Caminho do login que lembra o destino; "/" não precisa ser lembrado. */
+export function loginPath(destino: string): string {
+  const next = safeNext(destino, "/");
+  return next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`;
+}
+
 export function parseEmail(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const v = value.trim().toLowerCase();

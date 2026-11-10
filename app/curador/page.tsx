@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { botao, campo, Mensagem, Tela } from "@/components/ui";
+import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
 import { adicionarFaixa, criarPlaylist, removerFaixa } from "./actions";
@@ -12,7 +13,7 @@ export const metadata = { title: "Minhas playlists · radioOn" };
 
 async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchParams">) {
   const sessao = await getSessionRole();
-  if (!sessao) redirect("/login");
+  if (!sessao) redirect(loginPath("/curador"));
   if (sessao.role !== "curator") redirect("/onboarding");
   const { erro } = await searchParams;
   const { supabase, userId } = sessao;

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { linha, Tela } from "@/components/ui";
+import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 
 export const metadata = { title: "Meus pontos · radioOn" };
@@ -10,7 +11,7 @@ const motivos: Record<string, string> = { listen: "Escuta" };
 
 async function Conteudo() {
   const sessao = await getSessionRole();
-  if (!sessao) redirect("/login");
+  if (!sessao) redirect(loginPath("/pontos"));
   // RLS: cada usuário só enxerga o próprio extrato.
   const { data } = await sessao.supabase
     .from("points_ledger")

@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { parseEmail } from "@/lib/auth/roles";
+import { NEXT_COOKIE, parseEmail, safeNext } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = { ok?: boolean; erro?: string };
@@ -14,6 +14,17 @@ export async function enviarLink(_: LoginState, form: FormData): Promise<LoginSt
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
+  // Destino pós-login em cookie (não na URL do link: o Supabase só aceita redirects da allowlist).
+  const destino = safeNext(form.get("next"), "");
+  if (destino) {
+    (await cookies()).set(NEXT_COOKIE, destino, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: proto === "https",
+      path: "/auth",
+      maxAge: 60 * 60,
+    });
+  }
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithOtp({
