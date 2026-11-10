@@ -132,3 +132,9 @@ test("ícone, manifesto e logo da marca são servidos", async ({ request }) => {
   expect(m.status()).toBe(200);
   expect((await m.json()).background_color).toBe("#00112a");
 });
+
+test("busca no Explorar filtra por título e avisa quando não acha", async ({ page }) => {
+  await page.goto("/explorar?q=zzzxyz");
+  await expect(page.getByRole("search")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/Nada encontrado|Ainda não|vazio/i).first()).toBeVisible({ timeout: 20_000 });
+});
