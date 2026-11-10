@@ -11,15 +11,16 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   await expect(page.getByRole("img", { name: "radioOn" }).first()).toBeVisible();
 
   // Play em destaque: botão (com faixas) ou marca inerte (sem faixas).
+  await expect(page.getByRole("navigation", { name: "Filtros" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
   await expect(page.locator("[data-testid=play]:visible, [data-testid=play-vazio]:visible").first()).toBeVisible();
 });
 
 test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
   await page.goto("/");
-  const nav = page.getByRole("navigation", { name: "Principal" });
-  await expect(nav.getByRole("link", { name: "Entrar" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
-  await nav.getByRole("link", { name: "Entrar" }).click();
+  const entrar = page.getByRole("banner").getByRole("link", { name: "Entrar" });
+  await expect(entrar).toBeVisible();
+  await expect(page.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
+  await entrar.click();
   await expect(page).toHaveURL(/\/login/);
   // O logo do cabeçalho volta ao início.
   await page.getByRole("link", { name: "radioOn, início" }).click();
@@ -74,8 +75,6 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   await page.goto("/enviar");
   // O login lembra o destino pedido.
   await expect(page).toHaveURL(/\/login\?next=%2Fenviar/);
-  await page.goto("/metricas");
-  await expect(page).toHaveURL(/\/login/);
-  await page.goto("/pontos");
+  await page.goto("/minha-radio");
   await expect(page).toHaveURL(/\/login/);
 });

@@ -5,6 +5,8 @@ export const ALLOWED_AUDIO_TYPES = [
   "audio/ogg",
   "audio/flac",
 ] as const;
+export const ALLOWED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const MAX_COVER_BYTES = 2 * 1024 * 1024;
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 export const UPLOAD_TTL_SECONDS = 10 * 60;
 export const PLAYBACK_TTL_SECONDS = 60 * 60;
@@ -15,7 +17,13 @@ export type UploadInput = {
   size: number;
   rightsConfirmed: boolean;
   durationSec: number | null;
+  /** Capa opcional (imagem no bucket); sem capa a arte é gerada a partir do título. */
+  cover: { contentType: string; size: number } | null;
+  /** Ficha técnica opcional. */
+  credits: { composer: string | null; performers: string | null; album: string | null; label: string | null };
 };
+
+const LIMITES_FICHA = { composer: 120, performers: 200, album: 120, label: 120 } as const;
 
 export function parseUploadInput(
   raw: unknown,
@@ -53,6 +61,31 @@ export function parseUploadInput(
     }
     durationSec = b.durationSec;
   }
+  let cover: UploadInput["cover"] = null;
+  if (b.cover != null) {
+    const c = b.cover as Record<string, unknown>;
+    if (
+      typeof c !== "object" ||
+      typeof c.contentType !== "string" ||
+      !(ALLOWED_COVER_TYPES as readonly string[]).includes(c.contentType)
+    ) {
+      return { ok: false, error: "formato de capa não aceito" };
+    }
+    if (typeof c.size !== "number" || !Number.isInteger(c.size) || c.size <= 0 || c.size > MAX_COVER_BYTES) {
+      return { ok: false, error: "capa vazia ou maior que 2 MB" };
+    }
+    cover = { contentType: c.contentType, size: c.size };
+  }
+  const entrada = (typeof b.credits === "object" && b.credits !== null ? b.credits : {}) as Record<string, unknown>;
+  const credits = { composer: null, performers: null, album: null, label: null } as UploadInput["credits"];
+  for (const campo of Object.keys(LIMITES_FICHA) as (keyof typeof LIMITES_FICHA)[]) {
+    const v = entrada[campo];
+    if (v == null || v === "") continue;
+    if (typeof v !== "string") return { ok: false, error: "ficha técnica inválida" };
+    const t = v.trim();
+    if (t.length > LIMITES_FICHA[campo]) return { ok: false, error: "ficha técnica inválida" };
+    credits[campo] = t || null;
+  }
   return {
     ok: true,
     value: {
@@ -61,10 +94,16 @@ export function parseUploadInput(
       size: b.size,
       rightsConfirmed: true,
       durationSec,
+      cover,
+      credits,
     },
   };
 }
 
 export function trackKey(artistId: string, uuid: string): string {
   return `tracks/${artistId}/${uuid}`;
+}
+
+export function coverKey(artistId: string, uuid: string): string {
+  return `covers/${artistId}/${uuid}`;
 }

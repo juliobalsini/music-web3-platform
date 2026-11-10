@@ -1,20 +1,26 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { describe, it } from "node:test";
 
-import { itensDoCabecalho } from "../lib/menu.ts";
+import { acoesMinhaRadio, lerAba, lerFiltro } from "../lib/menu.ts";
 
-const hrefs = (s: { role: string | null } | null) => itensDoCabecalho(s).map((i) => i.href);
+describe("acoesMinhaRadio", () => {
+  it("artista envia música", () => {
+    assert.deepEqual(acoesMinhaRadio("artist").map((i) => i.href), ["/enviar"]);
+  });
+  it("curador vai às playlists", () => {
+    assert.deepEqual(acoesMinhaRadio("curator").map((i) => i.href), ["/curador"]);
+  });
+  it("sem perfil escolhe perfil; ouvinte não tem atalho", () => {
+    assert.deepEqual(acoesMinhaRadio(null).map((i) => i.href), ["/onboarding"]);
+    assert.deepEqual(acoesMinhaRadio("listener"), []);
+  });
+});
 
-test("deslogado só vê Entrar", () => {
-  assert.deepEqual(hrefs(null), ["/login"]);
-});
-test("artista vê Enviar música e Métricas", () => {
-  assert.deepEqual(hrefs({ role: "artist" }), ["/enviar", "/metricas", "/pontos"]);
-});
-test("curador e ouvinte", () => {
-  assert.deepEqual(hrefs({ role: "curator" }), ["/curador", "/pontos"]);
-  assert.deepEqual(hrefs({ role: "listener" }), ["/pontos"]);
-});
-test("logado sem perfil é levado ao onboarding", () => {
-  assert.deepEqual(hrefs({ role: null }), ["/onboarding", "/pontos"]);
+describe("filtros e abas da Rádio", () => {
+  it("valores inválidos caem no padrão", () => {
+    assert.equal(lerFiltro("xyz"), "tudo");
+    assert.equal(lerFiltro(["playlists"]), "playlists");
+    assert.equal(lerAba("xyz"), null);
+    assert.equal(lerAba("alta"), "alta");
+  });
 });

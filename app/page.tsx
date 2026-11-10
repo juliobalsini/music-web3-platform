@@ -1,98 +1,115 @@
-import { Play, Upload } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { Logo } from "@/components/logo";
-import { Player } from "@/components/player";
-import { botao } from "@/components/ui";
-import { listarPlaylistsPublicas } from "@/lib/playlists/queries";
-import { listarFaixasRecentes } from "@/lib/tracks/queries";
+import { CartaoNoAr } from "@/components/cartao-no-ar";
+import { ContinueOuvindo } from "@/components/continue-ouvindo";
+import { ListaFaixas } from "@/components/lista-faixas";
+import { EstadoVazio, PlayVazio, PlaylistersEmAlta, PlaylistsDaSemana } from "@/components/secoes-radio";
+import { ABAS, FILTROS, lerAba, lerFiltro, type Aba } from "@/lib/menu";
+import { carregarRadio, continuarOuvindo } from "@/lib/radio/queries";
+import { getSessionRole } from "@/lib/session";
 
-async function Playlists() {
-  const lista = await listarPlaylistsPublicas();
-  if (lista.length === 0) return null;
-  return (
-    <nav aria-label="Playlists" className="w-full max-w-md">
-      <h2 className="mb-3 text-left text-lg font-semibold">Playlists</h2>
-      <ul className="flex flex-col gap-2 text-left">
-        {lista.map((p) => (
-          <li key={p.id}>
-            <Link href={`/playlist/${p.id}`} className="flex items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-3 transition-colors hover:bg-white/15">
-              <span className="truncate font-medium">{p.title}</span>
-              <span className="shrink-0 text-sm text-white/70 tabular-nums">{p.trackCount} faixas</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
+const chip = "inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold";
 
-function PlayVazio() {
-  // Sem faixa não há o que tocar: o círculo é só marca, sem brilho, hover nem botão.
-  return (
-    <div className="flex flex-col items-center gap-5">
-      <div
-        aria-hidden="true"
-        data-testid="play-vazio"
-        className="flex size-28 select-none items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15"
-      >
-        <Play className="ml-1 size-12 fill-white/30 text-white/30" strokeWidth={0} />
-      </div>
-    </div>
-  );
-}
+async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
+  const sp = await searchParams;
+  const filtro = lerFiltro(sp.f);
+  const radio = await carregarRadio();
+  const mostra = (...f: string[]) => filtro === "tudo" || f.includes(filtro);
 
-function EstadoVazio() {
-  return (
-    <section aria-labelledby="vazio" className="flex max-w-sm flex-col items-center gap-5">
-      <PlayVazio />
-      <div className="flex flex-col gap-2">
-        <h2 id="vazio" className="text-xl font-semibold text-balance">Nenhuma faixa ainda</h2>
-        <p className="text-white/70 text-pretty">Artista? Envie a primeira música e abra a rádio.</p>
-      </div>
-      <Link
-        href="/enviar"
-        className={botao}
-      >
-        <Upload className="size-5" aria-hidden="true" /> Enviar primeira faixa
-      </Link>
-    </section>
-  );
-}
+  let continuar = { titulo: "Para começar", faixas: radio.novidades.slice(0, 4) };
+  try {
+    const sessao = await getSessionRole();
+    if (sessao) {
+      const meus = await continuarOuvindo(sessao.userId, radio.faixas);
+      if (meus.length > 0) continuar = { titulo: "Continue ouvindo", faixas: meus };
+    }
+  } catch {
+    /* deslogado */
+  }
 
-async function Destaque() {
-  const faixas = await listarFaixasRecentes();
-  if (faixas.length === 0) return <EstadoVazio />;
-  const [primeira, ...resto] = faixas;
+  const vazias: Record<Aba, boolean> = {
+    descobertas: radio.descobertas.length === 0,
+    alta: radio.emAlta.length === 0,
+    novidades: radio.novidades.length === 0,
+  };
+  const aba: Aba = lerAba(sp.aba) ?? ABAS.find((a) => !vazias[a.id])?.id ?? "novidades";
+  const href = (params: Record<string, string>) => {
+    const q = new URLSearchParams(params);
+    return `/?${q.toString()}`;
+  };
+
   return (
     <>
-      <Player trackId={primeira.id} title={primeira.title} grande />
-      {resto.length > 0 && (
-        <ul aria-label="Mais faixas" className="flex w-full max-w-md flex-col gap-3 text-left">
-          {resto.map((f) => (
-            <li key={f.id} className="rounded-lg bg-white/10 px-4 py-3">
-              <Player trackId={f.id} title={f.title} />
-            </li>
-          ))}
-        </ul>
+      <nav aria-label="Filtros" className="-mx-4 flex gap-2 overflow-x-auto px-4">
+        {FILTROS.map((f) => (
+          <Link
+            key={f.id}
+            href={f.id === "tudo" ? "/" : href({ f: f.id })}
+            aria-current={filtro === f.id ? "page" : undefined}
+            className={`${chip} shrink-0 ${filtro === f.id ? "bg-brand text-night-900" : "bg-white/10 text-white hover:bg-white/15"}`}
+          >
+            {f.label}
+          </Link>
+        ))}
+      </nav>
+
+      {radio.faixas.length === 0 && mostra("faixas") ? (
+        <EstadoVazio />
+      ) : (
+        mostra("faixas") && radio.noAr && (
+          <>
+            <CartaoNoAr
+              faixa={radio.noAr.faixa}
+              fila={radio.noAr.fila}
+              atual={radio.programa.atual}
+              proximo={radio.programa.proximo}
+              ouvindo={radio.ouvindo}
+            />
+            <ContinueOuvindo titulo={continuar.titulo} faixas={continuar.faixas} />
+            <section aria-label="Faixas" className="flex flex-col gap-1">
+              <nav aria-label="Listas" className="mb-1 flex gap-1 border-b border-white/10">
+                {ABAS.map((a) => (
+                  <Link
+                    key={a.id}
+                    href={href({ ...(filtro === "tudo" ? {} : { f: filtro }), aba: a.id })}
+                    aria-current={aba === a.id ? "page" : undefined}
+                    className={`flex min-h-11 items-center px-3 text-sm font-semibold ${aba === a.id ? "border-b-2 border-brand text-brand" : "text-white/70 hover:text-white"}`}
+                  >
+                    {a.label}
+                  </Link>
+                ))}
+              </nav>
+              {aba === "descobertas" && (
+                <ListaFaixas rotulo="Descobertas" faixas={radio.descobertas} vazio="Quando playlisters escolherem faixas pouco ouvidas, elas aparecem aqui." />
+              )}
+              {aba === "alta" && <ListaFaixas rotulo="Em alta" ranking={radio.emAlta} vazio="O ranking aparece com as primeiras escutas da semana." />}
+              {aba === "novidades" && <ListaFaixas rotulo="Novidades" faixas={radio.novidades} />}
+            </section>
+          </>
+        )
       )}
+
+      {mostra("playlisters") && <PlaylistersEmAlta lista={radio.playlisters} />}
+      {mostra("playlists") && <PlaylistsDaSemana lista={radio.playlists} />}
+      {filtro === "playlisters" && radio.playlisters.length === 0 && <p className="text-white/70">Nenhum playlister em alta ainda.</p>}
+      {filtro === "playlists" && radio.playlists.length === 0 && <p className="text-white/70">Nenhuma playlist pública ainda.</p>}
     </>
   );
 }
 
-export default function Home() {
+export default function Radio({ searchParams }: PageProps<"/">) {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10 text-center sm:py-16">
-      <Logo className="h-28 sm:h-40" />
-      <h1 className="sr-only">radioOn</h1>
-
-      <Suspense fallback={<PlayVazio />}>
-        <Destaque />
-      </Suspense>
-
-      <Suspense>
-        <Playlists />
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-2">
+      <h1 className="sr-only">radioOn · Rádio</h1>
+      <Suspense
+        fallback={
+          <div className="flex justify-center py-16">
+            <PlayVazio />
+          </div>
+        }
+      >
+        <Conteudo searchParams={searchParams} />
       </Suspense>
     </main>
   );

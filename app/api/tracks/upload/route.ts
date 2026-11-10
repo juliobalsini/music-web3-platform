@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { getSessionRole } from "@/lib/session";
 import { isStorageConfigured, signUpload } from "@/lib/storage/client";
-import { parseUploadInput, trackKey } from "@/lib/storage/rules";
+import { coverKey, parseUploadInput, trackKey } from "@/lib/storage/rules";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const noStore = { "Cache-Control": "no-store" };
@@ -22,9 +22,10 @@ export async function POST(request: Request) {
   const body: unknown = await request.json().catch(() => null);
   const parsed = parseUploadInput(body);
   if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400, headers: noStore });
-  const { title, contentType, size, durationSec } = parsed.value;
+  const { title, contentType, size, durationSec, cover, credits } = parsed.value;
 
   const key = trackKey(sessao.userId, randomUUID());
+  const capaKey = cover ? coverKey(sessao.userId, randomUUID()) : null;
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("tracks")
@@ -35,11 +36,20 @@ export async function POST(request: Request) {
       duration_sec: durationSec,
       status: "processing",
       rights_confirmed: true,
+      cover_key: capaKey,
+      composer: credits.composer,
+      performers: credits.performers,
+      album: credits.album,
+      label: credits.label,
     })
     .select("id")
     .single();
   if (error) return Response.json({ error: "falha ao registrar a faixa" }, { status: 500, headers: noStore });
 
   const uploadUrl = await signUpload(key, contentType, size);
-  return Response.json({ trackId: data.id, uploadUrl, contentType }, { headers: noStore });
+  const coverUploadUrl = cover && capaKey ? await signUpload(capaKey, cover.contentType, cover.size) : null;
+  return Response.json(
+    { trackId: data.id, uploadUrl, contentType, coverUploadUrl, coverContentType: cover?.contentType ?? null },
+    { headers: noStore },
+  );
 }

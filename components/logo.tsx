@@ -11,7 +11,7 @@ export function Logo({ className }: LogoProps) {
       alt="radioOn"
       width={385}
       height={270}
-      className={`h-auto w-auto select-none ${className ?? "h-24"}`}
+      className={`w-auto select-none ${className ?? "h-24"}`}
     />
   );
 }

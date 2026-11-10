@@ -26,24 +26,29 @@ export async function listarPlaylistsPublicas(limite = 12): Promise<PlaylistResu
   }
 }
 
+export type FaixaDaPlaylist = { id: string; note: string | null };
+
 export async function obterPlaylist(id: string) {
   try {
     const supabase = await createClient();
     const { data: p } = await supabase
       .from("playlists")
-      .select("id,title,curator_id,is_public")
+      .select("id,title,curator_id,is_public,profiles(display_name)")
       .eq("id", id)
       .maybeSingle();
     if (!p) return null;
     const { data: itens } = await supabase
       .from("playlist_tracks")
-      .select("position,tracks(id,title,status)")
+      .select("position,note,tracks(id,title,status)")
       .eq("playlist_id", id)
       .order("position");
-    const faixas = (itens ?? [])
-      .map((i) => (Array.isArray(i.tracks) ? i.tracks[0] : i.tracks))
-      .filter((t): t is { id: string; title: string; status: string } => !!t && t.status === "published");
-    return { id: p.id as string, title: p.title as string, faixas };
+    const faixas: FaixaDaPlaylist[] = [];
+    for (const i of itens ?? []) {
+      const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
+      if (t && t.status === "published") faixas.push({ id: t.id as string, note: (i.note as string | null) ?? null });
+    }
+    const prof = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
+    return { id: p.id as string, title: p.title as string, curator: (prof?.display_name as string | null) ?? null, faixas };
   } catch {
     return null;
   }
