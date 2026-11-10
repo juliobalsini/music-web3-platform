@@ -15,6 +15,7 @@ import {
   ouvindoAgora,
   programacao,
   rankingEmAlta,
+  rankingPlaylistsPorEscutas,
   SEMANA,
   type FaixaListada,
   type ItemRanking,
@@ -272,8 +273,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       descobertas: descobertas(faixas, plays, emPlaylists),
       novidades: novidades(faixas),
       playlisters: [...porCurador.values()].sort((a, b) => b.faixas - a.faixas || b.playlists - a.playlists).slice(0, 8),
-      playlists: base
-        .sort((a, b) => b.playlist_tracks.length - a.playlist_tracks.length || b.created_at.localeCompare(a.created_at))
+      playlists: rankingPlaylistsPorEscutas(base, escutas, agora)
         .slice(0, 8)
         .map(resumo),
       todasPlaylists: playlists.map(resumo),

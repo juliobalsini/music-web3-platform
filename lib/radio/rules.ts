@@ -181,3 +181,26 @@ export function buscar<T>(itens: T[], consulta: string, campos: (item: T) => (st
     return termos.every((t) => texto.includes(t));
   });
 }
+
+export type PlaylistRankeavel = { id: string; created_at: string; playlist_tracks: { track_id: string }[] };
+
+/**
+ * Ranking de playlists por escutas válidas da semana nas faixas que elas contêm (substitui o
+ * ranking por nº de faixas). Empate → mais faixas, depois mais recente. Não altera a entrada.
+ */
+export function rankingPlaylistsPorEscutas<P extends PlaylistRankeavel>(
+  playlists: P[],
+  escutas: { track_id: string; started_at: string }[],
+  agora: number,
+): P[] {
+  const porFaixa = new Map<string, number>();
+  for (const e of escutas) {
+    if (agora - Date.parse(e.started_at) >= SEMANA) continue;
+    porFaixa.set(e.track_id, (porFaixa.get(e.track_id) ?? 0) + 1);
+  }
+  const pontos = (p: P) => p.playlist_tracks.reduce((n, i) => n + (porFaixa.get(i.track_id) ?? 0), 0);
+  return playlists
+    .map((p) => ({ p, n: pontos(p) }))
+    .sort((a, b) => b.n - a.n || b.p.playlist_tracks.length - a.p.playlist_tracks.length || b.p.created_at.localeCompare(a.p.created_at))
+    .map((x) => x.p);
+}

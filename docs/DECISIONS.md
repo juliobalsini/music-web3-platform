@@ -220,3 +220,6 @@ Formato: data · decisão · motivo. Mais recente no fim.
     corrige `salvarNota`, que dependia de um grant inexistente em `note`. Reordenar troca com a vizinha em 3
     UPDATEs (a unicidade de posição é conferida por instrução no PostgREST). Leituras caem para o select antigo
     se as colunas novas ainda não existirem. Ocultas saem da Rádio e da página pública; destaques aparecem no topo.
+47. **Ranking de playlists por escutas (item n; substitui a decisão 26):** pontuação = escutas válidas dos
+    últimos 7 dias nas faixas da playlist (`rankingPlaylistsPorEscutas`, reaproveita as escutas já lidas pela
+    Rádio); empate → mais faixas, depois mais recente. Sem escutas, cai no critério antigo.
