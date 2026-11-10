@@ -182,3 +182,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-09 (2ª execução) — issues #18 e #20 fechadas a pedido do Julio; CLAUDE.md ganhou as
   regras de fechar issues resolvidas ao fim da execução e de checar status.supabase.com /
   Knowledge Base em erros do Supabase (PR #27); ciclo 5 (item f) concluído.
+- 2026-11-10 — Fase UX (g2–j2) concluída: PRs #33–#36 em produção. Relatório em
+  `docs/reports/2026-11-10-fase-ux.md`. Ciclo 6 segue fora da fila.
