@@ -1,0 +1,85 @@
+// Catálogo de demonstração: só fora de produção (prévias da Vercel, testes locais).
+// Áudio = public/demo/tom.wav (arquivo estático, sem B2 e sem cota). Produção nunca vê estes dados.
+
+export const DEMO_AUDIO_URL = "/demo/tom.wav";
+export const DEMO_DURACAO = 8;
+
+/** Ligado fora de produção. `RADIO_DEMO=0` desliga (ex.: conferir o estado vazio). */
+export function demoAtivo(): boolean {
+  return process.env.VERCEL_ENV !== "production" && process.env.RADIO_DEMO !== "0";
+}
+
+const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+export const ehFaixaDemo = (faixaId: string) => /^00000000-0000-4000-8000-0000000000[0-9a-f]{2}$/i.test(faixaId);
+
+const ARTISTAS = [
+  { id: id(101), nome: "Lia Norte" },
+  { id: id(102), nome: "Maré Alta" },
+  { id: id(103), nome: "Duo Vitrola" },
+];
+const CURADORES = [
+  { id: id(201), nome: "Clara Sintonia" },
+  { id: id(202), nome: "Rádio do Bairro" },
+];
+
+const TITULOS: [string, number][] = [
+  ["Madrugada no Convés", 0],
+  ["Faróis", 1],
+  ["Ondas curtas", 2],
+  ["Vitrola azul", 2],
+  ["Porto sem pressa", 1],
+  ["Sinal âmbar", 0],
+  ["Maré de domingo", 1],
+  ["Fio de prata", 0],
+];
+
+export type DemoDados = {
+  tracks: Record<string, unknown>[];
+  playlists: Record<string, unknown>[];
+  programs: Record<string, unknown>[];
+  nomes: Map<string, string>;
+  escutas: { track_id: string; started_at: string }[];
+  curtidas: { track_id: string }[];
+};
+
+export function dadosDemo(agora: number): DemoDados {
+  const dia = 24 * 3600 * 1000;
+  const tracks = TITULOS.map(([title, a], i) => ({
+    id: id(1 + i),
+    title,
+    artist_id: ARTISTAS[a].id,
+    duration_sec: DEMO_DURACAO,
+    cover_key: null,
+    created_at: new Date(agora - (i + 1) * 3 * 3600 * 1000).toISOString(),
+    composer: i === 0 ? "Lia Norte" : null,
+    performers: i === 0 ? "Lia Norte (voz), Beto Cordas (violão)" : null,
+    album: i === 0 ? "Sinais" : null,
+    label: null,
+  }));
+  const faixaPl = (n: number[], notas: string[] = []) =>
+    n.map((t, position) => ({ track_id: id(t), note: notas[position] ?? null, position }));
+  const playlists = [
+    {
+      id: id(301), title: "Manhã no porto", curator_id: CURADORES[0].id,
+      created_at: new Date(agora - 2 * dia).toISOString(),
+      playlist_tracks: faixaPl([1, 2, 3, 4], ["Abre o dia com calma.", "Violão e brisa."]),
+    },
+    {
+      id: id(302), title: "Madrugada de rádio", curator_id: CURADORES[1].id,
+      created_at: new Date(agora - 1 * dia).toISOString(),
+      playlist_tracks: faixaPl([5, 6, 7, 8], ["Para quem fica acordado."]),
+    },
+  ];
+  const programs = [
+    { id: id(401), title: "Manhã no porto", start_hour: 0, end_hour: 12, playlist_id: id(301), curator_id: CURADORES[0].id },
+    { id: id(402), title: "Madrugada de rádio", start_hour: 12, end_hour: 24, playlist_id: id(302), curator_id: CURADORES[1].id },
+  ];
+  // Escutas na semana: dão corpo ao "Em alta" (faixas 2, 3 e 1 à frente).
+  const escutas: DemoDados["escutas"] = [];
+  const peso: Record<number, number> = { 2: 9, 3: 6, 1: 4, 6: 2 };
+  for (const [t, n] of Object.entries(peso)) {
+    for (let k = 0; k < n; k++) escutas.push({ track_id: id(Number(t)), started_at: new Date(agora - (k + 1) * 3600 * 1000).toISOString() });
+  }
+  const nomes = new Map([...ARTISTAS, ...CURADORES].map((p) => [p.id, p.nome]));
+  return { tracks, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }] };
+}
