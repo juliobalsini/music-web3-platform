@@ -120,15 +120,22 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
   um print do Audius, não o site de 2012 (ver relatório 2026-11-10-redesenho-mobile.md).
 - [x] **r3) DESIGN.md/PRODUCT.md, DECISIONS 33–40, relatório e prints** — esta execução.
 
+### Instrução prioritária do Julio (2026-11-10, teste real no celular)
+
+- [x] **p0) Bug das faixas / dados de demo / fidelidade ao protótipo / envio no celular / login / PWA**
+  — PR item-p0-radio-faixas; ver DECISIONS 41–45 e `docs/reports/2026-11-10-correcoes-celular.md`.
+  Pendências: confirmar em produção com faixa real; criar a credencial Google (passo a passo no
+  relatório); Explorar do protótipo (busca, "por clima", gêneros) fica para o item k.
+
 ### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
 
 Fila vazia em 2026-11-10; itens **propostos**, só executar após "aprovado" do Julio na issue do
 relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem credencial nova.
 
-- [ ] **k) Busca de faixas e playlists** (título/artista/curador) na home — proposto.
-- [ ] **l) Páginas públicas de artista e de curador** (perfil, faixas, playlists) — proposto.
-- [ ] **m) Curador: reordenar, ocultar e destacar faixas** nas playlists — proposto.
-- [ ] **n) Ranking de playlists por escutas válidas** (troca a decisão 26) — proposto.
+- [ ] **k) Busca de faixas e playlists** (título/artista/curador) na home — aprovado pelo Julio (#45), próximo da fila.
+- [ ] **l) Páginas públicas de artista e de curador** (perfil, faixas, playlists) — aprovado (#45).
+- [ ] **m) Curador: reordenar, ocultar e destacar faixas** nas playlists — aprovado (#45).
+- [ ] **n) Ranking de playlists por escutas válidas** (troca a decisão 26) — aprovado (#45).
 - [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto.
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.

@@ -20,16 +20,24 @@ export function ListaFaixas({
   ranking,
   rotulo,
   vazio = "Nada por aqui ainda.",
+  dica,
+  numerar = false,
 }: {
   faixas?: FaixaListada[];
   ranking?: ItemRanking<FaixaListada>[];
   rotulo: string;
   vazio?: string;
+  /** Linha curta sob as abas (como no protótipo). */
+  dica?: string;
+  /** Numera 01, 02… quando não é ranking. */
+  numerar?: boolean;
 }) {
   const { atual, estado, tocar } = usePlayer();
   const itens = ranking ? ranking.map((r) => r.faixa) : (faixas ?? []);
   if (itens.length === 0) return <p className="px-1 text-sm text-white/70">{vazio}</p>;
   return (
+    <>
+    {dica && <p className="px-1 pb-1 text-sm text-white/70">{dica}</p>}
     <ol aria-label={rotulo} className="flex flex-col">
       {itens.map((f, i) => {
         const item = ranking?.[i];
@@ -44,6 +52,9 @@ export function ListaFaixas({
               aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`}
               className={`flex min-h-16 w-full items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5 ${naFila ? "bg-white/5" : ""}`}
             >
+              {!item && numerar && (
+                <span aria-hidden="true" className="w-7 shrink-0 text-sm font-bold tabular-nums text-brand">{String(i + 1).padStart(2, "0")}</span>
+              )}
               {item && (
                 <span className="flex w-7 shrink-0 flex-col items-center text-sm font-bold tabular-nums">
                   {item.posicao}
@@ -61,7 +72,7 @@ export function ListaFaixas({
                   <span className="truncate">{f.title}</span>
                   {tocando && <Equalizador />}
                 </span>
-                <span className="block truncate text-sm text-white/70">{f.artistName}</span>
+                <span className="block truncate text-sm text-white/70">{f.artistName}{f.playlister && numerar ? ` · escolha de ${f.playlister}` : ""}</span>
               </span>
               <span className="flex shrink-0 flex-col items-end gap-0.5 text-xs text-white/70 tabular-nums">
                 <span>{formatDuracao(f.durationSec)}</span>
@@ -75,5 +86,6 @@ export function ListaFaixas({
         );
       })}
     </ol>
+    </>
   );
 }

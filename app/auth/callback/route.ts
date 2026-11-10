@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 // Destino do magic link: troca o código/token por sessão (cookies).
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
-  const next = safeNext(searchParams.get("next") ?? request.cookies.get(NEXT_COOKIE)?.value, "/onboarding");
+  const next = safeNext(searchParams.get("next") ?? request.cookies.get(NEXT_COOKIE)?.value, "/");
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;

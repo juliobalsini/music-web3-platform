@@ -10,7 +10,7 @@ export const metadata = { title: "Entrar · radioOn" };
 async function Erro({ searchParams }: Pick<PageProps<"/login">, "searchParams">) {
   const { erro } = await searchParams;
   if (!erro) return null;
-  return <Mensagem tipo="erro">O link expirou ou é inválido. Peça outro.</Mensagem>;
+  return <Mensagem tipo="erro">{erro === "google" ? "Não foi possível entrar com Google agora. Use o link por e-mail." : "O link expirou ou é inválido. Peça outro."}</Mensagem>;
 }
 
 async function Formulario({ searchParams }: Pick<PageProps<"/login">, "searchParams">) {

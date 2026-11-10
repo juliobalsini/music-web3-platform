@@ -243,7 +243,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         preload="none"
         onPlay={() => setEstado("tocando")}
         onPause={() => setEstado((e) => (e === "tocando" ? "parado" : e))}
-        onTimeUpdate={(e) => setTempo((t) => ({ ...t, atual: e.currentTarget.currentTime }))}
+        onTimeUpdate={(e) => {
+          // Ler antes: dentro do updater o currentTarget já é null e derrubava a página ao tocar.
+          const agora = e.currentTarget.currentTime;
+          setTempo((t) => ({ ...t, atual: agora }));
+        }}
         onLoadedMetadata={(e) => {
           const d = e.currentTarget.duration;
           if (Number.isFinite(d)) setTempo((t) => ({ ...t, duracao: d }));
