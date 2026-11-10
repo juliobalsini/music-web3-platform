@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>radioOn — protótipo v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#07060f;font-family:Inter,system-ui,-apple-system,sans-serif;color:#fff;display:flex;justify-content:center}
+.app{position:relative;width:100%;max-width:430px;height:100vh;overflow:hidden;background:#0f0f23}
+.amb{position:absolute;left:-20%;right:-20%;top:-10%;height:55%;transition:background 1.2s ease;filter:blur(50px);opacity:.5}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.08;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+header{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:16px 18px 4px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.5px}.logo b{color:#ff6b35}
+.live{display:flex;align-items:center;gap:6px;font:600 10px ui-monospace,monospace;letter-spacing:1px;color:#ffb38f;background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.35);padding:5px 9px;border-radius:99px}
+.dot{width:6px;height:6px;border-radius:50%;background:#ff6b35;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+main{position:relative;z-index:1;height:calc(100vh - 56px);overflow-y:auto;padding:4px 18px 170px;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.scr{display:none}.scr.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:10px -18px 0;padding:0 18px}
+.filters::-webkit-scrollbar{display:none}
+.filters button{flex:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer}
+.filters button.on{background:#ff6b35;border-color:#ff6b35;color:#1a0d05}
+.cv{position:relative;overflow:hidden;flex:none}
+.cv .lines{position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 12px)}
+.cv .glyph{position:absolute;right:-8%;bottom:-18%;font-weight:900;line-height:1;color:rgba(255,255,255,.12);letter-spacing:-.06em}
+.onair{display:flex;gap:14px;align-items:center;margin-top:14px;padding:12px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);touch-action:pan-y;transition:transform .3s,opacity .3s}
+.onair .cv{width:112px;height:112px;border-radius:14px;box-shadow:0 14px 30px -10px rgba(0,0,0,.7)}
+.onair .cv .glyph{font-size:120px}
+.oa{flex:1;min-width:0}
+.k{font:600 10px ui-monospace,monospace;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.k b{color:#ff9a6b;font-weight:600}
+.oa h2{font-size:19px;letter-spacing:-.4px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oa p{font-size:13px;color:rgba(255,255,255,.65);margin-top:2px}
+.oactl{display:flex;align-items:center;gap:10px;margin-top:10px}
+.pbtn{width:44px;height:44px;border-radius:50%;border:none;background:linear-gradient(135deg,#ff6b35,#f7931e);display:grid;place-items:center;cursor:pointer}
+.pbtn.on{animation:ring 2s infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,107,53,.45)}100%{box-shadow:0 0 0 14px rgba(255,107,53,0)}}
+.pbtn svg{width:20px;height:20px;fill:#1a0d05}
+.ib{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);display:grid;place-items:center;cursor:pointer}
+.ib svg{width:16px;height:16px;fill:#fff}
+.earn{font-size:11px;color:rgba(255,255,255,.55);margin-left:auto;text-align:right}.earn b{color:#ffb38f}
+.oabar{height:3px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;overflow:hidden}.oabar i{display:block;height:100%;width:0;background:#ff6b35}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+.qt{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;cursor:pointer;height:52px}
+.qt .cv{width:52px;height:52px}.qt .cv .glyph{font-size:48px}
+.qt span{font-size:12px;font-weight:700;line-height:1.2;padding-right:8px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 10px}
+.sec h3{font-size:17px;letter-spacing:-.3px}.sec span{font-size:12px;color:rgba(255,255,255,.5)}
+.seg{display:flex;gap:4px;background:rgba(255,255,255,.06);padding:4px;border-radius:12px;margin-top:22px}
+.seg button{flex:1;border:none;background:none;color:rgba(255,255,255,.6);padding:9px 0;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+.seg button.on{background:#1d1a3d;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.hint{font-size:12px;color:rgba(255,255,255,.5);margin:10px 2px 4px}
+.row2{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;border-radius:10px}
+.row2.cur{background:rgba(255,107,53,.08)}
+.rk{width:24px;text-align:center;font:700 13px ui-monospace,monospace;color:#ff9a6b;flex:none}
+.rk small{display:block;font-size:9px;font-weight:600;margin-top:2px}
+.up{color:#06d6a0}.dn{color:#ef476f}.nw{color:#ffd166}
+.row2 .cv{width:54px;height:54px;border-radius:9px}.row2 .cv .glyph{font-size:52px}
+.tx{flex:1;min-width:0}
+.tx p{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx small{font-size:12px;color:rgba(255,255,255,.6)}
+.meta{display:flex;gap:10px;font-size:11px;color:rgba(255,255,255,.45);margin-top:4px}
+.dur{font:500 11px ui-monospace,monospace;color:rgba(255,255,255,.45)}
+.eq{display:flex;gap:2px;align-items:flex-end;height:14px;justify-content:center}
+.eq i{width:3px;background:#ff6b35;border-radius:1px;animation:eq .8s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.55s}
+@keyframes eq{0%,100%{height:30%}50%{height:100%}}
+.eq.off i{animation:none;height:40%}
+.hrow{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px}
+.hrow::-webkit-scrollbar{display:none}
+.pl{text-align:center;flex:0 0 76px;cursor:pointer}
+.av{width:68px;height:68px;border-radius:50%;margin:0 auto;border:2px solid rgba(255,107,53,.55);display:grid;place-items:center;font-weight:800;font-size:20px}
+.pl p{font-size:11px;font-weight:600;margin-top:6px;line-height:1.2}
+.pl small{font-size:10px;color:rgba(255,255,255,.5)}
+.card{flex:0 0 140px;cursor:pointer}
+.card .cv{width:140px;height:140px;border-radius:14px}.card .cv .glyph{font-size:120px}
+.card p{font-size:13px;font-weight:700;margin-top:8px}.card small{font-size:11px;color:rgba(255,255,255,.5)}
+.search{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 14px;color:rgba(255,255,255,.5);font-size:14px;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .card .cv{width:100%;height:auto;aspect-ratio:1}
+.genres{display:flex;flex-wrap:wrap;gap:8px}
+.genres span{padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:18px}
+.pts{display:flex;align-items:center;gap:18px}
+.ringw{position:relative;width:92px;height:92px}.ringw svg{transform:rotate(-90deg)}
+.ringw b{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800;color:#ff6b35}
+.pts h4{font-size:15px}.pts p{font-size:13px;color:rgba(255,255,255,.55);margin-top:4px;line-height:1.4}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.stat{background:rgba(255,255,255,.04);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px}.stat small{font-size:11px;color:rgba(255,255,255,.5)}
+.btn{width:100%;margin-top:14px;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#1a0d05;font-weight:700;font-size:15px;cursor:pointer}
+.mini{position:absolute;left:8px;right:8px;bottom:76px;z-index:5;display:flex;align-items:center;gap:12px;padding:7px 10px 7px 7px;border-radius:14px;background:rgba(22,20,48,.85);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.1);cursor:pointer;transform:translateY(150%);transition:transform .35s ease}
+.mini.show{transform:none}
+.mini .cv{width:42px;height:42px;border-radius:9px}.mini .cv .glyph{font-size:40px}
+.mini .t{flex:1;min-width:0}.mini p{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini small{font-size:11px;color:rgba(255,255,255,.55)}
+.mini .pbtn{width:38px;height:38px}.mini .pbtn svg{width:16px;height:16px}
+.mini .prog{position:absolute;left:12px;right:12px;bottom:0;height:2px;background:rgba(255,255,255,.1);overflow:hidden}.mini .prog i{display:block;height:100%;background:#ff6b35;width:0}
+nav{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-around;padding:10px 0 16px;background:linear-gradient(to top,#0b0a1a 65%,rgba(11,10,26,0))}
+nav button{background:none;border:none;color:rgba(255,255,255,.45);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;cursor:pointer}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
+.full{position:absolute;inset:0;z-index:10;background:#0f0f23;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.full.open{transform:none}
+.full .amb{height:100%;opacity:.7}
+.fin{position:relative;z-index:1;padding:16px 24px;height:100%;display:flex;flex-direction:column}
+.fhead{display:flex;justify-content:space-between;align-items:center;font:600 11px ui-monospace,monospace;letter-spacing:1.5px;color:rgba(255,255,255,.6)}
+.fhead button{background:none;border:none;color:#fff;font-size:26px;cursor:pointer}
+.fcover{width:100%;aspect-ratio:1;border-radius:22px;margin-top:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
+.fcover .glyph{font-size:220px}
+.fttl{font-size:26px;font-weight:800;letter-spacing:-.6px;margin-top:18px}.fart{color:rgba(255,255,255,.65);margin-top:2px}
+.wave{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:18px}
+.wave i{flex:1;background:rgba(255,255,255,.3);border-radius:2px;height:20%;animation:wv 1s ease-in-out infinite;animation-play-state:paused}
+.wave.on i{animation-play-state:running}.wave i.done{background:#ff6b35}
+@keyframes wv{50%{height:100%}}
+.times{display:flex;justify-content:space-between;font:500 11px ui-monospace,monospace;color:rgba(255,255,255,.45);margin-top:6px}
+.fctl{display:flex;align-items:center;justify-content:center;gap:26px;margin:18px 0}
+.fctl .pbtn{width:72px;height:72px}.fctl .pbtn svg{width:28px;height:28px}.fctl .ib{width:48px;height:48px}.fctl .ib svg{width:20px;height:20px}
+.acts{display:flex;justify-content:space-around;margin-top:auto;padding-bottom:8px}
+.acts button{background:none;border:none;color:rgba(255,255,255,.75);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;cursor:pointer}
+.acts svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.toast{position:absolute;left:50%;top:64px;z-index:20;transform:translate(-50%,-20px);opacity:0;background:#ff6b35;color:#1a0d05;font-weight:700;font-size:13px;padding:10px 16px;border-radius:99px;transition:.35s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="amb" id="amb"></div><div class="grain"></div>
+  <header><div class="logo">radio<b>On</b></div><div class="live"><span class="dot"></span>NO AR · <span id="lis">128</span> OUVINDO</div></header>
+  <main id="main">
+    <section class="scr on" id="s-radio">
+      <div class="filters" id="filters">
+        <button class="on" data-f="tudo">Tudo</button><button data-f="faixas">Faixas</button><button data-f="playlists">Playlists</button><button data-f="playlisters">Playlisters</button>
+      </div>
+      <div data-g="tudo faixas">
+        <div class="onair" id="onair">
+          <div class="cv" id="oacv"><div class="lines"></div><div class="glyph"></div></div>
+          <div class="oa">
+            <div class="k">No ar · por <b id="oacur"></b></div>
+            <h2 id="oat"></h2><p id="oaa"></p>
+            <div class="oactl">
+              <button class="pbtn" id="bp" onclick="toggle()" aria-label="Tocar"></button>
+              <button class="ib" onclick="next()" aria-label="Próxima"><svg viewBox="0 0 24 24"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button>
+              <div class="earn" id="earn"></div>
+            </div>
+            <div class="oabar"><i id="oabar"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="quick" data-g="tudo playlists" id="quick"></div>
+      <div data-g="tudo faixas">
+        <div class="seg" id="seg"><button class="on" data-t="desc">Descobertas</button><button data-t="alta">Em alta</button><button data-t="novo">Novidades</button></div>
+        <div class="hint" id="hint"></div>
+        <div id="list"></div>
+      </div>
+      <div data-g="tudo playlisters">
+        <div class="sec"><h3>Playlisters em alta</h3><span>ver todos</span></div>
+        <div class="hrow" id="pls"></div>
+      </div>
+      <div data-g="tudo playlists">
+        <div class="sec"><h3>Playlists da semana</h3><span>ver todas</span></div>
+        <div class="hrow" id="plw"></div>
+      </div>
+    </section>
+    <section class="scr" id="s-explorar">
+      <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Artistas, faixas, playlisters</div>
+      <div class="sec"><h3>Por clima</h3></div>
+      <div class="genres"><span>Madrugada</span><span>Estrada</span><span>Foco</span><span>Chuva</span><span>Pista</span><span>Domingo</span></div>
+      <div class="sec"><h3>Gêneros independentes</h3></div>
+      <div class="genres"><span>Blues</span><span>Lo-fi</span><span>Pós-punk</span><span>Eletrônica</span><span>Folk</span><span>Jazz</span><span>Experimental</span><span>Rock alternativo</span></div>
+      <div class="sec"><h3>Todas as playlists</h3></div>
+      <div class="grid" id="grid"></div>
+    </section>
+    <section class="scr" id="s-minha">
+      <div class="k" style="margin:14px 0 10px">Minha rádio</div>
+      <div class="panel">
+        <div class="pts"><div class="ringw"><svg width="92" height="92"><circle cx="46" cy="46" r="38" stroke="rgba(255,255,255,.1)" stroke-width="8" fill="none"/><circle id="ring" cx="46" cy="46" r="38" stroke="#ff6b35" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="239" style="transition:stroke-dashoffset .6s"/></svg><b id="ptsn">0</b></div>
+        <div><h4>Pontos de hoje</h4><p>Meta diária: 50 pts.<br>Cada faixa ouvida por 30s vale 5.</p></div></div>
+        <div class="stats"><div class="stat"><b id="st1">0</b><small>escutas</small></div><div class="stat"><b id="st2">0</b><small>minutos</small></div><div class="stat"><b id="st3">1</b><small>descobertas</small></div></div>
+      </div>
+      <div class="sec"><h3>Como artista</h3><span>suas faixas</span></div>
+      <div class="panel" id="mine"></div>
+      <button class="btn" onclick="toast('Abre o envio de faixa')">Enviar música</button>
+    </section>
+  </main>
+  <div class="mini" id="mini" onclick="openFull()">
+    <div class="cv" id="mcv"><div class="lines"></div><div class="glyph"></div></div>
+    <div class="t"><p id="mt"></p><small id="ma"></small></div>
+    <button class="pbtn" id="mp" onclick="event.stopPropagation();toggle()"></button>
+    <div class="prog"><i id="mbar"></i></div>
+  </div>
+  <nav>
+    <button class="on" data-s="radio" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.6 4.6a10.5 10.5 0 0 0 0 14.8M19.4 4.6a10.5 10.5 0 0 1 0 14.8"/></svg>Rádio</button>
+    <button data-s="explorar" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explorar</button>
+    <button data-s="minha" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Minha rádio</button>
+  </nav>
+  <div class="full" id="full">
+    <div class="amb" id="famb"></div><div class="grain"></div>
+    <div class="fin">
+      <div class="fhead"><button onclick="closeFull()" aria-label="Fechar">⌄</button><span>NO AR · <span id="fcur"></span></span><span style="width:26px"></span></div>
+      <div class="cv fcover" id="fcv"><div class="lines"></div><div class="glyph"></div></div>
+      <div class="fttl" id="ft"></div><div class="fart" id="fa"></div>
+      <div class="wave" id="wave"></div>
+      <div class="times"><span id="tc">0:00</span><span id="td"></span></div>
+      <div class="fctl">
+        <button class="ib" onclick="prev()" aria-label="Anterior"><svg viewBox="0 0 24 24"><path d="M18 6l-8.5 6L18 18zM6 6h2v12H6z"/></svg></button>
+        <button class="pbtn" id="fbp" onclick="toggle()" aria-label="Tocar"></button>
+        <button class="ib" onclick="next()" aria-label="Próxima"><svg viewBox="0 0 24 24"><path d="M6 6l8.5 6L6 18zM16 6h2v12h-2z"/></svg></button>
+      </div>
+      <div class="acts">
+        <button onclick="toast('Curtida salva · melhora suas descobertas')"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.3-9C1 8.3 3.4 5 6.8 5c2 0 3.4 1.1 5.2 3 1.8-1.9 3.2-3 5.2-3C20.6 5 23 8.3 21.3 12 19 16.4 12 21 12 21z"/></svg>Curtir</button>
+        <button onclick="toast('Salva numa playlist')"><svg viewBox="0 0 24 24"><path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/></svg>Salvar</button>
+        <button onclick="toast('Envia pontos ao artista')"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>Apoiar</button>
+        <button onclick="toast('Compartilha a faixa')"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 11l7.6-3.8M8.2 13l7.6 3.8"/></svg>Compartilhar</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+const T=[
+ {t:'Brisa Blues',a:'Julio B.',g:'Blues',cur:'Curadoria Noturna',c:['#ff6b35','#3a0ca3'],d:214,p:2140,l:77,tr:'+3',age:0},
+ {t:'Asfalto Molhado',a:'Linha 9',g:'Pós-punk',cur:'Subsolo Sonoro',c:['#06d6a0','#1b1464'],d:187,p:1090,l:45,tr:'+1',age:1},
+ {t:'Neon Lento',a:'Cais',g:'Eletrônica',cur:'Rádio Pirata 88',c:['#f72585','#240046'],d:241,p:3820,l:140,tr:'-1',age:3},
+ {t:'Poeira de Vinil',a:'Os Sintéticos',g:'Lo-fi',cur:'Curadoria Noturna',c:['#ffd166','#3d2c8d'],d:176,p:371,l:26,tr:'n',age:0},
+ {t:'Madrugada FM',a:'Lia Ruas',g:'Jazz',cur:'Vozes do Porão',c:['#4cc9f0','#3a0ca3'],d:258,p:980,l:51,tr:'+2',age:2},
+ {t:'Ferrugem',a:'Canal Seco',g:'Rock alternativo',cur:'Subsolo Sonoro',c:['#e76f51','#1d3557'],d:203,p:1560,l:66,tr:'0',age:5},
+ {t:'Maré Baixa',a:'Iara Sul',g:'Folk',cur:'Fita Cassete',c:['#2ec4b6','#3a0ca3'],d:229,p:640,l:39,tr:'n',age:0},
+ {t:'Concreto Azul',a:'Vapor 21',g:'Experimental',cur:'Rádio Pirata 88',c:['#7209b7','#0b132b'],d:265,p:290,l:18,tr:'+4',age:1}
+];
+const PL=[{t:'Pós-punk de garagem',c:['#06d6a0','#240046'],n:'Subsolo Sonoro'},{t:'Blues da madrugada',c:['#ff6b35','#1b1464'],n:'Curadoria Noturna'},{t:'Eletrônica de quarto',c:['#f72585','#3a0ca3'],n:'Rádio Pirata 88'},{t:'Jazz de domingo',c:['#4cc9f0','#240046'],n:'Vozes do Porão'},{t:'Folk de estrada',c:['#2ec4b6','#1d3557'],n:'Fita Cassete'},{t:'Experimentos',c:['#7209b7','#0b132b'],n:'Rádio Pirata 88'}];
+const CU=[['Curadoria Noturna','#ff6b35',2300],['Subsolo Sonoro','#06d6a0',1800],['Rádio Pirata 88','#f72585',1450],['Vozes do Porão','#4cc9f0',980],['Fita Cassete','#ffd166',760]];
+const PI='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PA='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+const AGE=['hoje','ontem','há 2 dias','há 3 dias','há 4 dias','há 5 dias'];
+let i=0,on=false,s=0,pts=0,plays=0,secs=0,disc=new Set([0]),cred=false,tm=null,mode='desc';
+const $=x=>document.getElementById(x);
+const art=c=>`radial-gradient(circle at 25% 20%,${c[0]} 0,transparent 55%),radial-gradient(circle at 85% 85%,${c[1]} 0,transparent 60%),linear-gradient(135deg,#15122b,#0d0b1f)`;
+const cv=(c,g,cls='')=>`<div class="cv ${cls}" style="background:${art(c)}"><div class="lines"></div><div class="glyph">${g}</div></div>`;
+const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
+const num=n=>n>=1000?(n/1000).toFixed(1).replace('.',',')+' mil':String(n);
+function paint(id,k){const e=$(id);e.style.background=art(k.c);e.querySelector('.glyph').textContent=k.t[0]}
+function render(){
+ const k=T[i];['oacv','mcv','fcv'].forEach(id=>paint(id,k));
+ $('oat').textContent=$('mt').textContent=$('ft').textContent=k.t;
+ $('oaa').textContent=$('ma').textContent=$('fa').textContent=k.a+' · '+k.g;
+ $('oacur').textContent=k.cur;$('fcur').textContent=k.cur.toUpperCase();$('td').textContent=fmt(k.d);
+ const amb=`radial-gradient(circle at 30% 20%,${k.c[0]}99,transparent 50%),radial-gradient(circle at 80% 80%,${k.c[1]}cc,transparent 55%)`;
+ $('amb').style.background=$('famb').style.background=amb;
+ list();prog();icons();
+}
+function list(){
+ let L=T.map((k,j)=>({...k,j}));
+ if(mode==='alta'){L.sort((a,b)=>b.p-a.p);$('hint').textContent='As mais ouvidas da semana na rádio'}
+ else if(mode==='novo'){L.sort((a,b)=>a.age-b.age);$('hint').textContent='Acabaram de chegar de artistas independentes'}
+ else{L.sort((a,b)=>a.p-b.p);$('hint').textContent='Pouco ouvidas, escolhidas a dedo por playlisters'}
+ $('list').innerHTML=L.map((k,n)=>{
+  const playing=k.j===i;
+  let rk=`<span class="rk">${String(n+1).padStart(2,'0')}`;
+  if(mode==='alta'){const tr=k.tr==='n'?'<small class="nw">NOVO</small>':k.tr==='0'?'<small style="color:rgba(255,255,255,.4)">=</small>':k.tr[0]==='+'?`<small class="up">▲${k.tr.slice(1)}</small>`:`<small class="dn">▼${k.tr.slice(1)}</small>`;rk+=tr}
+  rk+='</span>';
+  if(playing)rk=`<span class="rk"><span class="eq ${on?'':'off'}"><i></i><i></i><i></i></span></span>`;
+  const sub=mode==='desc'?`escolha de ${k.cur}`:mode==='novo'?AGE[k.age]||'':k.g;
+  return `<div class="row2 ${playing?'cur':''}" onclick="go(${k.j})">${rk}${cv(k.c,k.t[0])}<div class="tx"><p>${k.t}</p><small>${k.a} · ${sub}</small><div class="meta"><span>▶ ${num(k.p)}</span><span>♥ ${k.l}</span></div></div><span class="dur">${fmt(k.d)}</span></div>`;
+ }).join('');
+}
+function prog(){
+ const k=T[i],p=s/k.d*100;
+ $('oabar').style.width=$('mbar').style.width=p+'%';$('tc').textContent=fmt(s);
+ [...$('wave').children].forEach((b,j)=>b.classList.toggle('done',j/40<s/k.d));
+ $('earn').innerHTML=cred?'<b>+5 pts</b><br>ganhos':`ouça ${Math.max(0,30-s)}s<br>e ganhe <b>+5</b>`;
+}
+function icons(){
+ $('bp').innerHTML=$('fbp').innerHTML=$('mp').innerHTML=on?PA:PI;
+ $('bp').classList.toggle('on',on);$('wave').classList.toggle('on',on);
+ if(on)$('mini').classList.add('show');
+ document.querySelectorAll('.row2.cur .eq').forEach(e=>e.classList.toggle('off',!on));
+}
+function toggle(){
+ on=!on;icons();clearInterval(tm);
+ if(on)tm=setInterval(()=>{s++;secs++;
+  if(s===30&&!cred){cred=true;pts+=5;plays++;toast('+5 pts · escuta válida');stats()}
+  if(s>=T[i].d){next();return}prog();if(secs%60===0)stats()},1000);
+}
+function load(j){i=(j+T.length)%T.length;s=0;cred=false;disc.add(i);
+ const c=$('onair');c.style.transform='translateX(-24px)';c.style.opacity='.2';
+ setTimeout(()=>{render();c.style.transform='';c.style.opacity='1'},200);stats()}
+function next(){load(i+1)}function prev(){load(i-1)}
+function go(j){if(j===i){toggle();return}load(j);if(!on)toggle()}
+function stats(){$('ptsn').textContent=pts;$('ring').style.strokeDashoffset=239-239*Math.min(pts/50,1);$('st1').textContent=plays;$('st2').textContent=Math.floor(secs/60);$('st3').textContent=disc.size}
+function tab(b){
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.scr').forEach(x=>x.classList.toggle('on',x.id==='s-'+b.dataset.s));
+ if(b.dataset.s!=='radio'&&(on||s>0))$('mini').classList.add('show');$('main').scrollTo({top:0})}
+function openFull(){$('full').classList.add('open')}function closeFull(){$('full').classList.remove('open')}
+let tt;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1800)}
+$('seg').onclick=e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.t;[...$('seg').children].forEach(x=>x.classList.toggle('on',x===b));list()};
+$('filters').onclick=e=>{const b=e.target.closest('button');if(!b)return;const f=b.dataset.f;[...$('filters').children].forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('[data-g]').forEach(x=>x.classList.toggle('hide',!x.dataset.g.split(' ').includes(f)))};
+let x0=null;const oa=$('onair');
+oa.addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+oa.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)dx<0?next():prev();x0=null});
+$('wave').innerHTML=Array.from({length:40},(_,j)=>`<i style="animation-delay:${(j%7)*-.13}s"></i>`).join('');
+$('quick').innerHTML=PL.slice(0,4).map(p=>`<div class="qt" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<span>${p.t}</span></div>`).join('');
+$('pls').innerHTML=CU.map(c=>`<div class="pl" onclick="toast('Abre o perfil do playlister')"><div class="av" style="background:radial-gradient(circle at 30% 30%,${c[1]}66,#15122b)">${c[0].split(' ').map(w=>w[0]).join('').slice(0,2)}</div><p>${c[0]}</p><small>${num(c[2])} seguidores</small></div>`).join('');
+$('plw').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
+$('grid').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
+$('mine').innerHTML=`<div class="row2" style="border:none">${cv(T[0].c,'B')}<div class="tx"><p>Brisa Blues</p><small>0 escutas de ouvintes · enviada hoje</small></div></div><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Suas próprias escutas não contam pontos nem métricas.</p>`;
+setInterval(()=>{$('lis').textContent=120+Math.floor(Math.random()*20)},4000);
+render();
+</script>
+</body>
+</html>
