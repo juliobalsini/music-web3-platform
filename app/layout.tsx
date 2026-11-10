@@ -8,6 +8,7 @@ import { Cabecalho } from "@/components/cabecalho";
 import { MiniPlayer } from "@/components/mini-player";
 import { NavInferior } from "@/components/nav-inferior";
 import { PlayerProvider } from "@/components/player-provider";
+import { RegistrarSW } from "@/components/registrar-sw";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
+        <RegistrarSW />
         <PlayerProvider>
           <Abertura />
           <Cabecalho />

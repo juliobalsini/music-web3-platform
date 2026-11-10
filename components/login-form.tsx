@@ -3,16 +3,27 @@
 import { Mail, MailCheck } from "lucide-react";
 import { useActionState } from "react";
 
-import { enviarLink, type LoginState } from "@/app/login/actions";
+import { entrarComGoogle, enviarLink, type LoginState } from "@/app/login/actions";
 import { botao, campo, Mensagem } from "@/components/ui";
 
 export function LoginForm({ next = "" }: { next?: string }) {
   const [state, action, pendente] = useActionState<LoginState, FormData>(enviarLink, {});
   if (state.ok) {
     return (
+      <div className="flex flex-col gap-4">
       <div role="status" className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-4">
         <MailCheck className="size-6 shrink-0 text-brand" aria-hidden="true" />
         <p className="text-lg">Link enviado. Abra seu e-mail e toque nele.</p>
+      </div>
+      <div className="flex flex-col gap-2" aria-label="Abrir e-mail">
+        <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener noreferrer" className={botao}>
+          <Mail className="size-5" aria-hidden="true" /> Abrir e-mail (Gmail)
+        </a>
+        <a href="https://outlook.live.com/mail/0/inbox" target="_blank" rel="noopener noreferrer" className={`${botao} !bg-none !bg-white/10 !text-white`}>
+          <Mail className="size-5" aria-hidden="true" /> Abrir e-mail (Outlook)
+        </a>
+        <p className="text-sm text-white/70">O link vale por pouco tempo. Confira também o spam.</p>
+      </div>
       </div>
     );
   }
@@ -35,6 +46,11 @@ export function LoginForm({ next = "" }: { next?: string }) {
         <Mail className="size-5" aria-hidden="true" /> {pendente ? "Enviando…" : "Receber link"}
       </button>
       {state.erro && <Mensagem tipo="erro">{state.erro}</Mensagem>}
+      {process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1" && (
+        <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
+          Entrar com Google
+        </button>
+      )}
     </form>
   );
 }

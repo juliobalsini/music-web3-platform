@@ -32,34 +32,68 @@ test("Rádio tem os 4 filtros e eles filtram pela URL", async ({ page }) => {
   await expect(page.getByRole("region", { name: "No ar" })).toHaveCount(0);
 });
 
-test("com faixas: cartão No ar, abas de lista e mini player persistente", async ({ page }) => {
+// Fora de produção a Rádio tem o catálogo de demonstração (lib/radio/demo.ts, áudio local): estes
+// testes nunca são pulados e exercitam lista, play, mini player e player cheio.
+test("Rádio cheia: cartão No ar, grade, abas, playlisters e playlists", async ({ page }) => {
   await radioCarregada(page);
   const noAr = page.getByRole("region", { name: "No ar" });
-  test.skip(!(await noAr.isVisible()), "sem faixas publicadas neste ambiente");
+  await expect(noAr).toBeVisible();
   await expect(noAr.getByText("Ouça 30s e ganhe pontos")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Para começar" })).toBeVisible();
   const abas = page.getByRole("navigation", { name: "Listas" });
   await expect(abas.getByRole("link")).toHaveText(["Descobertas", "Em alta", "Novidades"]);
+  await expect(page.getByRole("list", { name: "Descobertas" }).getByRole("button").first()).toBeVisible();
+  await abas.getByRole("link", { name: "Em alta" }).click();
+  await expect(page.getByRole("list", { name: "Em alta" }).getByRole("button").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Playlisters em alta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Playlists da semana" })).toBeVisible();
+});
+
+test("Ouvir agora toca, mini player persiste e abre o player cheio", async ({ page }) => {
+  await radioCarregada(page);
+  const noAr = page.getByRole("region", { name: "No ar" });
   await expect(page.getByTestId("mini-player")).toHaveCount(0);
   await noAr.getByTestId("play").click();
   const mini = page.getByTestId("mini-player");
   await expect(mini).toBeVisible();
+  await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
   // Persiste ao trocar de página e abre o player cheio ao toque.
   await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Explorar" }).click();
   await expect(mini).toBeVisible();
   await mini.getByRole("button", { name: /Abrir player/ }).click();
   const cheio = page.getByRole("dialog");
   await expect(cheio).toBeVisible();
-  await expect(cheio.getByRole("button", { name: "Curtir" })).toBeVisible();
-  await expect(cheio.getByRole("button", { name: "Salvar" })).toBeVisible();
-  await expect(cheio.getByRole("button", { name: "Apoiar" })).toBeVisible();
-  await expect(cheio.getByRole("button", { name: "Compartilhar" })).toBeVisible();
+  for (const n of ["Curtir", "Salvar", "Apoiar", "Compartilhar"]) await expect(cheio.getByRole("button", { name: n })).toBeVisible();
   await expect(cheio.getByTestId("vinil")).toBeVisible();
 });
 
-test("sem faixas: estado vazio com convite ao artista", async ({ page }) => {
+test("toda faixa publicada aparece no Explorar e toca de lá", async ({ page }) => {
+  await page.goto("/explorar");
+  const lista = page.getByRole("list", { name: "Todas as faixas" });
+  await expect(lista.getByRole("button").first()).toBeVisible({ timeout: 20_000 });
+  expect(await lista.getByRole("button").count()).toBeGreaterThanOrEqual(8);
+  await lista.getByRole("button").nth(1).click();
+  const mini = page.getByTestId("mini-player");
+  await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+});
+
+test("toca da grade 'Para começar' e de uma aba de lista", async ({ page }) => {
   await radioCarregada(page);
-  test.skip(await page.getByRole("region", { name: "No ar" }).isVisible(), "há faixas neste ambiente");
-  await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
+  await page.getByRole("region", { name: "Para começar" }).getByRole("button").first().click();
+  const mini = page.getByTestId("mini-player");
+  await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("list", { name: "Descobertas" }).getByRole("button").first().click();
+  await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+});
+
+test("PWA: manifesto com share target de áudio e service worker", async ({ request }) => {
+  const m = await (await request.get("/manifest.webmanifest")).json();
+  expect(m.display).toBe("standalone");
+  expect(m.share_target.action).toBe("/compartilhar");
+  expect(m.share_target.params.files[0].accept).toContain(".m4a");
+  const sw = await request.get("/sw.js");
+  expect(sw.ok()).toBe(true);
+  expect(await sw.text()).toContain("/compartilhar");
 });
 
 test("Minha rádio exige login e Métricas/Pontos redirecionam para ela", async ({ page }) => {

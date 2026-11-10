@@ -4,6 +4,8 @@ export const ALLOWED_AUDIO_TYPES = [
   "audio/mp4",
   "audio/ogg",
   "audio/flac",
+  "audio/aac",
+  "audio/wav",
 ] as const;
 export const ALLOWED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export const MAX_COVER_BYTES = 2 * 1024 * 1024;

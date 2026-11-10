@@ -81,10 +81,10 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
                 ))}
               </nav>
               {aba === "descobertas" && (
-                <ListaFaixas rotulo="Descobertas" faixas={radio.descobertas} vazio="Quando playlisters escolherem faixas pouco ouvidas, elas aparecem aqui." />
+                <ListaFaixas rotulo="Descobertas" faixas={radio.descobertas} numerar dica="Pouco ouvidas, escolhidas a dedo por playlisters" vazio="Quando playlisters escolherem faixas pouco ouvidas, elas aparecem aqui." />
               )}
-              {aba === "alta" && <ListaFaixas rotulo="Em alta" ranking={radio.emAlta} vazio="O ranking aparece com as primeiras escutas da semana." />}
-              {aba === "novidades" && <ListaFaixas rotulo="Novidades" faixas={radio.novidades} />}
+              {aba === "alta" && <ListaFaixas rotulo="Em alta" dica="As mais ouvidas da semana na rádio" ranking={radio.emAlta} vazio="O ranking aparece com as primeiras escutas da semana." />}
+              {aba === "novidades" && <ListaFaixas rotulo="Novidades" numerar dica="Acabaram de chegar de artistas independentes" faixas={radio.novidades} />}
             </section>
           </>
         )

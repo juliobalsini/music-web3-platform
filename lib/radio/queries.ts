@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { cache } from "react";
 
@@ -151,7 +152,9 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       lerPlaylists(supabase).catch(() => [] as LinhaPlaylist[]),
       lerProgramas(supabase).catch(() => [] as LinhaPrograma[]),
     ]);
-    const demo = demoAtivo() ? dadosDemo(agora) : null;
+    // Cookie `radioon_sem_demo` (só vale fora de produção) deixa o E2E conferir o estado vazio.
+    const semDemo = (await cookies()).has("radioon_sem_demo");
+    const demo = demoAtivo() && !semDemo ? dadosDemo(agora) : null;
     const tracks = [...tracksReais, ...((demo?.tracks ?? []) as unknown as LinhaTrack[])];
     const pls = [...plsReais, ...((demo?.playlists ?? []) as unknown as LinhaPlaylist[])];
     const progs = [...progsReais, ...((demo?.programs ?? []) as unknown as LinhaPrograma[])];

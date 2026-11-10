@@ -27,11 +27,17 @@ test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("estado vazio: play inerte e convite ao artista (quando não há faixas)", async ({ page }) => {
+test("estado vazio: play inerte e convite ao artista (catálogo sem faixas)", async ({ page, baseURL }) => {
+  // Cookie de teste: desliga o catálogo de demonstração (só tem efeito fora de produção).
+  await page.context().addCookies([{ name: "radioon_sem_demo", value: "1", url: baseURL! }]);
   await page.goto("/");
   await expect(page.getByRole("navigation", { name: "Filtros" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
   const vazio = page.locator("[data-testid=play-vazio]:visible");
-  test.skip(!(await vazio.first().isVisible()), "há faixas publicadas neste ambiente");
+  // Se o banco da prévia já tiver faixas reais, o estado vazio não existe: vale a Rádio com faixas.
+  if (!(await vazio.first().isVisible())) {
+    await expect(page.getByRole("region", { name: "No ar" })).toBeVisible();
+    return;
+  }
   await expect(page.getByRole("button")).toHaveCount(0);
   await expect(vazio).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();

@@ -190,3 +190,26 @@ Formato: data · decisão · motivo. Mais recente no fim.
     ou token ficam para o Ciclo 6. "Faixa bônus com pontos" ficou como proposta no PLANO.md.
 40. **Minha rádio substitui /metricas e /pontos** (redirect 308). Meta diária usa
     `POINTS_DAILY_LIMIT`; dia em UTC, igual ao banco.
+41. **Bug "nada toca" (execução 2026-11-10, prioridade máxima).** Causa 1 (certa): `onTimeUpdate`
+    lia `e.currentTarget` dentro do updater do `setState` (já `null`), derrubando a página inteira
+    na primeira reprodução — nunca fora exercitado com faixas. Causa 2 (provável; sem credencial
+    de banco para provar): `carregarRadio` usava embeds (`profiles(...)`) numa única consulta e
+    engolia qualquer erro, devolvendo lista vazia. Agora: consultas independentes sem embeds,
+    colunas completas → base → service_role (só `status = published`), erros no log do servidor.
+    `/api/tracks/[id]/play` segue a mesma regra de leitura.
+42. **Catálogo de demonstração** (`lib/radio/demo.ts`): 8 faixas, 2 playlists, 2 programas e
+    escutas, mesclados na Rádio só quando `VERCEL_ENV !== "production"` (prévias e testes locais);
+    áudio = `public/demo/tom.wav` (8 s, estático, sem B2 e sem cota). Produção nunca vê. Cookie
+    `radioon_sem_demo` desliga (E2E do estado vazio). Os E2E de play/mini player/player cheio
+    deixaram de ser pulados.
+43. **Envio no celular:** `accept` com extensões explícitas; validação por extensão e tipo
+    (`lib/storage/formatos.ts`); servidor passou a aceitar `audio/aac` e `audio/wav` (MP4 vai como
+    `audio/mp4`). Capa até 15 MB no seletor, redimensionada (≤ 1200 px) e comprimida para WebP
+    (≤ 1,5 MB) no aparelho; o limite do servidor segue 2 MB. Progresso por XHR.
+44. **Login:** destino padrão após o link = Rádio (`/`), ou o `next`. Tela "link enviado" com
+    Gmail/Outlook. "Entrar com Google" via `signInWithOAuth` (server action), exibido só com
+    `NEXT_PUBLIC_GOOGLE_LOGIN=1` (evita botão quebrado antes de configurar o provedor).
+45. **PWA:** `public/sw.js` (sem cache de páginas/áudio) + manifest com `share_target`
+    (POST multipart em `/compartilhar`); o service worker guarda o arquivo no Cache
+    `radioon-share-v1` e redireciona a `/enviar`, onde o formulário o recolhe. Sem o SW ativo,
+    `/compartilhar` só avisa. Share target funciona no Android/Chrome (iOS não suporta).
