@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  buscar,
+  lerBusca,
+  normalizarBusca,
   capaGerada,
   descobertas,
   formatContagem,
@@ -143,5 +146,24 @@ describe("curadoria", () => {
     assert.equal(parseNota("  "), null);
     assert.equal(parseNota("x".repeat(281)), undefined);
     assert.equal(parseNota(3), undefined);
+  });
+});
+
+describe("busca", () => {
+  const itens = [{ t: "Faróis", a: "Ana Lúcia" }, { t: "Maré de domingo", a: "Beto" }];
+  const campos = (i: { t: string; a: string }) => [i.t, i.a];
+  it("ignora acento e caixa", () => {
+    assert.equal(normalizarBusca("  FARÓIS  "), "farois");
+    assert.deepEqual(buscar(itens, "farois", campos), [itens[0]]);
+  });
+  it("exige todos os termos, em qualquer campo", () => {
+    assert.deepEqual(buscar(itens, "mare beto", campos), [itens[1]]);
+    assert.deepEqual(buscar(itens, "mare ana", campos), []);
+  });
+  it("consulta vazia devolve tudo; lerBusca limita", () => {
+    assert.equal(buscar(itens, "  ", campos).length, 2);
+    assert.equal(lerBusca(undefined), "");
+    assert.equal(lerBusca("x".repeat(100)).length, 60);
+    assert.equal(lerBusca(["a", "b"]), "a");
   });
 });

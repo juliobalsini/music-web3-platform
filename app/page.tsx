@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { Busca } from "@/components/busca";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -41,6 +42,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
 
   return (
     <>
+      <Busca />
       <nav aria-label="Filtros" className="-mx-4 flex gap-2 overflow-x-auto px-4">
         {FILTROS.map((f) => (
           <Link

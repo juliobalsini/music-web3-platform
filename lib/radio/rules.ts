@@ -160,3 +160,24 @@ export function capaGerada(titulo: string): { fundo: string; letra: string; cor:
   const letra = titulo.trim().charAt(0).toUpperCase() || "R";
   return { fundo: `linear-gradient(${angulo}deg, ${cor} 0%, ${cor2} 100%)`, letra, cor, cor2 };
 }
+
+/** Normaliza para busca: minúsculas, sem acentos, sem espaços sobrando. */
+export function normalizarBusca(texto: string): string {
+  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Lê `?q=`: texto de até 60 caracteres ("" se ausente). */
+export function lerBusca(valor: string | string[] | undefined): string {
+  const v = Array.isArray(valor) ? valor[0] : valor;
+  return (v ?? "").slice(0, 60).trim();
+}
+
+/** Filtra por todos os termos (AND) em qualquer um dos campos de texto do item. */
+export function buscar<T>(itens: T[], consulta: string, campos: (item: T) => (string | null | undefined)[]): T[] {
+  const termos = normalizarBusca(consulta).split(" ").filter(Boolean);
+  if (termos.length === 0) return itens;
+  return itens.filter((item) => {
+    const texto = normalizarBusca(campos(item).filter(Boolean).join(" "));
+    return termos.every((t) => texto.includes(t));
+  });
+}
