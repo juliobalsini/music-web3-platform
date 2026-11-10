@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  rankingPlaylistsPorEscutas,
   buscar,
   lerBusca,
   normalizarBusca,
@@ -165,5 +166,30 @@ describe("busca", () => {
     assert.equal(lerBusca(undefined), "");
     assert.equal(lerBusca("x".repeat(100)).length, 60);
     assert.equal(lerBusca(["a", "b"]), "a");
+  });
+});
+
+describe("rankingPlaylistsPorEscutas", () => {
+  const agora = Date.parse("2026-11-10T12:00:00Z");
+  const pl = (id: string, faixas: string[], criada = "2026-11-01T00:00:00Z") => ({ id, created_at: criada, playlist_tracks: faixas.map((track_id) => ({ track_id })) });
+  const ouvida = (track_id: string, started_at = "2026-11-09T12:00:00Z") => ({ track_id, started_at });
+  it("ordena por escutas válidas da semana, não por nº de faixas", () => {
+    const grande = pl("grande", ["a", "b", "c"]);
+    const pequena = pl("pequena", ["d"]);
+    const r = rankingPlaylistsPorEscutas([grande, pequena], [ouvida("d"), ouvida("d")], agora);
+    assert.deepEqual(r.map((p) => p.id), ["pequena", "grande"]);
+  });
+  it("ignora escutas com mais de 7 dias; empate cai em faixas e recência", () => {
+    const a = pl("a", ["x"]);
+    const b = pl("b", ["y", "z"]);
+    const velha = ouvida("x", "2026-10-01T00:00:00Z");
+    assert.deepEqual(rankingPlaylistsPorEscutas([a, b], [velha], agora).map((p) => p.id), ["b", "a"]);
+    const c = pl("c", ["w"], "2026-11-05T00:00:00Z");
+    assert.deepEqual(rankingPlaylistsPorEscutas([a, c], [], agora).map((p) => p.id), ["c", "a"]);
+  });
+  it("não altera a entrada", () => {
+    const l = [pl("a", ["x"]), pl("b", ["y"])];
+    rankingPlaylistsPorEscutas(l, [ouvida("y")], agora);
+    assert.equal(l[0].id, "a");
   });
 });
