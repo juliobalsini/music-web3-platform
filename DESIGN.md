@@ -2,10 +2,10 @@
 name: radioOn
 description: Hub global de música independente. Dê play.
 colors:
-  night-900: "#0f0f23"
-  night-800: "#16213e"
-  brand: "#ff6b35"
-  brand-2: "#f7931e"
+  night-900: "#00112a"
+  night-800: "#062244"
+  brand: "#e89a3c"
+  brand-2: "#f4b562"
   text: "#ffffff"
   text-muted: "rgba(255,255,255,0.72)"
   surface: "rgba(255,255,255,0.10)"
@@ -75,10 +75,9 @@ além do brilho suave do botão de play, que é o único elemento "aceso".
 
 ## Colors
 
-- **Noite** `night-900` → `night-800`: gradiente diagonal 160° fixo no `body`; é o fundo
-  de tudo.
-- **Laranja** `brand` (#ff6b35) e `brand-2` (#f7931e): ação principal, "On" do logo, play.
-  Texto sobre laranja é `night-900` (contraste ≥ 6:1); **nunca branco** sobre laranja
+- **Noite** `night-900` → `night-800`: base marinho (#00112A) com brilho ambiente da faixa atual e grão sutil; é o fundo de tudo.
+- **Laranja** `brand` (#e89a3c) e `brand-2` (#f4b562): ação principal, "On" do logo, play.
+  Texto sobre laranja é `night-900` (contraste ≥ 8:1); **nunca branco** sobre laranja
   no corpo de botões de texto.
 - **Branco** para texto; secundário em `text-muted` (branco ≥ 70%, ≥ 4.5:1 sobre a noite).
 - **Superfícies** são branco translúcido (10% / 15% no hover) sobre o gradiente.
@@ -100,7 +99,7 @@ mobile). Mobile primeiro: nada depende de hover; alvos de toque ≥ 44px.
 ## Elevation & Depth
 
 Plano. Profundidade só por translucidez das superfícies. Única sombra: halo suave
-deslocado sob o botão de play (`0 8px 24px -8px #ff6b35`).
+deslocado sob o botão de play (`0 8px 24px -8px #e89a3c`).
 
 ## Shapes
 

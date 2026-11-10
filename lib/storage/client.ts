@@ -3,6 +3,7 @@ import "server-only";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+import { limpar } from "../env";
 import { PLAYBACK_TTL_SECONDS, UPLOAD_TTL_SECONDS } from "./rules";
 
 export class StorageUnavailableError extends Error {
@@ -21,22 +22,13 @@ type Config = {
 
 function readConfig(): Config | null {
   const e = process.env;
-  if (
-    !e.S3_ENDPOINT ||
-    !e.S3_REGION ||
-    !e.S3_ACCESS_KEY_ID ||
-    !e.S3_SECRET_ACCESS_KEY ||
-    !e.S3_BUCKET
-  ) {
-    return null;
-  }
-  return {
-    endpoint: e.S3_ENDPOINT,
-    region: e.S3_REGION,
-    accessKeyId: e.S3_ACCESS_KEY_ID,
-    secretAccessKey: e.S3_SECRET_ACCESS_KEY,
-    bucket: e.S3_BUCKET,
-  };
+  const endpoint = limpar(e.S3_ENDPOINT);
+  const region = limpar(e.S3_REGION);
+  const accessKeyId = limpar(e.S3_ACCESS_KEY_ID);
+  const secretAccessKey = limpar(e.S3_SECRET_ACCESS_KEY);
+  const bucket = limpar(e.S3_BUCKET);
+  if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucket) return null;
+  return { endpoint, region, accessKeyId, secretAccessKey, bucket };
 }
 
 export function isStorageConfigured(): boolean {

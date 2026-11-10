@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { Frase } from "@/components/frase";
+import { Logo } from "@/components/logo";
 import { LoginForm } from "@/components/login-form";
 import { Mensagem, Tela } from "@/components/ui";
 import { safeNext } from "@/lib/auth/roles";
@@ -21,7 +23,9 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <Tela centro>
       <div className="flex flex-col gap-1">
+        <Logo className="mb-4 h-24 self-start" />
         <h1 className="text-2xl font-semibold text-balance">Entrar</h1>
+        <Frase className="mb-1" />
         <p className="text-white/70">Sem senha: enviamos um link ao seu e-mail.</p>
       </div>
       <Suspense>

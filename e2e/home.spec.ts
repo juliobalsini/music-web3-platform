@@ -5,20 +5,10 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   expect(resposta?.status()).toBe(200);
   await expect(page).toHaveTitle("radioOn");
 
-  // Fundo em gradiente #0f0f23 → #16213e.
-  const fundo = await page.evaluate(
-    () => getComputedStyle(document.body).backgroundImage,
-  );
-  expect(fundo).toContain("rgb(15, 15, 35)");
-  expect(fundo).toContain("rgb(22, 33, 62)");
-
-  // Logo: "radio" branco + "On" laranja.
-  const radio = page.getByText("radio", { exact: true });
-  const on = page.getByText("On", { exact: true });
-  await expect(radio).toBeVisible();
-  await expect(on).toBeVisible();
-  await expect(radio).toHaveCSS("color", "rgb(255, 255, 255)");
-  await expect(on).toHaveCSS("color", "rgb(255, 107, 53)");
+  // Fundo marinho #00112a e logo do gramofone.
+  const fundo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(fundo).toBe("rgb(0, 17, 42)");
+  await expect(page.getByRole("img", { name: "radioOn" }).first()).toBeVisible();
 
   // Play em destaque: botão (com faixas) ou marca inerte (sem faixas).
   await expect(page.locator("[data-testid=play]:visible, [data-testid=play-vazio]:visible").first()).toBeVisible();
@@ -31,7 +21,7 @@ test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
   await expect(nav.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
   await nav.getByRole("link", { name: "Entrar" }).click();
   await expect(page).toHaveURL(/\/login/);
-  // Fora da home, o logo pequeno volta ao início.
+  // O logo do cabeçalho volta ao início.
   await page.getByRole("link", { name: "radioOn, início" }).click();
   await expect(page).toHaveURL(/\/$/);
 });
@@ -69,6 +59,7 @@ test("página de login carrega e callback inválido volta ao login", async ({ pa
   const r = await page.goto("/login");
   expect(r?.status()).toBe(200);
   await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByText("Música para os melhores ouvintes.")).toBeVisible();
   await page.goto("/auth/callback");
   await expect(page).toHaveURL(/\/login\?erro=1/);
 });

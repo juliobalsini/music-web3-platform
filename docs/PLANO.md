@@ -67,3 +67,12 @@ itens do Ciclo 6.
 
 Sem serviço pago, credencial nova ou troca de provedor. Regras invioláveis do `CLAUDE.md`
 (pontos e validação no servidor, RLS, áudio só em B2 assinado, ledger append-only) valem em todas as fases.
+
+## Propostas pendentes de aprovação do Julio
+
+- **Faixa bônus desbloqueada com pontos** *(proposto em 2026-11-10; depende da aprovação do
+  Julio na issue do relatório)*. Artistas podem marcar uma faixa extra (demo, ao vivo, inédita)
+  como "bônus"; o ouvinte a desbloqueia gastando pontos. O gasto é um lançamento negativo no
+  `points_ledger` (append-only, só servidor), com saldo checado no servidor e desbloqueio
+  idempotente por usuário e faixa. Sem custo de serviço, sem token on-chain. Riscos a decidir:
+  quanto custa cada bônus, se o artista recebe algo, e se desbloquear conta como escuta paga.

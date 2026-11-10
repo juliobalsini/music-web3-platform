@@ -84,7 +84,7 @@ async function Destaque() {
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10 text-center sm:py-16">
-      <Logo className="text-5xl sm:text-7xl" />
+      <Logo className="h-28 sm:h-40" />
       <h1 className="sr-only">radioOn</h1>
 
       <Suspense fallback={<PlayVazio />}>

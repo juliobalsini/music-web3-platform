@@ -21,8 +21,10 @@ const CORS_RULES = [
   },
 ];
 
-const { S3_ACCESS_KEY_ID: keyId, S3_SECRET_ACCESS_KEY: appKey, S3_BUCKET: bucketName } =
-  process.env;
+const lerEnv = (n) => process.env[n]?.trim() || undefined;
+const keyId = lerEnv("S3_ACCESS_KEY_ID");
+const appKey = lerEnv("S3_SECRET_ACCESS_KEY");
+const bucketName = lerEnv("S3_BUCKET");
 for (const [nome, valor] of Object.entries({
   S3_ACCESS_KEY_ID: keyId,
   S3_SECRET_ACCESS_KEY: appKey,

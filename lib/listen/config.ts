@@ -1,6 +1,6 @@
 /** Regras configuráveis de pontos (env opcional, com padrões seguros). */
 function inteiro(v: string | undefined, padrao: number, min: number, max: number): number {
-  const n = Number(v);
+  const n = Number(v?.trim());
   return Number.isInteger(n) && n >= min && n <= max ? n : padrao;
 }
 
