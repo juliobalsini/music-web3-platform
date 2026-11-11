@@ -76,3 +76,9 @@ Sem serviço pago, credencial nova ou troca de provedor. Regras invioláveis do 
   `points_ledger` (append-only, só servidor), com saldo checado no servidor e desbloqueio
   idempotente por usuário e faixa. Sem custo de serviço, sem token on-chain. Riscos a decidir:
   quanto custa cada bônus, se o artista recebe algo, e se desbloquear conta como escuta paga.
+
+## Próximos (registrados em 2026-11-11, após a Fase C)
+
+- **Vídeo em stories** — depende de armazenamento maior que a cota grátis do B2; hoje só texto, imagem e trecho de áudio.
+- **Central de recompensas (item o)** — metas diárias e histórico por perfil; resgate **só para contas**
+  (pontos de sessão anônima nunca são resgatáveis).

@@ -6,10 +6,13 @@ import { Albuns } from "@/components/albuns";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
 import { ListaFaixas } from "@/components/lista-faixas";
+import { FaixaStories } from "@/components/faixa-stories";
+import type { FaixaDoStory } from "@/components/conteudo-story";
 import { EstadoVazio, PlaylistsDaSemana } from "@/components/secoes-radio";
 import { ABAS, abaVizinha, direcaoDoGesto, filtrosVisiveis, type Aba, type Filtro } from "@/lib/menu";
 import type { Radio } from "@/lib/radio/queries";
 import type { FaixaListada } from "@/lib/radio/rules";
+import type { Story } from "@/lib/stories/rules";
 
 const chip = "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold";
 
@@ -35,15 +38,22 @@ function SeloNoAr({ ouvindo }: { ouvindo: number | null }) {
 export function RadioCliente({
   radio,
   continuar,
+  stories,
+  faixasDosStories,
+  agora,
   filtroInicial,
   abaInicial,
 }: {
   radio: Radio;
   continuar: FaixaListada[];
+  /** Stories ativos (últimos 7 dias). */
+  stories: Story[];
+  faixasDosStories: Record<string, FaixaDoStory>;
+  agora: number;
   filtroInicial: Filtro;
   abaInicial: Aba | null;
 }) {
-  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: false });
+  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: stories.length > 0 });
   const [filtro, setFiltro] = useState<Filtro>(filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo");
   const [aba, setAba] = useState<Aba>(abaInicial ?? "descobertas");
   const toque = useRef<{ x: number; y: number } | null>(null);
@@ -68,6 +78,7 @@ export function RadioCliente({
   return (
     <>
       <SeloNoAr ouvindo={radio.ouvindo} />
+      {mostra("stories") && <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />}
       <nav aria-label="Filtros" className="-mx-4 flex gap-2 overflow-x-auto px-4">
         {filtros.map((f) => (
           <button

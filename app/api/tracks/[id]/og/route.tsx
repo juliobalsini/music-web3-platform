@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { isUuid } from "@/lib/playlists/rules";
+import { baixarImagem } from "@/lib/og/baixar";
 import { capaSvgDataUri } from "@/lib/radio/capa-svg";
 import { carregarRadio } from "@/lib/radio/queries";
 import { isStorageConfigured, signCover } from "@/lib/storage/client";
@@ -8,27 +9,13 @@ import { createClient } from "@/lib/supabase/server";
 
 const recorte = (t: string, n: number) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
 
-/** Baixa uma imagem e devolve data URI; qualquer falha → null (cai na capa gerada). */
-async function baixar(url: string, max = 2_000_000): Promise<string | null> {
-  try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
-    const tipo = r.headers.get("content-type") ?? "";
-    if (!r.ok || !tipo.startsWith("image/")) return null;
-    const buf = Buffer.from(await r.arrayBuffer());
-    if (buf.length > max || buf.length === 0) return null;
-    return `data:${tipo};base64,${buf.toString("base64")}`;
-  } catch {
-    return null;
-  }
-}
-
 async function capaDaFaixa(id: string, title: string, temCapa: boolean): Promise<string> {
   if (temCapa && isStorageConfigured()) {
     try {
       const supabase = await createClient();
       const { data } = await supabase.from("tracks").select("cover_key").eq("id", id).eq("status", "published").maybeSingle();
       if (data?.cover_key) {
-        const img = await baixar(await signCover(data.cover_key));
+        const img = await baixarImagem(await signCover(data.cover_key));
         if (img) return img;
       }
     } catch {
@@ -47,7 +34,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!faixa) return new Response(null, { status: 404, headers: { "Cache-Control": "public, max-age=60" } });
 
   const origem = new URL(req.url).origin;
-  const [capa, logo] = await Promise.all([capaDaFaixa(faixa.id, faixa.title, faixa.hasCover), baixar(`${origem}/brand/logo.png`, 500_000)]);
+  const [capa, logo] = await Promise.all([capaDaFaixa(faixa.id, faixa.title, faixa.hasCover), baixarImagem(`${origem}/brand/logo.png`, 500_000)]);
 
   const imagem = new ImageResponse(
     (

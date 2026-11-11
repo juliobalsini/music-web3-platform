@@ -142,11 +142,29 @@ relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem 
 - [x] **l) Páginas públicas de artista e de curador** — concluído em 2026-11-10 (PR item-l-perfil): `/perfil/[id]` (nome, faixas publicadas, playlists públicas; 404 sem conteúdo), ligada por Playlisters em alta e pelo curador na playlist. Sem migration. Pendência: nome do artista ainda não é link nas listas de faixas.
 - [x] **m) Curador: reordenar, ocultar e destacar faixas** — concluído em 2026-11-10 (PR item-m-curadoria; migration aditiva `20261111000000`; DECISIONS 46). Também corrige a nota do playlister (faltava grant). Pendência: lógica só validada por tipos/testes, sem banco; conferir logado como curador.
 - [x] **n) Ranking de playlists por escutas válidas** — concluído em 2026-11-10 (PR item-n-ranking; DECISIONS 47). Sem migration.
-- [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto.
+- [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto (próximo no PLANO.md).
 
 - [x] **q) Acesso sem atrito (instrução do Julio, 2026-11-11)** — sessão anônima, vínculo à conta,
   teto anônimo, `/privacidade` e `/termos` — PR item-q-acesso-anonimo; DECISIONS 48–51; relatório
   `2026-11-11-acesso-sem-atrito.md`. Pendência do Julio: ativar Anonymous Sign-Ins (e manual linking) no Supabase.
+
+### Plano aprovado pelo Julio (2026-11-11): Fases A, B e C
+
+- [x] **Fase A — qualidade (itens 1–13):** PRs #64 (1–8, 10–12) e #65 (9, 13). Rádio com estado no cliente e
+  gesto entre abas; abertura com logo inteiro; capas SVG distintas; regra de pontos na própria faixa;
+  abas nunca vazias; selo No ar; Rádio radioOn contínua; Open Graph por faixa; gênero e clima no envio.
+- [x] **Fase B — conteúdo (14–16):** PR #66. Explorar visual, Perfil (resumo da semana, minhas faixas/playlists,
+  botão +), qualquer conta cria playlist, álbum/EP com capa única.
+- [x] **Fase C — Stories v1 (17–20):** PR item fase-c-stories. Texto + imagem + trecho de 15 s; 7 dias na home,
+  depois no perfil; cartão 9:16; denúncias.
+- **Regra de recompensas (Julio):** pontos de sessões anônimas **nunca** podem ser resgatados; resgate só para
+  contas. Vale para o item o) e qualquer recompensa futura.
+- **Regra de moderação de stories:** só contas denunciam (1 por conta e story); com **3 denunciantes distintos**
+  o story é ocultado automaticamente (`stories.hidden`), some para todos menos o autor, e só volta por decisão
+  do Julio (update manual no banco). O agente não reverte ocultações. Stories de plataforma: ids em
+  `PLATFORM_STORY_IDS` (opcional, sem credencial nova).
+- **Pendências do Julio:** conferir logado (artista/playlister) o envio de álbum, de story com imagem e a
+  denúncia; opcional `PLATFORM_STORY_IDS` na Vercel; CORS do bucket já cobre PUT de imagens.
 
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
@@ -235,3 +253,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-11 (2ª execução) — instrução do Julio: acesso sem atrito (item q); ver relatório.
 - 2026-11-11 (3ª execução) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (issues #45, #56, #59 sem comentários dele). Nada executado.
 - 2026-11-11 (4ª execução) — instrução do Julio: auditoria de segurança para anônimos (item s); ver relatório.
+
+- 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).

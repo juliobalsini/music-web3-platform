@@ -282,3 +282,55 @@ describe("RLS — playlists para qualquer conta e álbuns (migration 20261111030
     assert.match(ruim.error ?? "", /check/);
   });
 });
+
+describe("RLS — stories e denúncias (migration 20261111040000)", () => {
+  const oculto = "00000000-0000-4000-8000-0000000000b9";
+  const visivel = "00000000-0000-4000-8000-0000000000b8";
+  before(async () => {
+    await db.exec(`
+      insert into public.stories (id, author_id, body, hidden) values
+        ('${visivel}', '${ids.artista}', 'visível', false),
+        ('${oculto}', '${ids.artista}', 'oculto', true);
+      insert into public.story_reports (story_id, reporter_id) values ('${visivel}', '${ids.conta}');
+    `);
+  });
+
+  it("público lê só os não ocultos; o autor lê também os próprios ocultos", async () => {
+    const anon = await como("anon", `select id from public.stories`);
+    assert.deepEqual(anon.rows.map((r) => r.id), [visivel]);
+    const autor = await como("artista", `select id from public.stories`);
+    assert.equal(autor.rows.length, 2);
+    const outro = await como("conta", `select id from public.stories`);
+    assert.equal(outro.rows.length, 1);
+  });
+
+  it("nenhum cliente escreve em stories (nem o autor); só o servidor", async () => {
+    const ins = await como("artista", `insert into public.stories (author_id, body) values ('${ids.artista}', 'direto')`);
+    assert.match(ins.error ?? "", /row-level security|permission denied/);
+    const upd = await como("artista", `update public.stories set hidden = false where id = '${oculto}'`);
+    assert.equal(upd.affected, 0);
+    const srv = await como("service", `update public.stories set hidden = true where id = '${visivel}'`);
+    assert.equal(srv.affected, 1);
+    await como("service", `update public.stories set hidden = false where id = '${visivel}'`);
+  });
+
+  it("denúncias: ninguém lê nem escreve pelo cliente; uma por conta e story", async () => {
+    for (const quem of ["anon", "conta", "artista"] as const) {
+      const ler = await como(quem, `select * from public.story_reports`);
+      assert.equal(ler.rows.length, 0, quem);
+      const ins = await como(quem, `insert into public.story_reports (story_id, reporter_id) values ('${visivel}', '${ids[quem]}')`);
+      assert.match(ins.error ?? "", /row-level security|permission denied/, quem);
+    }
+    const dup = await como("service", `insert into public.story_reports (story_id, reporter_id) values ('${visivel}', '${ids.conta}')`);
+    assert.match(dup.error ?? "", /duplicate key/);
+    const n = await como("service", `select count(*)::int as n from public.story_reports where story_id = '${visivel}'`);
+    assert.equal(n.rows[0].n, 1);
+  });
+
+  it("tamanho do texto e do trecho respeitam as checagens", async () => {
+    const longo = await como("service", `insert into public.stories (author_id, body) values ('${ids.artista}', '${"x".repeat(281)}')`);
+    assert.match(longo.error ?? "", /check/);
+    const clip = await como("service", `insert into public.stories (author_id, body, track_id, clip_start) values ('${ids.artista}', 'a', '${ids.faixa}', 9000)`);
+    assert.match(clip.error ?? "", /check/);
+  });
+});

@@ -248,3 +248,24 @@ Formato: data · decisão · motivo. Mais recente no fim.
 54. **Testes de RLS rodam num Postgres real** via `@electric-sql/pglite` (devDependency gratuita, WASM): as
     migrations reais, com papéis/`auth.jwt()` do Supabase emulados. Prova também a escuta/teto do anônimo com
     `listen_start`/`listen_beat` reais. Teste estático trava as rotas de escrita em `getSessionRole()`.
+
+## 2026-11-11 · Plano aprovado: Fases A, B e C
+
+55. **Rádio no cliente:** filtros e abas por estado local (`replaceState` só guarda o ponto de partida); gesto de
+    arrastar com limiar (`direcaoDoGesto`). Playlisters saiu da Rádio para o Explorar.
+56. **Capa gerada em SVG** (`capa-svg.ts`, fonte única para a página e o Open Graph): par de cores HSL do hash do
+    título, textura, anéis e glifo; o rótulo do vinil reaproveita `Capa`. Foge da paleta marinho/âmbar de propósito,
+    para as faixas serem distintas (pedido do Julio).
+57. **Rádio radioOn:** fluxo = novidades + menos ouvidas + mais curtidas (curtidas globais), intercalado e sem repetir;
+    `tocar(..., continuo)` volta ao início no fim da fila. Programa do horário continua tendo precedência no No ar.
+58. **Open Graph:** `/api/tracks/[id]/og` (1200x630, `next/og`) em vez de `opengraph-image`, para ter URL fixa e
+    reaproveitar no compartilhar nativo com arquivo (`navigator.canShare`).
+59. **Gênero/clima:** colunas opcionais; clima com CHECK no banco, gênero com lista fixa validada no app.
+60. **Playlist para qualquer conta:** policy permissiva nova; a restritiva de anônimos (decisão 52) continua valendo.
+    Programação por horário segue só para o papel curator.
+61. **Álbum/EP:** tabela `albums` (escrita só pelo servidor), `tracks.album_id/track_no`; uma capa para todas as faixas
+    (mesmo `cover_key`); cada faixa é publicada separadamente (visível ao publicar).
+62. **Stories:** `stories` e `story_reports` com RLS; escrita só no servidor (papel artist/curator ou
+    `PLATFORM_STORY_IDS`). Trecho de 15 s usa `<audio>` próprio (não gera escuta/pontos). Sem DELETE: o story "expira"
+    por data (7 dias na home, depois só no perfil). Ocultação automática com 3 denunciantes distintos, feita no app
+    (SECURITY DEFINER não passa na allowlist de migrations).
