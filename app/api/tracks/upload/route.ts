@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const body: unknown = await request.json().catch(() => null);
   const parsed = parseUploadInput(body);
   if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400, headers: noStore });
-  const { title, contentType, size, durationSec, cover, credits } = parsed.value;
+  const { title, contentType, size, durationSec, cover, credits, genre, mood } = parsed.value;
 
   const key = trackKey(sessao.userId, randomUUID());
   const capaKey = cover ? coverKey(sessao.userId, randomUUID()) : null;
@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       performers: credits.performers,
       album: credits.album,
       label: credits.label,
+      genre,
+      mood,
     })
     .select("id")
     .single();

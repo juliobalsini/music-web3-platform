@@ -33,3 +33,15 @@ test("servidor aceita audio/aac e audio/wav", () => {
   assert.equal(parseUploadInput({ ...base, contentType: "audio/wav" }).ok, true);
   assert.equal(parseUploadInput({ ...base, contentType: "video/mp4" }).ok, false);
 });
+
+const base = { title: "Faixa", contentType: "audio/mpeg", size: 1000, rightsConfirmed: true, durationSec: 100 };
+
+test("gênero e clima: opcionais, lista fixa", () => {
+  const ok = parseUploadInput({ ...base, genre: "mpb", mood: "chuva" });
+  assert.equal(ok.ok && ok.value.genre, "mpb");
+  assert.equal(ok.ok && ok.value.mood, "chuva");
+  const vazio = parseUploadInput({ ...base, genre: "", mood: null });
+  assert.equal(vazio.ok && vazio.value.genre, null);
+  assert.equal(parseUploadInput({ ...base, genre: "xyz" }).ok, false);
+  assert.equal(parseUploadInput({ ...base, mood: "triste" }).ok, false);
+});

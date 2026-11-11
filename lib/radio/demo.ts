@@ -33,6 +33,9 @@ const TITULOS: [string, number][] = [
   ["Fio de prata", 0],
 ];
 
+const GENEROS_DEMO = ["mpb", "indie", "eletronica", "jazz"];
+const CLIMAS_DEMO = ["madrugada", "estrada", "foco", "chuva", "domingo"];
+
 export type DemoDados = {
   tracks: Record<string, unknown>[];
   playlists: Record<string, unknown>[];
@@ -55,6 +58,8 @@ export function dadosDemo(agora: number): DemoDados {
     performers: i === 0 ? "Lia Norte (voz), Beto Cordas (violão)" : null,
     album: i === 0 ? "Sinais" : null,
     label: null,
+    genre: GENEROS_DEMO[i % GENEROS_DEMO.length],
+    mood: CLIMAS_DEMO[i % CLIMAS_DEMO.length],
   }));
   const faixaPl = (n: number[], notas: string[] = []) =>
     n.map((t, position) => ({ track_id: id(t), note: notas[position] ?? null, position }));

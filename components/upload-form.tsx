@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { botao, campo, Mensagem } from "@/components/ui";
+import { CLIMAS, GENEROS } from "@/lib/radio/generos";
 import { ACCEPT_AUDIO, dimensoesCapa, MAX_CAPA_ORIGINAL, tipoDeAudio } from "@/lib/storage/formatos";
 import { erroDaRotaDeUpload, erroDoBucket } from "@/lib/storage/messages";
 
@@ -132,6 +133,8 @@ export function UploadForm() {
           rightsConfirmed: dados.get("direitos") === "on",
           durationSec,
           cover: capa ? { contentType: capa.type, size: capa.size } : null,
+          genre: String(dados.get("genero") ?? ""),
+          mood: String(dados.get("clima") ?? ""),
           credits: Object.fromEntries(ficha.map((f) => [f.name, String(dados.get(f.name) ?? "")])),
         }),
       });
@@ -191,6 +194,26 @@ export function UploadForm() {
         />
         <span>Até 15 MB; reduzimos no aparelho. Sem capa, geramos uma arte a partir do título.</span>
       </label>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1 text-sm text-white/70">
+          Gênero
+          <select name="genero" defaultValue="" className={campo}>
+            <option value="">Escolher</option>
+            {GENEROS.map((g) => (
+              <option key={g.id} value={g.id}>{g.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-sm text-white/70">
+          Clima
+          <select name="clima" defaultValue="" className={campo}>
+            <option value="">Escolher</option>
+            {CLIMAS.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
       <details className="group rounded-lg bg-white/5 px-4 py-2">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-semibold">
           Ficha técnica (opcional)

@@ -1,4 +1,6 @@
 // Regras puras de upload (sem dependência de servidor; testáveis).
+import { lerClima, lerGenero, type ClimaId, type GeneroId } from "../radio/generos.ts";
+
 export const ALLOWED_AUDIO_TYPES = [
   "audio/mpeg",
   "audio/mp4",
@@ -23,6 +25,9 @@ export type UploadInput = {
   cover: { contentType: string; size: number } | null;
   /** Ficha técnica opcional. */
   credits: { composer: string | null; performers: string | null; album: string | null; label: string | null };
+  /** Gênero (lista fixa) e clima (seis valores), opcionais. */
+  genre: GeneroId | null;
+  mood: ClimaId | null;
 };
 
 const LIMITES_FICHA = { composer: 120, performers: 200, album: 120, label: 120 } as const;
@@ -88,6 +93,10 @@ export function parseUploadInput(
     if (t.length > LIMITES_FICHA[campo]) return { ok: false, error: "ficha técnica inválida" };
     credits[campo] = t || null;
   }
+  const genre = lerGenero(b.genre);
+  if (genre === undefined) return { ok: false, error: "gênero inválido" };
+  const mood = lerClima(b.mood);
+  if (mood === undefined) return { ok: false, error: "clima inválido" };
   return {
     ok: true,
     value: {
@@ -98,6 +107,8 @@ export function parseUploadInput(
       durationSec,
       cover,
       credits,
+      genre,
+      mood,
     },
   };
 }

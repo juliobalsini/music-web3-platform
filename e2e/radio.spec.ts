@@ -167,3 +167,30 @@ test("Playlisters em alta (no Explorar) levam ao perfil público", async ({ page
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("region", { name: "Playlists" })).toBeVisible();
 });
+
+// Faixa de demonstração (fora de produção): pré-visualização para WhatsApp e redes.
+const FAIXA_DEMO = "00000000-0000-4000-8000-000000000001";
+
+test("compartilhar: página da faixa tem Open Graph e a imagem 1200x630 é gerada", async ({ page, request }) => {
+  await page.goto(`/faixa/${FAIXA_DEMO}`);
+  const og = page.locator('meta[property="og:image"]');
+  await expect(og).toHaveAttribute("content", new RegExp(`/api/tracks/${FAIXA_DEMO}/og$`));
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Madrugada no Convés · Lia Norte/);
+  const img = await request.get(`/api/tracks/${FAIXA_DEMO}/og`);
+  expect(img.status()).toBe(200);
+  expect(img.headers()["content-type"]).toContain("image/png");
+  expect((await img.body()).length).toBeGreaterThan(5_000);
+  expect((await request.get("/api/tracks/00000000-0000-4000-8000-0000000000ff/og")).status()).toBe(404);
+  expect((await request.get("/api/tracks/not-a-uuid/og")).status()).toBe(404);
+});
+
+test("capas geradas são distintas entre faixas", async ({ page }) => {
+  await page.goto("/explorar");
+  const lista = page.getByRole("list", { name: "Todas as faixas" });
+  await expect(lista.getByRole("button").first()).toBeVisible({ timeout: 20_000 });
+  const sig = await lista.locator('[data-testid="capa-gerada"]').evaluateAll((els) =>
+    els.map((e) => `${e.getAttribute("data-glifo")}|${e.getAttribute("data-textura")}|${e.innerHTML.match(/stop-color="([^"]+)"/)?.[1]}`),
+  );
+  expect(new Set(sig).size).toBeGreaterThanOrEqual(5);
+});
