@@ -14,7 +14,7 @@ export const metadata = { title: "Minhas playlists · radioOn" };
 async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchParams">) {
   const sessao = await getSessionRole();
   if (!sessao) redirect(loginPath("/curador"));
-  if (sessao.role !== "curator") redirect("/onboarding");
+  const ehCurador = sessao.role === "curator";
   const { erro } = await searchParams;
   const { supabase, userId } = sessao;
 
@@ -138,6 +138,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
           );
         })}
       </ul>
+      {ehCurador && (
       <section aria-label="Programação" className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Programação</h2>
         <p className="text-sm text-white/70 text-pretty">Um bloco por horário (Brasília). O cartão &quot;No ar&quot; da Rádio toca a playlist do bloco atual.</p>
@@ -179,6 +180,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
           </form>
         )}
       </section>
+      )}
     </>
   );
 }

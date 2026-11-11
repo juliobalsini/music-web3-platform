@@ -5,6 +5,7 @@ export function acoesMinhaRadio(role: string | null): AcaoMinhaRadio[] {
   if (role === "artist") return [{ href: "/enviar", label: "Enviar música", icone: "enviar", destaque: true }];
   if (role === "curator") return [{ href: "/curador", label: "Minhas playlists", icone: "playlists", destaque: true }];
   if (!role) return [{ href: "/onboarding", label: "Escolher perfil", icone: "perfil", destaque: true }];
+  // Qualquer conta cria playlists (Perfil → Minhas playlists, botão +).
   return [];
 }
 

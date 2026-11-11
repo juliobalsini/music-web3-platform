@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Compass, Headphones, ListMusic, Play, Upload, UserRound } from "lucide-react";
+import { BookOpen, Clock, Compass, Headphones, Play, Plus, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -8,12 +8,25 @@ import { listenConfig } from "@/lib/listen/config";
 import { acoesMinhaRadio } from "@/lib/menu";
 import { progressoMeta, resumirMinhaRadio } from "@/lib/radio/minha";
 import { carregarRadio } from "@/lib/radio/queries";
+import { rotuloGenero } from "@/lib/radio/generos";
+import { resumoSemana } from "@/lib/radio/rules";
 import { getSessaoAny } from "@/lib/session";
 import { metricasDoArtista } from "@/lib/tracks/queries";
 
 export const metadata = { title: "Perfil · radioOn" };
 
-const icones = { enviar: Upload, playlists: ListMusic, perfil: UserRound } as const;
+/** Título de seção do Perfil com o botão + (leva à criação). */
+function SecaoTitulo({ titulo, href, rotulo }: { titulo: string; href: string; rotulo: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="text-lg font-bold">{titulo}</h2>
+      <Link href={href} aria-label={rotulo} className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
+        <Plus className="size-5" aria-hidden="true" />
+      </Link>
+    </div>
+  );
+}
+
 const motivos: Record<string, string> = { listen: "Escuta" };
 
 async function Conteudo() {
@@ -34,7 +47,7 @@ async function Conteudo() {
   // RLS: cada usuário só enxerga as próprias escutas e o próprio extrato.
   const [{ data: pontos, error: erroPontos }, { data: eventos }, radio] = await Promise.all([
     supabase.from("points_ledger").select("id,amount,reason,created_at").order("created_at", { ascending: false }).limit(500),
-    supabase.from("listen_events").select("track_id,seconds_listened,is_valid").limit(5000),
+    supabase.from("listen_events").select("track_id,seconds_listened,is_valid,started_at").order("started_at", { ascending: false }).limit(5000),
     carregarRadio(),
   ]);
   const extrato = pontos ?? [];
@@ -46,6 +59,10 @@ async function Conteudo() {
   const resumo = resumirMinhaRadio(eventos ?? [], plays);
   const meta = progressoMeta(hoje, cfg.dailyLimit);
   const minhasFaixas = role === "artist" ? await metricasDoArtista(userId) : [];
+  const semana = resumoSemana(eventos ?? [], radio.faixas, new Date().getTime());
+  const { data: minhasPlaylists } = anonimo
+    ? { data: [] }
+    : await supabase.from("playlists").select("id,title,playlist_tracks(count)").eq("curator_id", userId).order("created_at", { ascending: false }).limit(20);
 
   const dados = [
     { Icone: Headphones, rotulo: "Escutas válidas", valor: resumo.escutas },
@@ -110,35 +127,84 @@ async function Conteudo() {
 
       {anonimo && <ConviteVisitante compacto />}
 
-      {!anonimo && acoesMinhaRadio(role).map(({ href, label, icone, destaque }) => {
-        const Icone = icones[icone];
-        return (
-          <Link key={href} href={href} className={destaque ? botao : `${linha} min-h-12`}>
-            <Icone className="size-5" aria-hidden="true" /> {label}
-          </Link>
-        );
-      })}
+      {!anonimo && acoesMinhaRadio(role).filter((a) => a.icone === "perfil").map(({ href, label }) => (
+        <Link key={href} href={href} className={botao}>
+          <UserRound className="size-5" aria-hidden="true" /> {label}
+        </Link>
+      ))}
 
-      {role === "artist" && (
-        <section aria-label="Minhas faixas" className="flex flex-col gap-2">
-          <h2 className="text-lg font-bold">Minhas faixas</h2>
-          {minhasFaixas === null ? (
-            <Mensagem>Suas faixas estão indisponíveis agora. Tente de novo em instantes.</Mensagem>
-          ) : minhasFaixas.length === 0 ? (
-            <p className="text-white/70 text-pretty">Nenhuma faixa publicada ainda. Suas escutas aparecem aqui.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {minhasFaixas.map(({ faixa, metrica }) => (
-                <li key={faixa.id} className={`${linha} flex-wrap`}>
-                  <span className="min-w-0 flex-1 basis-40 truncate font-medium">{faixa.title}</span>
-                  <span className="shrink-0 text-sm text-white/70 tabular-nums">
-                    {metrica.escutas} escutas · {metrica.ouvintes} ouvintes
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {!anonimo && (
+        <>
+          <section aria-label="Resumo da semana" className="flex flex-col gap-2">
+            <h2 className="text-lg font-bold">Resumo da semana</h2>
+            {semana.escutas === 0 ? (
+              <p className="text-sm text-white/70 text-pretty">Ouça algumas faixas e veja aqui seus artistas e gêneros da semana.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1 rounded-xl bg-white/10 p-3">
+                  <h3 className="text-sm font-semibold text-brand">Artistas</h3>
+                  <ol className="flex flex-col gap-0.5 text-sm">
+                    {semana.artistas.map((a) => (
+                      <li key={a.id} className="flex justify-between gap-2"><span className="truncate">{a.nome}</span><span className="tabular-nums text-white/70">{a.escutas}</span></li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="flex flex-col gap-1 rounded-xl bg-white/10 p-3">
+                  <h3 className="text-sm font-semibold text-brand">Gêneros</h3>
+                  {semana.generos.length === 0 ? (
+                    <p className="text-sm text-white/70">Sem gênero informado.</p>
+                  ) : (
+                    <ol className="flex flex-col gap-0.5 text-sm">
+                      {semana.generos.map((g) => (
+                        <li key={g.id} className="flex justify-between gap-2"><span className="truncate">{rotuloGenero(g.id) ?? g.id}</span><span className="tabular-nums text-white/70">{g.escutas}</span></li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section aria-label="Minhas faixas" className="flex flex-col gap-2">
+            <SecaoTitulo titulo="Minhas faixas" href={role === "artist" ? "/enviar" : "/onboarding"} rotulo={role === "artist" ? "Enviar música" : "Escolher perfil de artista"} />
+            {role !== "artist" ? (
+              <p className="text-white/70 text-pretty">Artista? Escolha esse perfil e publique sua música.</p>
+            ) : minhasFaixas === null ? (
+              <Mensagem>Suas faixas estão indisponíveis agora. Tente de novo em instantes.</Mensagem>
+            ) : minhasFaixas.length === 0 ? (
+              <p className="text-white/70 text-pretty">Nenhuma faixa publicada ainda. Suas escutas aparecem aqui.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {minhasFaixas.map(({ faixa, metrica }) => (
+                  <li key={faixa.id} className={`${linha} flex-wrap`}>
+                    <span className="min-w-0 flex-1 basis-40 truncate font-medium">{faixa.title}</span>
+                    <span className="shrink-0 text-sm text-white/70 tabular-nums">
+                      {metrica.escutas} escutas · {metrica.ouvintes} ouvintes
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section aria-label="Minhas playlists" className="flex flex-col gap-2">
+            <SecaoTitulo titulo="Minhas playlists" href="/curador" rotulo="Criar playlist" />
+            {(minhasPlaylists ?? []).length === 0 ? (
+              <p className="text-white/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {(minhasPlaylists ?? []).map((p) => (
+                  <li key={p.id}>
+                    <Link href={`/playlist/${p.id}`} className={`${linha} min-h-12`}>
+                      <span className="truncate font-medium">{p.title}</span>
+                      <span className="shrink-0 text-sm text-white/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
       )}
 
       {extrato.length > 0 && (

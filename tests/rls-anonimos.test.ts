@@ -164,11 +164,11 @@ describe("RLS — visitante anônimo (is_anonymous = true)", () => {
 });
 
 describe("RLS — contas de verdade continuam funcionando", () => {
-  it("curador cria playlist e adiciona faixa publicada; conta comum (listener) não cria", async () => {
+  it("curador cria playlist; conta comum (listener) também cria a própria (decisão do plano, migration 20261111030000)", async () => {
     const ok = await como("curador", `insert into public.playlists (curator_id, title) values ('${ids.curador}', 'nova')`);
     assert.equal(ok.error, null);
-    const nao = await como("conta", `insert into public.playlists (curator_id, title) values ('${ids.conta}', 'nova')`);
-    assert.ok(nao.error);
+    const conta = await como("conta", `insert into public.playlists (curator_id, title) values ('${ids.conta}', 'nova')`);
+    assert.equal(conta.error, null);
   });
 
   it("conta não muda o próprio papel direto no banco", async () => {
@@ -246,5 +246,39 @@ describe("Escuta e pontos do anônimo (funções reais, via service_role)", () =
     const r = await escutar(ids.artista, ids.faixa, 200);
     assert.equal(r.points, 0);
     assert.equal(r.motivo, "faixa");
+  });
+});
+
+describe("RLS — playlists para qualquer conta e álbuns (migration 20261111030000)", () => {
+  it("conta comum (listener) cria playlist própria; não cria em nome de outro", async () => {
+    const ok = await como("conta", `insert into public.playlists (curator_id, title) values ('${ids.conta}', 'Minha') returning id`);
+    assert.equal(ok.error, null);
+    assert.equal(ok.rows.length, 1);
+    const alheia = await como("conta", `insert into public.playlists (curator_id, title) values ('${ids.curador}', 'Falsa')`);
+    assert.match(alheia.error ?? "", /row-level security/);
+  });
+
+  it("anônimo continua sem criar playlist (restritiva vence a nova permissiva)", async () => {
+    const r = await como("anon", `insert into public.playlists (curator_id, title) values ('${ids.anon}', 'Anon')`);
+    assert.match(r.error ?? "", /row-level security|permission denied/);
+  });
+
+  it("álbuns: leitura pública; escrita só pelo servidor", async () => {
+    const album = "00000000-0000-4000-8000-0000000000a9";
+    const srv = await como("service", `insert into public.albums (id, artist_id, title, kind) values ('${album}', '${ids.artista}', 'Sinais', 'ep')`);
+    assert.equal(srv.error, null);
+    const ler = await como("anon", `select id from public.albums`);
+    assert.equal(ler.rows.length, 1);
+    const escrever = await como("artista", `insert into public.albums (artist_id, title) values ('${ids.artista}', 'Direto')`);
+    assert.match(escrever.error ?? "", /row-level security|permission denied/);
+    const kind = await como("service", `insert into public.albums (artist_id, title, kind) values ('${ids.artista}', 'X', 'single')`);
+    assert.match(kind.error ?? "", /check/);
+  });
+
+  it("faixa pode apontar para o álbum e ter número", async () => {
+    const r = await como("service", `update public.tracks set album_id = '00000000-0000-4000-8000-0000000000a9', track_no = 1 where id = '${ids.faixa}'`);
+    assert.equal(r.error, null);
+    const ruim = await como("service", `update public.tracks set track_no = 0 where id = '${ids.faixa}'`);
+    assert.match(ruim.error ?? "", /check/);
   });
 });

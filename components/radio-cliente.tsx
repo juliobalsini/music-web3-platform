@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { Albuns } from "@/components/albuns";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -42,7 +43,7 @@ export function RadioCliente({
   filtroInicial: Filtro;
   abaInicial: Aba | null;
 }) {
-  const filtros = filtrosVisiveis({ albuns: false, stories: false });
+  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: false });
   const [filtro, setFiltro] = useState<Filtro>(filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo");
   const [aba, setAba] = useState<Aba>(abaInicial ?? "descobertas");
   const toque = useRef<{ x: number; y: number } | null>(null);
@@ -135,6 +136,7 @@ export function RadioCliente({
           </>
         ))}
 
+      {mostra("albuns") && <Albuns lista={radio.albuns} />}
       {mostra("playlists") && <PlaylistsDaSemana lista={radio.playlists} />}
       {filtro === "playlists" && radio.playlists.length === 0 && <p className="text-white/70">Nenhuma playlist pública ainda.</p>}
     </>

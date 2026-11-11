@@ -65,6 +65,8 @@ export function UploadForm() {
   const [msg, setMsg] = useState<{ texto: string; erro: boolean } | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [progresso, setProgresso] = useState<{ rotulo: string; frac: number } | null>(null);
+  const [modo, setModo] = useState<"single" | "album">("single");
+  const [faixasAlbum, setFaixasAlbum] = useState<{ arquivo: File; titulo: string }[]>([]);
 
   const arquivoRef = useRef<HTMLInputElement>(null);
   const tituloRef = useRef<HTMLInputElement>(null);
@@ -97,10 +99,86 @@ export function UploadForm() {
 
   const falha = (texto: string) => setMsg({ texto, erro: true });
 
+  /** Álbum/EP: uma capa única, várias faixas; cada faixa sobe e é publicada em seguida. */
+  async function enviarAlbum(dados: FormData) {
+    if (faixasAlbum.length < 2) return falha("Escolha pelo menos 2 faixas para o álbum ou EP.");
+    if (faixasAlbum.length > 20) return falha("Máximo de 20 faixas por álbum.");
+    const tipos: string[] = [];
+    for (const f of faixasAlbum) {
+      const t = tipoDeAudio(f.arquivo.name, f.arquivo.type);
+      if (!t) return falha(`Formato não aceito em “${f.arquivo.name}”. Use MP3, M4A, AAC, OGG, FLAC, WAV ou MP4.`);
+      if (f.arquivo.size > 25 * 1024 * 1024) return falha(`“${f.arquivo.name}” passa de 25 MB.`);
+      if (!f.titulo.trim()) return falha("Dê um título a cada faixa.");
+      tipos.push(t);
+    }
+    let capa = dados.get("capa") as File | null;
+    if (capa && capa.size > 0) {
+      if (capa.size > MAX_CAPA_ORIGINAL) return falha("A capa passa de 15 MB. Escolha uma menor.");
+      if (!capa.type.startsWith("image/")) return falha("Capa inválida. Use uma imagem (JPG, PNG ou WebP).");
+    } else capa = null;
+    setEnviando(true);
+    setMsg(null);
+    try {
+      if (capa) {
+        setProgresso({ rotulo: "Preparando a capa…", frac: 0 });
+        try {
+          capa = await prepararCapa(capa);
+        } catch {
+          return falha("Não consegui ler essa capa. Tente outra imagem (JPG, PNG ou WebP).");
+        }
+      }
+      const duracoes = await Promise.all(faixasAlbum.map((f) => lerDuracao(f.arquivo)));
+      const r = await fetch("/api/albums/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: dados.get("titulo-album"),
+          kind: dados.get("tipo"),
+          rightsConfirmed: dados.get("direitos") === "on",
+          genre: String(dados.get("genero") ?? ""),
+          mood: String(dados.get("clima") ?? ""),
+          cover: capa ? { contentType: capa.type, size: capa.size } : null,
+          faixas: faixasAlbum.map((f, i) => ({ title: f.titulo, contentType: tipos[i], size: f.arquivo.size, durationSec: duracoes[i] })),
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return falha(erroDaRotaDeUpload(r.status, j.error));
+      let coverOk = true;
+      if (capa && j.coverUploadUrl) {
+        setProgresso({ rotulo: "Enviando a capa…", frac: 0 });
+        coverOk = await enviarComProgresso(j.coverUploadUrl, j.coverContentType, capa, () => {})
+          .then((st) => st >= 200 && st < 300)
+          .catch(() => false);
+      }
+      const total = faixasAlbum.length;
+      let publicadas = 0;
+      for (let i = 0; i < total; i++) {
+        const rotulo = `Faixa ${i + 1} de ${total}…`;
+        setProgresso({ rotulo, frac: 0 });
+        const st = await enviarComProgresso(j.faixas[i].uploadUrl, j.faixas[i].contentType, faixasAlbum[i].arquivo, (frac) => setProgresso({ rotulo, frac }));
+        if (st < 200 || st >= 300) return falha(`${erroDoBucket(st)} ${publicadas > 0 ? `(${publicadas} de ${total} faixas já publicadas)` : ""}`.trim());
+        const pub = await fetch(`/api/tracks/${j.faixas[i].trackId}/publish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ coverOk }),
+        });
+        if (!pub.ok) return falha("Enviada, mas não publicada. Tente enviar de novo.");
+        publicadas += 1;
+      }
+      setMsg({ texto: coverOk ? "Álbum publicado." : "Álbum publicado, mas sem a capa. Use uma imagem menor depois.", erro: false });
+    } catch {
+      falha(navigator.onLine ? "Envio interrompido. Pode ser o limite diário ou a conexão. Tente mais tarde." : "Sem conexão. Confira a internet e tente de novo.");
+    } finally {
+      setEnviando(false);
+      setProgresso(null);
+    }
+  }
+
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const dados = new FormData(form);
+    if (modo === "album") return enviarAlbum(dados);
     const arquivo = dados.get("arquivo") as File | null;
     if (!arquivo || arquivo.size === 0) return falha("Escolha um arquivo de áudio.");
     const tipoAudio = tipoDeAudio(arquivo.name, arquivo.type);
@@ -173,18 +251,61 @@ export function UploadForm() {
 
   return (
     <form onSubmit={enviar} className="flex flex-col gap-4" aria-busy={enviando}>
-      <input ref={tituloRef} name="titulo" required maxLength={200} placeholder="Título" aria-label="Título" className={campo} />
-      <input
-        ref={arquivoRef}
-        name="arquivo"
-        type="file"
-        required
-        accept={ACCEPT_AUDIO}
-        aria-label="Arquivo de áudio (MP3, M4A, AAC, OGG, FLAC, WAV ou MP4; até 25 MB)"
-        className={campo}
-      />
+      <div role="radiogroup" aria-label="Tipo de envio" className="grid grid-cols-2 gap-2 rounded-lg bg-white/5 p-1">
+        {([["single", "Faixa avulsa"], ["album", "Álbum ou EP"]] as const).map(([v, r]) => (
+          <button key={v} type="button" role="radio" aria-checked={modo === v} onClick={() => setModo(v)} className={`min-h-11 rounded-md text-sm font-semibold ${modo === v ? "bg-brand text-night-900" : "text-white/80"}`}>
+            {r}
+          </button>
+        ))}
+      </div>
+      {modo === "single" ? (
+        <>
+          <input ref={tituloRef} name="titulo" required maxLength={200} placeholder="Título" aria-label="Título" className={campo} />
+          <input
+            ref={arquivoRef}
+            name="arquivo"
+            type="file"
+            required
+            accept={ACCEPT_AUDIO}
+            aria-label="Arquivo de áudio (MP3, M4A, AAC, OGG, FLAC, WAV ou MP4; até 25 MB)"
+            className={campo}
+          />
+        </>
+      ) : (
+        <>
+          <input name="titulo-album" required maxLength={120} placeholder="Título do álbum ou EP" aria-label="Título do álbum ou EP" className={campo} />
+          <select name="tipo" defaultValue="ep" aria-label="Tipo" className={campo}>
+            <option value="ep">EP</option>
+            <option value="album">Álbum</option>
+          </select>
+          <input
+            type="file"
+            multiple
+            accept={ACCEPT_AUDIO}
+            aria-label="Faixas do álbum (2 a 20 arquivos de áudio, até 25 MB cada)"
+            className={campo}
+            onChange={(e) => setFaixasAlbum(Array.from(e.target.files ?? []).slice(0, 20).map((arquivo) => ({ arquivo, titulo: arquivo.name.replace(/\.[^.]+$/, "") })))}
+          />
+          {faixasAlbum.length > 0 && (
+            <ol aria-label="Faixas do álbum" className="flex flex-col gap-2">
+              {faixasAlbum.map((f, i) => (
+                <li key={`${f.arquivo.name}-${i}`} className="flex items-center gap-2">
+                  <span className="w-6 shrink-0 text-sm font-bold tabular-nums text-brand">{String(i + 1).padStart(2, "0")}</span>
+                  <input
+                    value={f.titulo}
+                    maxLength={200}
+                    aria-label={`Título da faixa ${i + 1}`}
+                    onChange={(e) => setFaixasAlbum((l) => l.map((x, k) => (k === i ? { ...x, titulo: e.target.value } : x)))}
+                    className={campo}
+                  />
+                </li>
+              ))}
+            </ol>
+          )}
+        </>
+      )}
       <label className="flex flex-col gap-1 text-sm text-white/70">
-        Capa (opcional)
+        Capa (opcional){modo === "album" ? ", única para todo o álbum" : ""}
         <input
           name="capa"
           type="file"
@@ -214,6 +335,7 @@ export function UploadForm() {
           </select>
         </label>
       </div>
+      {modo === "single" && (
       <details className="group rounded-lg bg-white/5 px-4 py-2">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-semibold">
           Ficha técnica (opcional)
@@ -224,6 +346,7 @@ export function UploadForm() {
           ))}
         </div>
       </details>
+      )}
       <label className="flex min-h-11 items-center gap-3 text-white/80">
         <input name="direitos" type="checkbox" required className="size-5 accent-[#e89a3c]" />
         Tenho os direitos desta faixa
