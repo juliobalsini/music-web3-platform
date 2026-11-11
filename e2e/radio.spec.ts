@@ -198,18 +198,18 @@ test("capas geradas são distintas entre faixas", async ({ page }) => {
 test("Explorar: recomendações, carrosséis, artistas, gêneros e climas navegáveis", async ({ page }) => {
   await page.goto("/explorar");
   for (const n of ["Para você", "Descobertas", "Em alta", "Novidades", "Artistas", "Gêneros", "Climas"]) {
-    await expect(page.getByRole("region", { name: n })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("region", { name: n, exact: true })).toBeVisible({ timeout: 20_000 });
   }
   // Recomendação toca com um toque.
-  await page.getByRole("region", { name: "Para você" }).getByRole("button").first().click();
+  await page.getByRole("region", { name: "Para você", exact: true }).getByRole("button").first().click();
   await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
   // Gênero vira uma lista de faixas.
-  await page.getByRole("region", { name: "Gêneros" }).getByRole("link").first().click();
+  await page.getByRole("region", { name: "Gêneros", exact: true }).getByRole("link").first().click();
   await expect(page).toHaveURL(/\/explorar\?genero=/);
   await expect(page.getByRole("heading", { name: /^Gênero:/ })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("list", { name: /^Faixas de/ }).getByRole("button").first()).toBeVisible();
   await page.goto("/explorar");
-  await page.getByRole("region", { name: "Climas" }).getByRole("link").first().click();
+  await page.getByRole("region", { name: "Climas", exact: true }).getByRole("link").first().click();
   await expect(page.getByRole("heading", { name: /^Clima:/ })).toBeVisible({ timeout: 20_000 });
 });
 
