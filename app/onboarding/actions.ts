@@ -12,7 +12,7 @@ export async function escolherPerfil(form: FormData) {
   if (!role) redirect("/onboarding");
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
+  if (!data.user || data.user.is_anonymous) redirect("/login?next=/onboarding");
   const nome = form.get("nome");
   const display_name =
     typeof nome === "string" && nome.trim() ? nome.trim().slice(0, 80) : undefined;

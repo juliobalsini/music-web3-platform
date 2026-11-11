@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       p_user: data.user.id,
       p_event: body.eventId,
       p_points: cfg.points,
-      p_daily_limit: cfg.dailyLimit,
+      p_daily_limit: data.user.is_anonymous ? cfg.anonDailyLimit : cfg.dailyLimit,
       p_max_per_track: cfg.maxPerTrack,
     });
     if (error) return Response.json({ error: "indisponível" }, { status: 503, headers: noStore });

@@ -1,5 +1,5 @@
 import { isUuid } from "@/lib/playlists/rules";
-import { getSessionRole } from "@/lib/session";
+import { getSessaoAny } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const noStore = { "Cache-Control": "no-store" };
@@ -8,7 +8,7 @@ const TIPOS = ["like", "save", "support"] as const;
 // Liga/desliga curtir, salvar ou apoiar. O usuário vem da sessão; a escrita é só no servidor.
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const sessao = await getSessionRole();
+  const sessao = await getSessaoAny();
   if (!sessao) return Response.json({ error: "login necessário" }, { status: 401, headers: noStore });
   if (!sessao.role) return Response.json({ error: "escolha um perfil" }, { status: 403, headers: noStore });
   const corpo = (await req.json().catch(() => null)) as { kind?: unknown; on?: unknown } | null;

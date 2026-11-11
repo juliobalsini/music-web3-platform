@@ -7,6 +7,7 @@ import { Abertura } from "@/components/abertura";
 import { Cabecalho } from "@/components/cabecalho";
 import { MiniPlayer } from "@/components/mini-player";
 import { NavInferior } from "@/components/nav-inferior";
+import { Rodape } from "@/components/rodape";
 import { PlayerProvider } from "@/components/player-provider";
 import { RegistrarSW } from "@/components/registrar-sw";
 
@@ -40,7 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PlayerProvider>
           <Abertura />
           <Cabecalho />
-          <div className="flex flex-1 flex-col pb-[calc(9.5rem+env(safe-area-inset-bottom))]">{children}</div>
+          <div className="flex flex-1 flex-col pb-[calc(9.5rem+env(safe-area-inset-bottom))]">{children}<Rodape /></div>
           <MiniPlayer />
           <Suspense>
             <NavInferior />

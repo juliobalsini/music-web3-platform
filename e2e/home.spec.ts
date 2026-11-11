@@ -84,3 +84,16 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   await page.goto("/minha-radio");
   await expect(page).toHaveURL(/\/login/);
 });
+
+test("páginas legais são públicas, com contato e links no rodapé e no login", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Privacidade" }).click();
+  await expect(page).toHaveURL(/\/privacidade$/);
+  await expect(page.getByRole("heading", { name: "Política de Privacidade" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "juliobalsini@gmail.com" }).first()).toBeVisible();
+  await page.goto("/termos");
+  await expect(page.getByRole("heading", { name: "Termos de Uso" })).toBeVisible();
+  await page.goto("/login");
+  await expect(page.getByRole("link", { name: "Termos" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Política de Privacidade" })).toBeVisible();
+});

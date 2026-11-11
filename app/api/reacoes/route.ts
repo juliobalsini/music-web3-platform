@@ -1,4 +1,4 @@
-import { getSessionRole } from "@/lib/session";
+import { getSessaoAny } from "@/lib/session";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -6,7 +6,7 @@ const noStore = { "Cache-Control": "no-store" };
 export async function GET() {
   let sessao;
   try {
-    sessao = await getSessionRole();
+    sessao = await getSessaoAny();
   } catch {
     sessao = null;
   }
