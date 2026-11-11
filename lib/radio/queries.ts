@@ -10,7 +10,9 @@ import { createClient } from "@/lib/supabase/server";
 
 import {
   descobertas,
+  fluxoRadio,
   horaEmBrasilia,
+  menosOuvidas,
   novidades,
   ouvindoAgora,
   programacao,
@@ -30,14 +32,16 @@ export type Radio = {
   faixas: FaixaListada[];
   emAlta: ItemRanking<FaixaListada>[];
   descobertas: FaixaListada[];
+  /** true = escolhidas por playlisters; false = fallback "menos ouvidas" (sem curadoria ainda). */
+  descobertasCuradas: boolean;
   novidades: FaixaListada[];
   playlisters: PlaylisterResumo[];
   playlists: PlaylistSemana[];
   /** Todas as playlists públicas com faixas (perfis públicos). */
   todasPlaylists: PlaylistSemana[];
   programa: { atual: Programa | null; proximo: Programa | null };
-  /** Faixa "No ar" e a fila que segue (faixas da playlist do programa; sem programa, a mais ouvida da semana). */
-  noAr: { faixa: FaixaListada; fila: FaixaListada[] } | null;
+  /** Faixa "No ar" e a fila que segue (playlist do programa no horário; senão, o fluxo da Rádio radioOn). */
+  noAr: { faixa: FaixaListada; fila: FaixaListada[]; continuo: boolean } | null;
   /** null = indisponível (sem service_role); a UI esconde o contador. */
   ouvindo: number | null;
 };
@@ -46,6 +50,7 @@ const VAZIO: Radio = {
   faixas: [],
   emAlta: [],
   descobertas: [],
+  descobertasCuradas: false,
   novidades: [],
   playlisters: [],
   playlists: [],
@@ -250,6 +255,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
     }));
 
     const emAlta = rankingEmAlta(faixas, escutas, agora);
+    const curadas = descobertas(faixas, plays, emPlaylists);
     const programa = programacao(programas, horaEmBrasilia(agora));
     const porId = new Map(faixas.map((f) => [f.id, f]));
     let noAr: Radio["noAr"] = null;
@@ -260,17 +266,19 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
     if (doPrograma.length > 0) {
       // Rodízio determinístico: a faixa muda a cada 10 min, igual para todos os ouvintes.
       const i = Math.floor(agora / 600_000) % doPrograma.length;
-      noAr = { faixa: doPrograma[i], fila: [...doPrograma.slice(i), ...doPrograma.slice(0, i)] };
+      noAr = { faixa: doPrograma[i], fila: [...doPrograma.slice(i), ...doPrograma.slice(0, i)], continuo: false };
     } else if (faixas.length > 0) {
-      const base = emAlta[0]?.faixa ?? faixas[0];
-      noAr = { faixa: base, fila: [base, ...faixas.filter((f) => f.id !== base.id)] };
+      // Rádio radioOn: fluxo contínuo (novidades + pouco ouvidas + curtidas), mesmo giro para todos (10 min).
+      const fluxo = fluxoRadio(faixas, Math.floor(agora / 600_000));
+      noAr = { faixa: fluxo[0], fila: fluxo, continuo: true };
     }
 
     return {
       faixas,
       noAr,
       emAlta,
-      descobertas: descobertas(faixas, plays, emPlaylists),
+      descobertas: curadas.length > 0 ? curadas : menosOuvidas(faixas),
+      descobertasCuradas: curadas.length > 0,
       novidades: novidades(faixas),
       playlisters: [...porCurador.values()].sort((a, b) => b.faixas - a.faixas || b.playlists - a.playlists).slice(0, 8),
       playlists: rankingPlaylistsPorEscutas(base, escutas, agora)
@@ -302,7 +310,7 @@ export async function reacoesDoUsuario(): Promise<ReacoesUsuario> {
 }
 
 /** "Continue ouvindo": faixas distintas das últimas escutas do usuário (RLS própria). */
-export async function continuarOuvindo(userId: string, faixas: FaixaListada[], limite = 4): Promise<FaixaListada[]> {
+export async function continuarOuvindo(userId: string, faixas: FaixaListada[], limite = 10): Promise<FaixaListada[]> {
   try {
     const supabase = await createClient();
     const { data } = await supabase

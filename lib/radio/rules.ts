@@ -134,16 +134,6 @@ export function ouvindoAgora(linhas: { user_id: string; last_beat_at: string | n
   return ids.size;
 }
 
-/** Arte gerada a partir do título: determinística, só com cores da marca. */
-const PALETAS = [
-  ["#e89a3c", "#00112a"],
-  ["#f4b562", "#062244"],
-  ["#c9742a", "#00112a"],
-  ["#e89a3c", "#0b3a66"],
-  ["#2b5d8f", "#00112a"],
-  ["#f4b562", "#7a3f12"],
-] as const;
-
 function hash(texto: string): number {
   let h = 2166136261;
   for (let i = 0; i < texto.length; i++) {
@@ -153,12 +143,84 @@ function hash(texto: string): number {
   return h >>> 0;
 }
 
-export function capaGerada(titulo: string): { fundo: string; letra: string; cor: string; cor2: string } {
-  const h = hash(titulo.trim().toLowerCase());
-  const [cor, cor2] = PALETAS[h % PALETAS.length];
+export const GLIFOS = ["onda", "disco", "estrela", "triangulo", "arco", "losango"] as const;
+export type Glifo = (typeof GLIFOS)[number];
+export const TEXTURAS = ["linhas", "pontos", "diagonais", "ondas"] as const;
+export type Textura = (typeof TEXTURAS)[number];
+
+export type CapaGerada = {
+  fundo: string;
+  letra: string;
+  /** Cor clara e cor escura do par (HSL), derivadas do título. */
+  cor: string;
+  cor2: string;
+  angulo: number;
+  glifo: Glifo;
+  textura: Textura;
+  /** Rotação do glifo em graus e nº de anéis concêntricos (0–4). */
+  rotacao: number;
+  aneis: number;
+};
+
+/**
+ * Arte gerada a partir do título: determinística. O par de cores (claro/escuro) sai de dois matizes
+ * do hash; textura, glifo, rotação e anéis também, então faixas diferentes ficam visualmente distintas.
+ */
+export function capaGerada(titulo: string): CapaGerada {
+  const t = titulo.trim().toLowerCase();
+  const h = hash(t);
+  const h2 = hash(`${t}·2`);
+  const matiz = h % 360;
+  const matiz2 = (matiz + 50 + (h2 % 120)) % 360;
+  const cor = `hsl(${matiz} 72% 58%)`;
+  const cor2 = `hsl(${matiz2} 62% 20%)`;
   const angulo = 20 + ((h >>> 8) % 140);
   const letra = titulo.trim().charAt(0).toUpperCase() || "R";
-  return { fundo: `linear-gradient(${angulo}deg, ${cor} 0%, ${cor2} 100%)`, letra, cor, cor2 };
+  return {
+    fundo: `linear-gradient(${angulo}deg, ${cor} 0%, ${cor2} 100%)`,
+    letra,
+    cor,
+    cor2,
+    angulo,
+    glifo: GLIFOS[(h2 >>> 4) % GLIFOS.length],
+    textura: TEXTURAS[(h >>> 12) % TEXTURAS.length],
+    rotacao: (h2 >>> 10) % 360,
+    aneis: (h >>> 20) % 5,
+  };
+}
+
+/** Faixas menos ouvidas (fallback de "Descobertas" sem curadoria): menos escutas, depois mais recentes. */
+export function menosOuvidas<T extends { id: string; plays: number; createdAt: string }>(faixas: T[], limite = 10): T[] {
+  return [...faixas]
+    .sort((a, b) => a.plays - b.plays || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
+    .slice(0, limite);
+}
+
+/**
+ * Fluxo contínuo da "Rádio radioOn": intercala novidades, pouco ouvidas e curtidas, sem repetir faixa
+ * (logo, nunca a mesma em sequência; a volta ao início é tratada pelo player). `giro` muda a partida.
+ */
+export function fluxoRadio<T extends { id: string; plays: number; likes: number; createdAt: string }>(faixas: T[], giro = 0, porGrupo = 6): T[] {
+  if (faixas.length === 0) return [];
+  const grupos = [
+    novidades(faixas, porGrupo),
+    menosOuvidas(faixas, porGrupo),
+    [...faixas].filter((f) => f.likes > 0).sort((a, b) => b.likes - a.likes || a.id.localeCompare(b.id)).slice(0, porGrupo),
+  ];
+  const vistos = new Set<string>();
+  const fluxo: T[] = [];
+  for (let i = 0; i < porGrupo; i++) {
+    for (const g of grupos) {
+      const f = g[i];
+      if (f && !vistos.has(f.id)) {
+        vistos.add(f.id);
+        fluxo.push(f);
+      }
+    }
+  }
+  const n = fluxo.length;
+  const k = ((giro % n) + n) % n;
+  return [...fluxo.slice(k), ...fluxo.slice(0, k)];
 }
 
 /** Normaliza para busca: minúsculas, sem acentos, sem espaços sobrando. */
