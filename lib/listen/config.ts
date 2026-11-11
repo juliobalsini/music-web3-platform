@@ -8,6 +8,8 @@ export function listenConfig(env: Record<string, string | undefined> = process.e
   return {
     points: inteiro(env.POINTS_PER_LISTEN, 10, 1, 1000),
     dailyLimit: inteiro(env.POINTS_DAILY_LIMIT, 200, 1, 100000),
+    // Visitante anônimo: teto diário próprio (por sessão), sempre menor que o da conta.
+    anonDailyLimit: Math.min(inteiro(env.POINTS_ANON_DAILY_LIMIT, 50, 1, 100000), inteiro(env.POINTS_DAILY_LIMIT, 200, 1, 100000)),
     maxPerTrack: 3,
   };
 }

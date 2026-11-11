@@ -138,6 +138,10 @@ relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem 
 - [x] **n) Ranking de playlists por escutas válidas** — concluído em 2026-11-10 (PR item-n-ranking; DECISIONS 47). Sem migration.
 - [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto.
 
+- [x] **q) Acesso sem atrito (instrução do Julio, 2026-11-11)** — sessão anônima, vínculo à conta,
+  teto anônimo, `/privacidade` e `/termos` — PR item-q-acesso-anonimo; DECISIONS 48–51; relatório
+  `2026-11-11-acesso-sem-atrito.md`. Pendência do Julio: ativar Anonymous Sign-Ins (e manual linking) no Supabase.
+
 Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 **Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
@@ -222,3 +226,4 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   issues de relatório abertas (#32, #38).
 - 2026-11-11 — execução autônoma: nenhum item livre. O único restante (o) segue "proposto", sem
   "aprovado" do Julio (issues #45 aprovou só k–n; #56 sem comentários). Nada executado.
+- 2026-11-11 (2ª execução) — instrução do Julio: acesso sem atrito (item q); ver relatório.

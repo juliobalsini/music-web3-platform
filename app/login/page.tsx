@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { Frase } from "@/components/frase";
 import { LoginForm } from "@/components/login-form";
+import { AceiteLegal } from "@/components/rodape";
 import { Mensagem, Tela } from "@/components/ui";
 import { safeNext } from "@/lib/auth/roles";
 
@@ -32,6 +33,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
       <Suspense>
         <Formulario searchParams={searchParams} />
       </Suspense>
+      <AceiteLegal />
     </Tela>
   );
 }

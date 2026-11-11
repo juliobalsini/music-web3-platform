@@ -32,11 +32,17 @@ export async function entrarComGoogle(form: FormData) {
   let url: string | null = null;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${proto}://${host}/auth/callback`, skipBrowserRedirect: true },
-    });
-    if (!error) url = data.url;
+    const options = { redirectTo: `${proto}://${host}/auth/callback`, skipBrowserRedirect: true };
+    const { data: atual } = await supabase.auth.getUser();
+    if (atual.user?.is_anonymous) {
+      // Vincula o Google à sessão anônima (mantém pontos e histórico). Precisa de "manual linking" no painel.
+      const { data, error } = await supabase.auth.linkIdentity({ provider: "google", options });
+      if (!error) url = data.url;
+    }
+    if (!url) {
+      const { data, error } = await supabase.auth.signInWithOAuth({ provider: "google", options });
+      if (!error) url = data.url;
+    }
   } catch {
     /* cai no redirect de erro */
   }
@@ -49,11 +55,18 @@ export async function enviarLink(_: LoginState, form: FormData): Promise<LoginSt
   const { host, proto } = await origemEDestino(form);
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${proto}://${host}/auth/callback` },
-    });
-    if (error) return { erro: "Não foi possível enviar o link. Tente de novo em instantes." };
+    const emailRedirectTo = `${proto}://${host}/auth/callback`;
+    const { data: atual } = await supabase.auth.getUser();
+    let erro = null;
+    if (atual.user?.is_anonymous) {
+      // Converte a sessão anônima em conta (mesmo id: pontos e histórico ficam). E-mail já
+      // cadastrado → cai no login normal (a sessão anônima é substituída pela conta existente).
+      const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo });
+      if (error) erro = (await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo } })).error;
+    } else {
+      erro = (await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo } })).error;
+    }
+    if (erro) return { erro: "Não foi possível enviar o link. Tente de novo em instantes." };
   } catch {
     return { erro: "Login indisponível no momento." };
   }

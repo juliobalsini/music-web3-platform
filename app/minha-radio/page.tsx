@@ -1,4 +1,4 @@
-import { BookOpen, Clock, Compass, Headphones, ListMusic, Play, Upload, UserRound } from "lucide-react";
+import { BookOpen, Clock, Compass, Headphones, ListMusic, LogIn, Play, Upload, UserRound } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ import { listenConfig } from "@/lib/listen/config";
 import { acoesMinhaRadio } from "@/lib/menu";
 import { progressoMeta, resumirMinhaRadio } from "@/lib/radio/minha";
 import { carregarRadio } from "@/lib/radio/queries";
-import { getSessionRole } from "@/lib/session";
+import { getSessaoAny } from "@/lib/session";
 import { metricasDoArtista } from "@/lib/tracks/queries";
 
 export const metadata = { title: "Minha rádio · radioOn" };
@@ -18,9 +18,9 @@ const icones = { enviar: Upload, playlists: ListMusic, perfil: UserRound } as co
 const motivos: Record<string, string> = { listen: "Escuta" };
 
 async function Conteudo() {
-  const sessao = await getSessionRole();
+  const sessao = await getSessaoAny();
   if (!sessao) redirect(loginPath("/minha-radio"));
-  const { supabase, userId, role } = sessao;
+  const { supabase, userId, role, anonimo } = sessao;
   const cfg = listenConfig();
   const inicioDoDia = new Date();
   inicioDoDia.setUTCHours(0, 0, 0, 0); // dia de pontos em UTC (igual ao banco)
@@ -96,7 +96,17 @@ async function Conteudo() {
         </Link>
       )}
 
-      {acoesMinhaRadio(role).map(({ href, label, icone, destaque }) => {
+      {anonimo && (
+        <section aria-label="Salvar pontos" className="flex flex-col gap-2 rounded-lg bg-white/10 px-4 py-4">
+          <p className="font-semibold text-balance">Seus pontos estão só neste aparelho.</p>
+          <p className="text-sm text-white/70 text-pretty">Entre para guardá-los na sua conta, enviar música, criar playlist e resgatar recompensas. Nada se perde.</p>
+          <Link href="/login?next=/minha-radio" className={botao}>
+            <LogIn className="size-5" aria-hidden="true" /> Salvar meus pontos
+          </Link>
+        </section>
+      )}
+
+      {!anonimo && acoesMinhaRadio(role).map(({ href, label, icone, destaque }) => {
         const Icone = icones[icone];
         return (
           <Link key={href} href={href} className={destaque ? botao : `${linha} min-h-12`}>

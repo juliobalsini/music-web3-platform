@@ -223,3 +223,17 @@ Formato: data · decisão · motivo. Mais recente no fim.
 47. **Ranking de playlists por escutas (item n; substitui a decisão 26):** pontuação = escutas válidas dos
     últimos 7 dias nas faixas da playlist (`rankingPlaylistsPorEscutas`, reaproveita as escutas já lidas pela
     Rádio); empate → mais faixas, depois mais recente. Sem escutas, cai no critério antigo.
+
+## 2026-11-11 · Acesso sem atrito (instrução do Julio)
+
+48. **Visitante ouve sem entrar, com sessão anônima do Supabase.** `/api/listen/start` cria a sessão
+    (`signInAnonymously`) só depois de confirmar que a faixa existe e está publicada; sem o recurso ligado
+    no painel, responde 401 e o áudio segue sem pontos. `getSessionRole()` passou a devolver `null` para
+    anônimo (enviar, curador, onboarding, publicar continuam exigindo conta); `getSessaoAny()` é usado em
+    escuta, reações e Minha rádio. Sem migration: RLS/trigger do ciclo 0 já criam o perfil `listener`.
+49. **Teto de pontos do anônimo:** `POINTS_ANON_DAILY_LIMIT` (padrão 50, nunca acima de `POINTS_DAILY_LIMIT`),
+    passado como `p_daily_limit` ao `listen_beat` existente; limite por faixa (3x) e 30 s contínuos iguais.
+50. **Vínculo ao entrar:** e-mail → `updateUser({email})` (mesmo id, pontos preservados); Google →
+    `linkIdentity` (exige "manual linking"). Se o e-mail já tem conta ou o vínculo falha, cai no login normal
+    (a sessão anônima é substituída; os pontos anônimos não migram: `points_ledger` é append-only).
+51. **`/privacidade` e `/termos`** públicas (LGPD), rodapé global e aviso no login.
