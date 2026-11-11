@@ -24,8 +24,8 @@ test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
 test("Rádio tem os filtros e eles trocam sem ida ao servidor", async ({ page }) => {
   await radioCarregada(page);
   const filtros = page.getByRole("navigation", { name: "Filtros" });
-  // Álbuns e Stories só aparecem quando há conteúdo.
-  await expect(filtros.getByRole("button")).toHaveText(["Tudo", "Faixas", "Playlists"]);
+  // Álbuns e Stories só aparecem quando há conteúdo (a demonstração tem um EP, mas ainda não há stories).
+  await expect(filtros.getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists"]);
   let navegou = false;
   page.on("request", (r) => {
     if (r.isNavigationRequest()) navegou = true;
@@ -193,4 +193,41 @@ test("capas geradas são distintas entre faixas", async ({ page }) => {
     els.map((e) => `${e.getAttribute("data-glifo")}|${e.getAttribute("data-textura")}|${e.innerHTML.match(/stop-color="([^"]+)"/)?.[1]}`),
   );
   expect(new Set(sig).size).toBeGreaterThanOrEqual(5);
+});
+
+test("Explorar: recomendações, carrosséis, artistas, gêneros e climas navegáveis", async ({ page }) => {
+  await page.goto("/explorar");
+  for (const n of ["Para você", "Descobertas", "Em alta", "Novidades", "Artistas", "Gêneros", "Climas"]) {
+    await expect(page.getByRole("region", { name: n })).toBeVisible({ timeout: 20_000 });
+  }
+  // Recomendação toca com um toque.
+  await page.getByRole("region", { name: "Para você" }).getByRole("button").first().click();
+  await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  // Gênero vira uma lista de faixas.
+  await page.getByRole("region", { name: "Gêneros" }).getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/explorar\?genero=/);
+  await expect(page.getByRole("heading", { name: /^Gênero:/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("list", { name: /^Faixas de/ }).getByRole("button").first()).toBeVisible();
+  await page.goto("/explorar");
+  await page.getByRole("region", { name: "Climas" }).getByRole("link").first().click();
+  await expect(page.getByRole("heading", { name: /^Clima:/ })).toBeVisible({ timeout: 20_000 });
+});
+
+test("Álbuns: filtro na Rádio, página do álbum e tocar álbum", async ({ page }) => {
+  await radioCarregada(page);
+  await page.getByRole("navigation", { name: "Filtros" }).getByRole("button", { name: "Álbuns" }).click();
+  const link = page.getByRole("region", { name: "Álbuns e EPs" }).getByRole("link", { name: /Sinais/ });
+  await link.click();
+  await expect(page).toHaveURL(/\/album\//);
+  await expect(page.getByRole("heading", { name: "Sinais" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("list", { name: /Faixas de Sinais/ }).getByRole("button")).toHaveCount(3);
+  await page.getByTestId("play-album").click();
+  await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  await page.goto("/album/not-a-uuid");
+  await expect(page.getByText("Página não encontrada")).toBeVisible({ timeout: 20_000 });
+});
+
+test("rotas de álbum e envio exigem login", async ({ request }) => {
+  const r = await request.post("/api/albums/upload", { data: {} });
+  expect([401, 503]).toContain(r.status());
 });

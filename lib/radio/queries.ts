@@ -19,6 +19,8 @@ import {
   rankingEmAlta,
   rankingPlaylistsPorEscutas,
   SEMANA,
+  montarAlbuns,
+  type AlbumResumo,
   type FaixaListada,
   type ItemRanking,
   type Programa,
@@ -35,6 +37,7 @@ export type Radio = {
   /** true = escolhidas por playlisters; false = fallback "menos ouvidas" (sem curadoria ainda). */
   descobertasCuradas: boolean;
   novidades: FaixaListada[];
+  albuns: AlbumResumo[];
   playlisters: PlaylisterResumo[];
   playlists: PlaylistSemana[];
   /** Todas as playlists públicas com faixas (perfis públicos). */
@@ -52,6 +55,7 @@ const VAZIO: Radio = {
   descobertas: [],
   descobertasCuradas: false,
   novidades: [],
+  albuns: [],
   playlisters: [],
   playlists: [],
   todasPlaylists: [],
@@ -63,7 +67,7 @@ const VAZIO: Radio = {
 type Cliente = Awaited<ReturnType<typeof createClient>>;
 type LinhaTrack = {
   id: string; title: string; artist_id: string; duration_sec: number | null; cover_key?: string | null;
-  created_at: string; composer?: string | null; performers?: string | null; album?: string | null; label?: string | null; genre?: string | null; mood?: string | null;
+  created_at: string; composer?: string | null; performers?: string | null; album?: string | null; label?: string | null; genre?: string | null; mood?: string | null; album_id?: string | null; track_no?: number | null;
 };
 type LinhaPlaylist = {
   id: string; title: string; curator_id: string; created_at: string;
@@ -71,9 +75,12 @@ type LinhaPlaylist = {
 };
 type LinhaPrograma = { id: string; title: string; start_hour: number; end_hour: number; playlist_id: string; curator_id: string };
 
+type LinhaAlbum = { id: string; title: string; kind: string; artist_id: string; created_at: string };
+
 const COLUNAS_BASE = "id,title,artist_id,duration_sec,created_at";
 const COLUNAS_FICHA = `${COLUNAS_BASE},cover_key,composer,performers,album,label`;
-const COLUNAS_TRACKS = `${COLUNAS_FICHA},genre,mood`;
+const COLUNAS_GM = `${COLUNAS_FICHA},genre,mood`;
+const COLUNAS_TRACKS = `${COLUNAS_GM},album_id,track_no`;
 
 function adminOuNulo(): Cliente | null {
   try {
@@ -92,6 +99,7 @@ async function lerFaixasPublicadas(supabase: Cliente): Promise<LinhaTrack[]> {
   const admin = adminOuNulo();
   const tentativas: { rotulo: string; cliente: Cliente; colunas: string }[] = [
     { rotulo: "completa", cliente: supabase, colunas: COLUNAS_TRACKS },
+    { rotulo: "genero-clima", cliente: supabase, colunas: COLUNAS_GM },
     { rotulo: "ficha", cliente: supabase, colunas: COLUNAS_FICHA },
     { rotulo: "base", cliente: supabase, colunas: COLUNAS_BASE },
     ...(admin
@@ -156,16 +164,27 @@ async function lerProgramas(supabase: Cliente): Promise<LinhaPrograma[]> {
   return (data ?? []) as LinhaPrograma[];
 }
 
+/** Álbuns/EPs (tabela nova: sem ela, lista vazia e a Rádio segue sem o filtro Álbuns). */
+async function lerAlbuns(supabase: Cliente): Promise<LinhaAlbum[]> {
+  const { data, error } = await supabase.from("albums").select("id,title,kind,artist_id,created_at").order("created_at", { ascending: false }).limit(100);
+  if (error) {
+    console.error("[radio] álbuns:", error.message);
+    return [];
+  }
+  return (data ?? []) as LinhaAlbum[];
+}
+
 /** Tudo da Rádio numa leitura por requisição. Cada parte falha sozinha: nunca derruba as faixas. */
 export const carregarRadio = cache(async (): Promise<Radio> => {
   await connection(); // dados por requisição: o relógio só pode ser lido depois disto (cacheComponents)
   try {
     const supabase = await createClient();
     const agora = Date.now();
-    const [tracksReais, plsReais, progsReais] = await Promise.all([
+    const [tracksReais, plsReais, progsReais, albunsReais] = await Promise.all([
       lerFaixasPublicadas(supabase).catch(() => [] as LinhaTrack[]),
       lerPlaylists(supabase).catch(() => [] as LinhaPlaylist[]),
       lerProgramas(supabase).catch(() => [] as LinhaPrograma[]),
+      lerAlbuns(supabase).catch(() => [] as LinhaAlbum[]),
     ]);
     // Cookie `radioon_sem_demo` (só vale fora de produção) deixa o E2E conferir o estado vazio.
     const semDemo = (await cookies()).has("radioon_sem_demo");
@@ -236,6 +255,8 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       label: t.label ?? null,
       genre: t.genre ?? null,
       mood: t.mood ?? null,
+      albumId: t.album_id ?? null,
+      trackNo: t.track_no ?? null,
       plays: plays.get(t.id) ?? 0,
       likes: likes.get(t.id) ?? 0,
       note: notas.get(t.id)?.note ?? null,
@@ -284,6 +305,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       descobertas: curadas.length > 0 ? curadas : menosOuvidas(faixas),
       descobertasCuradas: curadas.length > 0,
       novidades: novidades(faixas),
+      albuns: montarAlbuns([...albunsReais, ...(demo?.albums ?? [])], faixas, nomeDe),
       playlisters: [...porCurador.values()].sort((a, b) => b.faixas - a.faixas || b.playlists - a.playlists).slice(0, 8),
       playlists: rankingPlaylistsPorEscutas(base, escutas, agora)
         .slice(0, 8)

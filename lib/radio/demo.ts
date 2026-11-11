@@ -38,6 +38,7 @@ const CLIMAS_DEMO = ["madrugada", "estrada", "foco", "chuva", "domingo"];
 
 export type DemoDados = {
   tracks: Record<string, unknown>[];
+  albums: { id: string; title: string; kind: string; artist_id: string; created_at: string }[];
   playlists: Record<string, unknown>[];
   programs: Record<string, unknown>[];
   nomes: Map<string, string>;
@@ -58,6 +59,9 @@ export function dadosDemo(agora: number): DemoDados {
     performers: i === 0 ? "Lia Norte (voz), Beto Cordas (violão)" : null,
     album: i === 0 ? "Sinais" : null,
     label: null,
+    // EP demo "Sinais": faixas 1, 6 e 8 (todas de Lia Norte).
+    album_id: [0, 5, 7].includes(i) ? id(401) : null,
+    track_no: [0, 5, 7].includes(i) ? [0, 5, 7].indexOf(i) + 1 : null,
     genre: GENEROS_DEMO[i % GENEROS_DEMO.length],
     mood: CLIMAS_DEMO[i % CLIMAS_DEMO.length],
   }));
@@ -86,5 +90,6 @@ export function dadosDemo(agora: number): DemoDados {
     for (let k = 0; k < n; k++) escutas.push({ track_id: id(Number(t)), started_at: new Date(agora - (k + 1) * 3600 * 1000).toISOString() });
   }
   const nomes = new Map([...ARTISTAS, ...CURADORES].map((p) => [p.id, p.nome]));
-  return { tracks, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }] };
+  const albums = [{ id: id(401), title: "Sinais", kind: "ep", artist_id: ARTISTAS[0].id, created_at: new Date(agora - 4 * 3600 * 1000).toISOString() }];
+  return { tracks, albums, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }] };
 }

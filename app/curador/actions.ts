@@ -9,6 +9,13 @@ import { getSessionRole } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Escrita com o cliente do usuário: o RLS garante que só o curador dono altera.
+async function conta() {
+  const s = await getSessionRole();
+  if (!s) redirect("/login");
+  return s;
+}
+
+// Programação por horário continua exclusiva do playlister (papel curator).
 async function curador() {
   const s = await getSessionRole();
   if (!s) redirect("/login");
@@ -17,7 +24,7 @@ async function curador() {
 }
 
 export async function criarPlaylist(form: FormData) {
-  const { supabase, userId } = await curador();
+  const { supabase, userId } = await conta();
   const title = parseTitle(form.get("titulo"));
   if (!title) redirect("/curador?erro=1");
   const { error } = await supabase.from("playlists").insert({ curator_id: userId, title, is_public: true });
@@ -28,7 +35,7 @@ export async function criarPlaylist(form: FormData) {
 }
 
 export async function adicionarFaixa(form: FormData) {
-  const { supabase } = await curador();
+  const { supabase } = await conta();
   const playlistId = form.get("playlist");
   const trackId = form.get("faixa");
   if (!isUuid(playlistId) || !isUuid(trackId)) redirect("/curador?erro=1");
@@ -50,7 +57,7 @@ export async function adicionarFaixa(form: FormData) {
 }
 
 export async function removerFaixa(form: FormData) {
-  const { supabase } = await curador();
+  const { supabase } = await conta();
   const playlistId = form.get("playlist");
   const trackId = form.get("faixa");
   if (!isUuid(playlistId) || !isUuid(trackId)) redirect("/curador?erro=1");
@@ -72,7 +79,7 @@ export async function removerFaixa(form: FormData) {
  * que a playlist é dele.
  */
 async function playlistDoCurador(playlistId: string) {
-  const { supabase, userId } = await curador();
+  const { supabase, userId } = await conta();
   const { data } = await supabase.from("playlists").select("id").eq("id", playlistId).eq("curator_id", userId).maybeSingle();
   if (!data) redirect("/curador?erro=1");
   return createAdminClient();

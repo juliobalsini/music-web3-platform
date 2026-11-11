@@ -9,6 +9,7 @@ const ler = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 // engano, estes testes quebram antes de ligar o login anônimo em produção.
 const SO_CONTA = [
   "app/api/tracks/upload/route.ts",
+  "app/api/albums/upload/route.ts",
   "app/api/tracks/[id]/publish/route.ts",
   "app/curador/actions.ts",
   "app/curador/page.tsx",
@@ -39,6 +40,7 @@ describe("rotas de servidor recusam anônimos", () => {
 
   it("upload e publicação exigem papel artist; curador exige curator", () => {
     assert.match(ler("app/api/tracks/upload/route.ts"), /role !== "artist"/);
+    assert.match(ler("app/api/albums/upload/route.ts"), /role !== "artist"/);
     assert.match(ler("app/api/tracks/[id]/publish/route.ts"), /role !== "artist"/);
     assert.match(ler("app/curador/actions.ts"), /role !== "curator"/);
   });
@@ -47,6 +49,7 @@ describe("rotas de servidor recusam anônimos", () => {
     // Toda escrita com service_role precisa estar numa rota/ação já coberta acima ou nas de escuta/reação.
     const permitidos = new Set([
       "app/api/tracks/upload/route.ts",
+      "app/api/albums/upload/route.ts",
       "app/api/tracks/[id]/publish/route.ts",
       "app/api/tracks/[id]/reacao/route.ts",
       "app/api/listen/start/route.ts",

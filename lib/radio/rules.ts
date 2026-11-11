@@ -14,6 +14,9 @@ export type FaixaRadio = {
   label: string | null;
   genre: string | null;
   mood: string | null;
+  /** Álbum/EP a que a faixa pertence (null = single) e o número dela nele. */
+  albumId: string | null;
+  trackNo: number | null;
 };
 
 export type FaixaListada = FaixaRadio & {
@@ -267,4 +270,99 @@ export function rankingPlaylistsPorEscutas<P extends PlaylistRankeavel>(
     .map((p) => ({ p, n: pontos(p) }))
     .sort((a, b) => b.n - a.n || b.p.playlist_tracks.length - a.p.playlist_tracks.length || b.p.created_at.localeCompare(a.p.created_at))
     .map((x) => x.p);
+}
+
+export type AlbumResumo = {
+  id: string;
+  title: string;
+  kind: "album" | "ep";
+  artistId: string;
+  artistName: string;
+  createdAt: string;
+  /** Faixas publicadas, na ordem do álbum. */
+  faixas: FaixaListada[];
+};
+
+/** Monta os álbuns (só os que têm faixa publicada), mais recentes primeiro. */
+export function montarAlbuns(
+  linhas: { id: string; title: string; kind: string; artist_id: string; created_at: string }[],
+  faixas: FaixaListada[],
+  nomeDe: (id: string) => string | null,
+): AlbumResumo[] {
+  const porAlbum = new Map<string, FaixaListada[]>();
+  for (const f of faixas) if (f.albumId) porAlbum.set(f.albumId, [...(porAlbum.get(f.albumId) ?? []), f]);
+  return linhas
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      kind: (a.kind === "ep" ? "ep" : "album") as "ep" | "album",
+      artistId: a.artist_id,
+      artistName: nomeDe(a.artist_id) ?? "Artista",
+      createdAt: a.created_at,
+      faixas: (porAlbum.get(a.id) ?? []).sort((x, y) => (x.trackNo ?? 99) - (y.trackNo ?? 99) || x.createdAt.localeCompare(y.createdAt)),
+    }))
+    .filter((a) => a.faixas.length > 0)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/**
+ * Recomendações: faixas dos gêneros que o usuário curtiu (e ainda não curtiu), mais curtidas primeiro.
+ * Sem curtidas (ou sem gênero nelas), cai nas mais curtidas/ouvidas. Nunca devolve faixa já curtida.
+ */
+export function recomendar<T extends { id: string; genre: string | null; likes: number; plays: number; createdAt: string }>(
+  faixas: T[],
+  curtidas: Set<string>,
+  limite = 10,
+): T[] {
+  const peso = new Map<string, number>();
+  for (const f of faixas) if (curtidas.has(f.id) && f.genre) peso.set(f.genre, (peso.get(f.genre) ?? 0) + 1);
+  const candidatas = faixas.filter((f) => !curtidas.has(f.id));
+  const nota = (f: T) => (f.genre ? (peso.get(f.genre) ?? 0) * 1000 : 0) + f.likes * 10 + f.plays;
+  return candidatas
+    .sort((a, b) => nota(b) - nota(a) || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
+    .slice(0, limite);
+}
+
+/** Valores presentes (com contagem) de um campo das faixas, mais frequentes primeiro. */
+export function contarCampo<T>(faixas: T[], campo: (f: T) => string | null): { id: string; total: number }[] {
+  const m = new Map<string, number>();
+  for (const f of faixas) {
+    const v = campo(f);
+    if (v) m.set(v, (m.get(v) ?? 0) + 1);
+  }
+  return [...m.entries()].map(([id, total]) => ({ id, total })).sort((a, b) => b.total - a.total || a.id.localeCompare(b.id));
+}
+
+export type ResumoSemana = {
+  escutas: number;
+  artistas: { id: string; nome: string; escutas: number }[];
+  generos: { id: string; escutas: number }[];
+};
+
+/** Resumo dos últimos 7 dias do usuário: artistas e gêneros mais ouvidos (escutas válidas). */
+export function resumoSemana(
+  eventos: { track_id: string; started_at: string; is_valid: boolean }[],
+  faixas: { id: string; artistId: string; artistName: string; genre: string | null }[],
+  agora: number,
+  topo = 3,
+): ResumoSemana {
+  const porId = new Map(faixas.map((f) => [f.id, f]));
+  const art = new Map<string, { id: string; nome: string; escutas: number }>();
+  const gen = new Map<string, number>();
+  let escutas = 0;
+  for (const e of eventos) {
+    if (!e.is_valid || agora - Date.parse(e.started_at) >= SEMANA) continue;
+    const f = porId.get(e.track_id);
+    if (!f) continue;
+    escutas += 1;
+    const a = art.get(f.artistId) ?? { id: f.artistId, nome: f.artistName, escutas: 0 };
+    a.escutas += 1;
+    art.set(f.artistId, a);
+    if (f.genre) gen.set(f.genre, (gen.get(f.genre) ?? 0) + 1);
+  }
+  return {
+    escutas,
+    artistas: [...art.values()].sort((a, b) => b.escutas - a.escutas || a.nome.localeCompare(b.nome)).slice(0, topo),
+    generos: [...gen.entries()].map(([id, n]) => ({ id, escutas: n })).sort((a, b) => b.escutas - a.escutas || a.id.localeCompare(b.id)).slice(0, topo),
+  };
 }
