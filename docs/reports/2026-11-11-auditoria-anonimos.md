@@ -2,7 +2,7 @@
 
 ## Resposta curta
 **Sim, é seguro ligar *Anonymous Sign-Ins* e *Manual Linking*, depois de duas condições:**
-1. **Este PR mergeado e a migration `20261111010000_bloqueio_anonimos.sql` aplicada** (o `migracao.yml` aplica
+1. **PR #61 mergeado e a migration `20261111010000_bloqueio_anonimos.sql` aplicada** (o `migracao.yml` aplica
    após o merge; confira em Database → Policies que `profiles`, `tracks`, `playlists`, `playlist_tracks` e
    `programs` têm policies "anônimo não escreve (…)" do tipo *restrictive*).
 2. **Deploy de produção com o PR** (as rotas já recusavam anônimos; o PR só acrescenta "apoiar" e testes).
@@ -45,3 +45,7 @@ Só a *escuta* é gravada para anônimo, e sempre pelo servidor, dentro do teto 
 ## Mudanças
 Migration `20261111010000_bloqueio_anonimos.sql` · `app/api/tracks/[id]/reacao/route.ts` · 2 arquivos de teste ·
 devDependency `@electric-sql/pglite` (gratuita) · DECISIONS 52–54.
+
+## Status (fim da execução)
+PR #61 mergeado, migration `20261111010000` **aplicada com sucesso** (workflow `migracao`), `/api/health` 200
+em produção. **As duas condições estão cumpridas: pode ligar Anonymous Sign-Ins e Manual Linking agora.**
