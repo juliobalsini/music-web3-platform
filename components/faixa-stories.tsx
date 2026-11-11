@@ -76,7 +76,7 @@ export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; fai
               <button type="button" onClick={() => passo(-1)} disabled={aberto!.i === 0} aria-label="Story anterior" className="flex size-12 items-center justify-center rounded-full bg-white/10 disabled:opacity-30">
                 <ChevronLeft className="size-6" aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => passo(1)} aria-label={aberto!.i === grupo.stories.length - 1 ? "Fechar stories" : "Próximo story"} className="flex size-12 items-center justify-center rounded-full bg-white/10">
+              <button type="button" onClick={() => passo(1)} aria-label={aberto!.i === grupo.stories.length - 1 ? "Concluir stories" : "Próximo story"} className="flex size-12 items-center justify-center rounded-full bg-white/10">
                 <ChevronRight className="size-6" aria-hidden="true" />
               </button>
             </div>
