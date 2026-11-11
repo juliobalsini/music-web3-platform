@@ -24,8 +24,8 @@ test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
 test("Rádio tem os filtros e eles trocam sem ida ao servidor", async ({ page }) => {
   await radioCarregada(page);
   const filtros = page.getByRole("navigation", { name: "Filtros" });
-  // Álbuns e Stories só aparecem quando há conteúdo (a demonstração tem um EP, mas ainda não há stories).
-  await expect(filtros.getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists"]);
+  // Álbuns e Stories só aparecem quando há conteúdo (a demonstração tem um EP e stories).
+  await expect(filtros.getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists", "Stories"]);
   let navegou = false;
   page.on("request", (r) => {
     if (r.isNavigationRequest()) navegou = true;
@@ -230,4 +230,51 @@ test("Álbuns: filtro na Rádio, página do álbum e tocar álbum", async ({ pag
 test("rotas de álbum e envio exigem login", async ({ request }) => {
   const r = await request.post("/api/albums/upload", { data: {} });
   expect([401, 503]).toContain(r.status());
+});
+
+const STORY_DEMO = "00000000-0000-4000-8000-000000000501";
+const STORY_ARQUIVADO = "00000000-0000-4000-8000-000000000503";
+
+test("Stories: faixa na home, visor com trecho, compartilhar e denunciar", async ({ page }) => {
+  await radioCarregada(page);
+  const faixa = page.getByRole("region", { name: "Stories", exact: true });
+  await expect(faixa).toBeVisible();
+  await faixa.getByRole("button", { name: /Ver stories de Lia Norte/ }).click();
+  const visor = page.getByRole("dialog", { name: /Stories de Lia Norte/ });
+  await expect(visor).toBeVisible();
+  await expect(visor.getByText("Ensaio aberto hoje à noite")).toBeVisible();
+  await expect(visor.getByTestId("trecho")).toBeVisible();
+  const compartilhar = visor.getByRole("region", { name: "Compartilhar story" });
+  for (const n of ["Compartilhar", "Baixar cartão", "WhatsApp", "Facebook", "LinkedIn", "Instagram: abrir cartão"]) {
+    await expect(compartilhar.getByText(n, { exact: true })).toBeVisible();
+  }
+  await expect(compartilhar.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me/);
+  // Denunciar exige conta: visitante é convidado a entrar.
+  await visor.getByRole("button", { name: "Denunciar" }).click();
+  await expect(visor.getByText(/Entre com uma conta para denunciar/)).toBeVisible({ timeout: 15_000 });
+  await visor.getByRole("button", { name: "Fechar stories" }).click();
+  await expect(visor).toBeHidden();
+});
+
+test("Story: página com Open Graph, cartão 9:16 e arquivo no perfil", async ({ page, request }) => {
+  await page.goto(`/story/${STORY_DEMO}`);
+  await expect(page.getByText("Ensaio aberto hoje à noite")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", new RegExp(`/api/stories/${STORY_DEMO}/cartao$`));
+  await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "1920");
+  const img = await request.get(`/api/stories/${STORY_DEMO}/cartao`);
+  expect(img.status()).toBe(200);
+  expect(img.headers()["content-type"]).toContain("image/png");
+  expect((await request.get("/api/stories/00000000-0000-4000-8000-0000000005ff/cartao")).status()).toBe(404);
+  // Story com mais de 7 dias já saiu da home, mas segue na página e no perfil do autor.
+  await page.goto(`/story/${STORY_ARQUIVADO}`);
+  await expect(page.getByText("Arquivado no perfil")).toBeVisible({ timeout: 20_000 });
+  await page.goto("/perfil/00000000-0000-4000-8000-000000000201");
+  await expect(page.getByRole("region", { name: "Stories do perfil" }).getByText("Arquivado")).toBeVisible({ timeout: 20_000 });
+});
+
+test("Stories: publicar e denunciar exigem conta; novo story redireciona ao login", async ({ page, request }) => {
+  expect([401, 503]).toContain((await request.post("/api/stories", { data: { body: "oi" } })).status());
+  expect([401, 503]).toContain((await request.post(`/api/stories/${STORY_DEMO}/denunciar`, { data: {} })).status());
+  await page.goto("/stories/novo");
+  await expect(page).toHaveURL(/\/login\?next=%2Fstories%2Fnovo/);
 });

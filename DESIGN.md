@@ -100,12 +100,15 @@ Nomes longos truncam em uma linha; títulos de "continue ouvindo" em até 2.
 
 Coluna única `max-w-md` centrada, padding 16px. Estrutura fixa: cabeçalho fino (logo do
 gramofone + Entrar) → conteúdo → **mini player** (acima da navegação) → **navegação
-inferior de 3 abas** (Rádio, Explorar, Minha rádio; 64px + área segura). O conteúdo reserva
+inferior de 3 abas** (Rádio, Explorar, Perfil; 64px + área segura). O conteúdo reserva
 espaço embaixo para os dois. Mobile primeiro: nada depende de hover; alvos ≥ 44px.
 
-Rádio (de cima para baixo): filtros (Tudo, Faixas, Playlists, Playlisters) → cartão
-**No ar** → grade 2×2 "continue ouvindo" → abas Descobertas / Em alta / Novidades em lista
-densa → Playlisters em alta (rolagem horizontal) → Playlists da semana.
+Rádio (de cima para baixo): selo **No ar · N ouvindo** → faixa de **stories** (círculos por autor,
+só com stories ativos) → filtros por estado local (Tudo, Faixas, Álbuns*, Playlists, Stories*;
+*só com conteúdo) → cartão **No ar** (título em até 2 linhas; Rádio radioOn ou programa do horário) →
+carrossel "Continue ouvindo" (só com histórico) → abas Descobertas / Em alta / Novidades (troca
+instantânea e gesto de arrastar; nunca vazias, com legenda honesta) → Álbuns → Playlists da semana.
+Playlisters ficam no Explorar (carrosséis visuais, artistas, gêneros e climas).
 
 ## Elevation & Depth
 
@@ -141,8 +144,9 @@ pulsar do ponto "No ar", fade da abertura (1,4 s, uma vez por sessão, nunca blo
   vinil, onda de progresso (56 barras, `<input range>` acessível por cima), controles,
   Curtir · Salvar · Apoiar · Compartilhar, notas do playlister e **ficha técnica** em
   `<details>` (compositor, intérpretes, álbum, selo; só campos preenchidos).
-- **Capa:** imagem do bucket ou **arte gerada** do título (degradê da paleta + inicial).
-- **Navegação inferior:** 3 abas, ícone + rótulo de 12px, aba ativa em âmbar com
+- **Capa:** imagem do bucket ou **arte gerada** do título (SVG): par de cores (claro/escuro)
+  derivado do hash, textura, anéis e um glifo; também no rótulo do vinil. Faixas ficam distintas.
+- **Navegação inferior (Rádio, Explorar, Perfil):** 3 abas, ícone + rótulo de 12px, aba ativa em âmbar com
   `aria-current`.
 - **Botão primário, campo, mensagem, estado vazio:** como antes, com os novos tokens.
 

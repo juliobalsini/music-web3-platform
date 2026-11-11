@@ -11,6 +11,7 @@ import { carregarRadio } from "@/lib/radio/queries";
 import { rotuloGenero } from "@/lib/radio/generos";
 import { resumoSemana } from "@/lib/radio/rules";
 import { getSessaoAny } from "@/lib/session";
+import { ativo, idsDaPlataforma, podePublicarStory } from "@/lib/stories/rules";
 import { metricasDoArtista } from "@/lib/tracks/queries";
 
 export const metadata = { title: "Perfil · radioOn" };
@@ -60,6 +61,12 @@ async function Conteudo() {
   const meta = progressoMeta(hoje, cfg.dailyLimit);
   const minhasFaixas = role === "artist" ? await metricasDoArtista(userId) : [];
   const semana = resumoSemana(eventos ?? [], radio.faixas, new Date().getTime());
+  // RLS: o autor enxerga os próprios stories, inclusive os ocultos por denúncias.
+  const { data: meusStories } = anonimo
+    ? { data: [] }
+    : await supabase.from("stories").select("id,body,created_at,hidden").eq("author_id", userId).order("created_at", { ascending: false }).limit(20);
+  const publicaStory = podePublicarStory(role, userId, idsDaPlataforma(process.env.PLATFORM_STORY_IDS)).pode;
+  const agoraMs = new Date().getTime();
   const { data: minhasPlaylists } = anonimo
     ? { data: [] }
     : await supabase.from("playlists").select("id,title,playlist_tracks(count)").eq("curator_id", userId).order("created_at", { ascending: false }).limit(20);
@@ -201,6 +208,30 @@ async function Conteudo() {
                     </Link>
                   </li>
                 ))}
+              </ul>
+            )}
+          </section>
+
+          <section aria-label="Meus stories" className="flex flex-col gap-2">
+            <SecaoTitulo titulo="Meus stories" href={publicaStory ? "/stories/novo" : "/onboarding"} rotulo={publicaStory ? "Novo story" : "Escolher perfil para publicar"} />
+            {(meusStories ?? []).length === 0 ? (
+              <p className="text-white/70 text-pretty">{publicaStory ? "Nenhum story ainda. Toque em + para publicar o primeiro." : "Artistas e playlisters publicam stories. Escolha um perfil para começar."}</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {(meusStories ?? []).map((st) => {
+                  const estado = st.hidden ? "Oculto por denúncias" : ativo(st.created_at, agoraMs) ? "No ar" : "Arquivado";
+                  const conteudo = (
+                    <>
+                      <span className="min-w-0 truncate font-medium">{st.body || "Story sem texto"}</span>
+                      <span className="shrink-0 text-sm text-white/70">{estado}</span>
+                    </>
+                  );
+                  return (
+                    <li key={st.id}>
+                      {st.hidden ? <div className={`${linha} min-h-12`}>{conteudo}</div> : <Link href={`/story/${st.id}`} className={`${linha} min-h-12`}>{conteudo}</Link>}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>

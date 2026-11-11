@@ -5,7 +5,11 @@ import { ListaFaixas } from "@/components/lista-faixas";
 import { PlaylistsDaSemana } from "@/components/secoes-radio";
 import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
+import Link from "next/link";
+
 import { carregarRadio } from "@/lib/radio/queries";
+import { carregarStories } from "@/lib/stories/queries";
+import { ativo } from "@/lib/stories/rules";
 
 export const metadata = { title: "Perfil · radioOn" };
 
@@ -13,11 +17,13 @@ export const metadata = { title: "Perfil · radioOn" };
 async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const radio = await carregarRadio();
+  const [radio, todosStories] = await Promise.all([carregarRadio(), carregarStories().catch(() => [])]);
+  const stories = todosStories.filter((s) => s.authorId === id);
+  const agora = new Date().getTime();
   const faixas = radio.faixas.filter((f) => f.artistId === id);
   const playlists = radio.todasPlaylists.filter((p) => p.curatorId === id);
-  if (faixas.length === 0 && playlists.length === 0) notFound();
-  const nome = faixas[0]?.artistName ?? playlists[0]?.curator ?? "Perfil";
+  if (faixas.length === 0 && playlists.length === 0 && stories.length === 0) notFound();
+  const nome = faixas[0]?.artistName ?? playlists[0]?.curator ?? stories[0]?.authorName ?? "Perfil";
   const plays = faixas.reduce((n, f) => n + f.plays, 0);
   return (
     <>
@@ -39,6 +45,21 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
         </section>
       )}
       <PlaylistsDaSemana titulo="Playlists" lista={playlists} />
+      {stories.length > 0 && (
+        <section aria-label="Stories do perfil" className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold">Stories</h2>
+          <ul className="flex flex-col gap-2">
+            {stories.map((st) => (
+              <li key={st.id}>
+                <Link href={`/story/${st.id}`} className="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-3 hover:bg-white/15">
+                  <span className="min-w-0 truncate font-medium">{st.body || "Story sem texto"}</span>
+                  <span className="shrink-0 text-sm text-white/70">{ativo(st.createdAt, agora) ? "No ar" : "Arquivado"}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }

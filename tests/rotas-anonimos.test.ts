@@ -10,6 +10,10 @@ const ler = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 const SO_CONTA = [
   "app/api/tracks/upload/route.ts",
   "app/api/albums/upload/route.ts",
+  "app/api/stories/route.ts",
+  "app/api/stories/[id]/imagem/route.ts",
+  "app/api/stories/[id]/denunciar/route.ts",
+  "app/stories/novo/page.tsx",
   "app/api/tracks/[id]/publish/route.ts",
   "app/curador/actions.ts",
   "app/curador/page.tsx",
@@ -50,6 +54,9 @@ describe("rotas de servidor recusam anônimos", () => {
     const permitidos = new Set([
       "app/api/tracks/upload/route.ts",
       "app/api/albums/upload/route.ts",
+      "app/api/stories/route.ts",
+      "app/api/stories/[id]/imagem/route.ts",
+      "app/api/stories/[id]/denunciar/route.ts",
       "app/api/tracks/[id]/publish/route.ts",
       "app/api/tracks/[id]/reacao/route.ts",
       "app/api/listen/start/route.ts",
