@@ -16,6 +16,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!isUuid(id) || !kind || typeof corpo?.on !== "boolean") {
     return Response.json({ error: "pedido inválido" }, { status: 400, headers: noStore });
   }
+  // Visitante anônimo só curte/salva; "apoiar" (sinal ao artista) exige conta de verdade.
+  if (sessao.anonimo && kind === "support") {
+    return Response.json({ error: "conta necessária" }, { status: 401, headers: noStore });
+  }
   try {
     const admin = createAdminClient();
     if (corpo.on) {

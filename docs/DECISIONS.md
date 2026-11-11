@@ -237,3 +237,14 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `linkIdentity` (exige "manual linking"). Se o e-mail já tem conta ou o vínculo falha, cai no login normal
     (a sessão anônima é substituída; os pontos anônimos não migram: `points_ledger` é append-only).
 51. **`/privacidade` e `/termos`** públicas (LGPD), rodapé global e aviso no login.
+52. **Auditoria para anônimos (item s).** Anonymous Sign-Ins usam o papel `authenticated` com `is_anonymous=true`
+    no JWT. Migration aditiva `20261111010000_bloqueio_anonimos.sql`: policies **RESTRICTIVE** (AND com as
+    permissivas) negando INSERT/UPDATE/DELETE a anônimos em `profiles`, `tracks`, `playlists`, `playlist_tracks`
+    e `programs`. Escuta, pontos e reações seguem só pelo servidor (service_role ignora RLS), sem policy de
+    escrita para nenhum cliente. Restritiva em vez de editar as policies existentes: migrations existentes são
+    protegidas e a restritiva vale mesmo se uma permissiva ou grant futuro abrir a escrita.
+53. **Reação "apoiar" exige conta** (anônimo recebe 401 → UI pede login); curtir/salvar valem para anônimo
+    (uma linha por faixa/tipo, sem abuso de volume).
+54. **Testes de RLS rodam num Postgres real** via `@electric-sql/pglite` (devDependency gratuita, WASM): as
+    migrations reais, com papéis/`auth.jwt()` do Supabase emulados. Prova também a escuta/teto do anônimo com
+    `listen_start`/`listen_beat` reais. Teste estático trava as rotas de escrita em `getSessionRole()`.
