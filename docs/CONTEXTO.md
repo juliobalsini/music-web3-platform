@@ -127,6 +127,12 @@ Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo
   Pendências: confirmar em produção com faixa real; criar a credencial Google (passo a passo no
   relatório); Explorar do protótipo (busca, "por clima", gêneros) fica para o item k.
 
+### Instrução do Julio (2026-11-11): auditoria para anônimos
+
+- [x] **s) Auditoria de segurança para usuários anônimos** — migration aditiva `20261111010000` (policies
+  restritivas), "apoiar" só com conta, testes de RLS em Postgres real (PGlite) e de rotas; DECISIONS 52–54;
+  relatório `2026-11-11-auditoria-anonimos.md` (diz quando ligar Anonymous Sign-Ins e Manual Linking).
+
 ### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
 
 Itens k–n concluídos em 2026-11-10 (relatório `2026-11-10-fase-descoberta.md`); restam os **propostos**, só executar após "aprovado" do Julio na issue do
@@ -228,3 +234,4 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   "aprovado" do Julio (issues #45 aprovou só k–n; #56 sem comentários). Nada executado.
 - 2026-11-11 (2ª execução) — instrução do Julio: acesso sem atrito (item q); ver relatório.
 - 2026-11-11 (3ª execução) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (issues #45, #56, #59 sem comentários dele). Nada executado.
+- 2026-11-11 (4ª execução) — instrução do Julio: auditoria de segurança para anônimos (item s); ver relatório.
