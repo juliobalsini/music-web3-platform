@@ -7,6 +7,8 @@ import {
   lerBusca,
   normalizarBusca,
   capaGerada,
+  fluxoRadio,
+  menosOuvidas,
   descobertas,
   formatContagem,
   formatDuracao,
@@ -106,6 +108,14 @@ describe("capaGerada", () => {
     assert.equal(capaGerada("aurora").letra, "A");
     assert.match(capaGerada("x").fundo, /^linear-gradient\(/);
   });
+  it("títulos diferentes dão pares de cores/glifos diferentes", () => {
+    const titulos = ["Aurora", "Faróis", "Ondas curtas", "Vitrola azul", "Porto sem pressa", "Sinal âmbar"];
+    const assinaturas = new Set(titulos.map((t) => { const c = capaGerada(t); return `${c.cor}|${c.cor2}`; }));
+    assert.equal(assinaturas.size, titulos.length);
+    const c = capaGerada("Aurora");
+    assert.match(c.cor, /^hsl\(/);
+    assert.ok(c.aneis >= 0 && c.aneis <= 4);
+  });
 });
 
 import { progressoMeta, resumirMinhaRadio } from "../lib/radio/minha.ts";
@@ -191,5 +201,24 @@ describe("rankingPlaylistsPorEscutas", () => {
     const l = [pl("a", ["x"]), pl("b", ["y"])];
     rankingPlaylistsPorEscutas(l, [ouvida("y")], agora);
     assert.equal(l[0].id, "a");
+  });
+});
+
+describe("fallbacks e fluxo da Rádio radioOn", () => {
+  const f = (id: string, plays: number, likes: number, createdAt: string) => ({ id, plays, likes, createdAt });
+  const base = [f("a", 10, 0, dias(1)), f("b", 0, 3, dias(5)), f("c", 40, 1, dias(9)), f("d", 2, 0, dias(0.5)), f("e", 0, 0, dias(20))];
+  it("menos ouvidas: menos escutas primeiro, desempate pelo mais recente", () => {
+    assert.deepEqual(menosOuvidas(base, 3).map((x) => x.id), ["b", "e", "d"]);
+  });
+  it("fluxo: sem repetir faixa nem a mesma em sequência, com todas as fontes", () => {
+    const fluxo = fluxoRadio(base);
+    assert.equal(new Set(fluxo.map((x) => x.id)).size, fluxo.length);
+    assert.ok(fluxo.some((x) => x.id === "d")); // novidade
+    assert.ok(fluxo.some((x) => x.id === "b")); // pouco ouvida e curtida
+    for (let i = 1; i < fluxo.length; i++) assert.notEqual(fluxo[i].id, fluxo[i - 1].id);
+  });
+  it("giro muda a partida; vazio dá vazio", () => {
+    assert.notEqual(fluxoRadio(base, 1)[0].id, fluxoRadio(base, 0)[0].id);
+    assert.deepEqual(fluxoRadio([]), []);
   });
 });

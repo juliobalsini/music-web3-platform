@@ -12,7 +12,7 @@ async function radioCarregada(page: Page) {
 test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
   await radioCarregada(page);
   const nav = page.getByRole("navigation", { name: "Principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Rádio", "Explorar", "Minha rádio"]);
+  await expect(nav.getByRole("link")).toHaveText(["Rádio", "Explorar", "Perfil"]);
   await expect(nav.getByRole("link", { name: "Rádio", exact: true })).toHaveAttribute("aria-current", "page");
   await nav.getByRole("link", { name: "Explorar" }).click();
   await expect(page).toHaveURL(/\/explorar/);
@@ -21,15 +21,20 @@ test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("Rádio tem os 4 filtros e eles filtram pela URL", async ({ page }) => {
+test("Rádio tem os filtros e eles trocam sem ida ao servidor", async ({ page }) => {
   await radioCarregada(page);
   const filtros = page.getByRole("navigation", { name: "Filtros" });
-  await expect(filtros.getByRole("link")).toHaveText(["Tudo", "Faixas", "Playlists", "Playlisters"]);
-  await filtros.getByRole("link", { name: "Playlists" }).click();
-  await expect(page).toHaveURL(/\?f=playlists/, { timeout: 20_000 });
-  await expect(filtros.getByRole("link", { name: "Playlists" })).toHaveAttribute("aria-current", "page");
-  await expect(filtros.getByRole("link", { name: "Playlists" })).toHaveAttribute("aria-current", "page", { timeout: 20_000 });
+  // Álbuns e Stories só aparecem quando há conteúdo.
+  await expect(filtros.getByRole("button")).toHaveText(["Tudo", "Faixas", "Playlists"]);
+  let navegou = false;
+  page.on("request", (r) => {
+    if (r.isNavigationRequest()) navegou = true;
+  });
+  await filtros.getByRole("button", { name: "Playlists" }).click();
+  await expect(filtros.getByRole("button", { name: "Playlists" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("region", { name: "No ar" })).toHaveCount(0);
+  await expect(page).toHaveURL(/\?f=playlists/);
+  expect(navegou).toBe(false);
 });
 
 const DEMO = /Madrugada no Convés|Faróis|Ondas curtas|Vitrola azul|Porto sem pressa|Sinal âmbar|Maré de domingo|Fio de prata/;
@@ -41,13 +46,16 @@ test("Rádio cheia: cartão No ar, grade, abas, playlisters e playlists", async 
   const noAr = page.getByRole("region", { name: "No ar" });
   await expect(noAr).toBeVisible();
   await expect(noAr.getByText("Ouça 30s e ganhe pontos")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Para começar" })).toBeVisible();
-  const abas = page.getByRole("navigation", { name: "Listas" });
-  await expect(abas.getByRole("link")).toHaveText(["Descobertas", "Em alta", "Novidades"]);
+  await expect(page.getByTestId("selo-no-ar")).toContainText("No ar");
+  // Sem histórico, "Continue ouvindo" fica oculto; Playlisters saiu da Rádio.
+  await expect(page.getByRole("region", { name: "Continue ouvindo" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Playlisters em alta" })).toHaveCount(0);
+  const abas = page.getByRole("tablist", { name: "Listas" });
+  await expect(abas.getByRole("tab")).toHaveText(["Descobertas", "Em alta", "Novidades"]);
+  // Abas nunca vazias: sem curadoria, Descobertas mostra as menos ouvidas.
   await expect(page.getByRole("list", { name: "Descobertas" }).getByRole("button").first()).toBeVisible();
-  await abas.getByRole("link", { name: "Em alta" }).click();
-  await expect(page.getByRole("list", { name: "Em alta" }).getByRole("button").first()).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole("heading", { name: "Playlisters em alta" })).toBeVisible();
+  await abas.getByRole("tab", { name: "Em alta" }).click();
+  await expect(page.getByRole("list", { name: "Em alta" }).getByRole("button").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Playlists da semana" })).toBeVisible();
 });
 
@@ -80,9 +88,9 @@ test("toda faixa publicada aparece no Explorar e toca de lá", async ({ page }) 
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
 });
 
-test("toca da grade 'Para começar' e de uma aba de lista", async ({ page }) => {
+test("toca do cartão No ar e de uma aba de lista", async ({ page }) => {
   await radioCarregada(page);
-  await page.getByRole("region", { name: "Para começar" }).getByRole("button", { name: DEMO }).first().click();
+  await page.getByRole("region", { name: "No ar" }).getByTestId("play").click();
   const mini = page.getByTestId("mini-player");
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: DEMO }).first().click();
@@ -99,13 +107,18 @@ test("PWA: manifesto com share target de áudio e service worker", async ({ requ
   expect(await sw.text()).toContain("/compartilhar");
 });
 
-test("Minha rádio exige login e Métricas/Pontos redirecionam para ela", async ({ page }) => {
+test("Perfil de visitante mostra o convite; Métricas/Pontos levam a ele", async ({ page }) => {
   await page.goto("/minha-radio");
-  await expect(page).toHaveURL(/\/login\?next=%2Fminha-radio/);
+  await expect(page.getByRole("heading", { name: "Perfil" })).toBeVisible({ timeout: 20_000 });
+  const convite = page.getByRole("region", { name: "Entre no radioOn" });
+  await expect(convite.getByText("Salvar seus pontos")).toBeVisible();
+  await expect(convite.getByText("Criar playlists")).toBeVisible();
+  await expect(convite.getByText("Enviar música")).toBeVisible();
+  await expect(convite.getByRole("button", { name: "Entrar com Google" })).toBeVisible();
   await page.goto("/pontos");
-  await expect(page).toHaveURL(/\/login\?next=%2Fminha-radio/);
+  await expect(page).toHaveURL(/\/minha-radio/);
   await page.goto("/metricas");
-  await expect(page).toHaveURL(/\/login\?next=%2Fminha-radio/);
+  await expect(page).toHaveURL(/\/minha-radio/);
 });
 
 test("login e onboarding mostram a frase da marca", async ({ page }) => {
@@ -146,8 +159,8 @@ test("perfil público: id inválido ou desconhecido dá 404", async ({ page }) =
   await expect(page.getByText("Página não encontrada")).toBeVisible({ timeout: 20_000 });
 });
 
-test("Playlisters em alta levam ao perfil público", async ({ page }) => {
-  await radioCarregada(page);
+test("Playlisters em alta (no Explorar) levam ao perfil público", async ({ page }) => {
+  await page.goto("/explorar");
   const link = page.getByRole("region", { name: "Playlisters em alta" }).getByRole("link").first();
   await link.click();
   await expect(page).toHaveURL(/\/perfil\/[0-9a-f-]{36}/, { timeout: 20_000 });

@@ -1,10 +1,9 @@
-import { BookOpen, Clock, Compass, Headphones, ListMusic, LogIn, Play, Upload, UserRound } from "lucide-react";
+import { BookOpen, Clock, Compass, Headphones, ListMusic, Play, Upload, UserRound } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { ConviteVisitante } from "@/components/convite-visitante";
 import { botao, linha, Mensagem, Tela } from "@/components/ui";
-import { loginPath } from "@/lib/auth/roles";
 import { listenConfig } from "@/lib/listen/config";
 import { acoesMinhaRadio } from "@/lib/menu";
 import { progressoMeta, resumirMinhaRadio } from "@/lib/radio/minha";
@@ -12,14 +11,21 @@ import { carregarRadio } from "@/lib/radio/queries";
 import { getSessaoAny } from "@/lib/session";
 import { metricasDoArtista } from "@/lib/tracks/queries";
 
-export const metadata = { title: "Minha rádio · radioOn" };
+export const metadata = { title: "Perfil · radioOn" };
 
 const icones = { enviar: Upload, playlists: ListMusic, perfil: UserRound } as const;
 const motivos: Record<string, string> = { listen: "Escuta" };
 
 async function Conteudo() {
   const sessao = await getSessaoAny();
-  if (!sessao) redirect(loginPath("/minha-radio"));
+  if (!sessao) {
+    return (
+      <>
+        <h1 className="text-2xl font-semibold text-balance">Perfil</h1>
+        <ConviteVisitante />
+      </>
+    );
+  }
   const { supabase, userId, role, anonimo } = sessao;
   const cfg = listenConfig();
   const inicioDoDia = new Date();
@@ -50,7 +56,7 @@ async function Conteudo() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold text-balance">Minha rádio</h1>
+      <h1 className="text-2xl font-semibold text-balance">Perfil</h1>
 
       <section aria-label="Meta de hoje" className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
@@ -90,21 +96,19 @@ async function Conteudo() {
         ))}
       </ul>
 
+      {resumo.minutos > 0 && total === 0 && (
+        <p data-testid="regra-sem-pontos" className="rounded-lg bg-white/10 px-4 py-3 text-sm text-white/80 text-pretty">
+          Você ouviu {resumo.minutos} min sem ganhar pontos. Pontos vêm de faixas de outros artistas, com 30 segundos seguidos, até 3 vezes por faixa ao dia, dentro do limite diário.
+        </p>
+      )}
+
       {extrato.length === 0 && (
         <Link href="/" className={botao}>
           <Play className="size-5" aria-hidden="true" /> Ouvir agora
         </Link>
       )}
 
-      {anonimo && (
-        <section aria-label="Salvar pontos" className="flex flex-col gap-2 rounded-lg bg-white/10 px-4 py-4">
-          <p className="font-semibold text-balance">Seus pontos estão só neste aparelho.</p>
-          <p className="text-sm text-white/70 text-pretty">Entre para guardá-los na sua conta, enviar música, criar playlist e resgatar recompensas. Nada se perde.</p>
-          <Link href="/login?next=/minha-radio" className={botao}>
-            <LogIn className="size-5" aria-hidden="true" /> Salvar meus pontos
-          </Link>
-        </section>
-      )}
+      {anonimo && <ConviteVisitante compacto />}
 
       {!anonimo && acoesMinhaRadio(role).map(({ href, label, icone, destaque }) => {
         const Icone = icones[icone];

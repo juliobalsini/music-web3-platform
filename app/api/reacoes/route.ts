@@ -12,7 +12,8 @@ export async function GET() {
   }
   if (!sessao) return Response.json({ error: "login necessário" }, { status: 401, headers: noStore });
   const { data } = await sessao.supabase.from("track_reactions").select("track_id,kind").limit(2000);
-  const r: Record<string, string[]> = { like: [], save: [], support: [] };
-  for (const l of (data ?? []) as { track_id: string; kind: string }[]) r[l.kind]?.push(l.track_id);
+  const r: Record<string, string[] | string> = { like: [], save: [], support: [] };
+  for (const l of (data ?? []) as { track_id: string; kind: string }[]) (r[l.kind] as string[] | undefined)?.push(l.track_id);
+  r.userId = sessao.userId;
   return Response.json(r, { headers: noStore });
 }

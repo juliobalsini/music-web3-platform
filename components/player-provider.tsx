@@ -14,7 +14,10 @@ type Acoes = {
   atual: FaixaTocavel | null;
   estado: EstadoPlayer;
   fila: FaixaTocavel[];
-  tocar: (faixa: FaixaTocavel, fila?: FaixaTocavel[]) => void;
+  /** `continuo`: ao fim da fila volta ao começo (Rádio radioOn), sem repetir a mesma faixa em sequência. */
+  tocar: (faixa: FaixaTocavel, fila?: FaixaTocavel[], continuo?: boolean) => void;
+  /** Id do usuário (conta ou visitante anônimo) quando há sessão; serve para saber se a faixa é dele. */
+  usuarioId: string | null;
   alternar: () => void;
   proxima: () => void;
   anterior: () => void;
@@ -57,6 +60,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const tentou = useRef(false);
   const evento = useRef<string | null>(null);
   const logado = useRef(true);
+  const continuo = useRef(false);
+  const [usuarioId, setUsuarioId] = useState<string | null>(null);
   const [atual, setAtual] = useState<FaixaTocavel | null>(null);
   const [fila, setFila] = useState<FaixaTocavel[]>([]);
   const [estado, setEstado] = useState<EstadoPlayer>("parado");
@@ -75,7 +80,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     let vivo = true;
     fetch("/api/reacoes")
       .then((r) => (r.ok ? r.json() : null))
-      .then((j: { like: string[]; save: string[]; support: string[] } | null) => {
+      .then((j: { like: string[]; save: string[]; support: string[]; userId?: string } | null) => {
+        if (vivo && j?.userId) setUsuarioId(j.userId);
         if (vivo && j) setReacoes({ like: new Set(j.like), save: new Set(j.save), support: new Set(j.support) });
       })
       .catch(() => {});
@@ -134,7 +140,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const tocar = useCallback(
-    (faixa: FaixaTocavel, novaFila?: FaixaTocavel[]) => {
+    (faixa: FaixaTocavel, novaFila?: FaixaTocavel[], seguido = false) => {
       const el = audio.current;
       if (refs.current.atual?.id === faixa.id && el && carregada.current === faixa.id) {
         if (el.paused) void el.play().catch(() => setEstado("erro"));
@@ -143,7 +149,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       }
       tentou.current = false;
       setAtual(faixa);
-      if (novaFila) setFila(novaFila);
+      if (novaFila) {
+        setFila(novaFila);
+        continuo.current = seguido;
+      }
       setTempo({ atual: 0, duracao: faixa.durationSec ?? 0 });
       void carregarETocar(faixa.id);
     },
@@ -166,8 +175,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       const { atual: a, fila: f } = refs.current;
       if (!a) return false;
       const i = f.findIndex((x) => x.id === a.id);
-      const prox = i >= 0 ? f[i + passo] : undefined;
-      if (!prox) return false;
+      let prox = i >= 0 ? f[i + passo] : undefined;
+      // Rádio contínua: depois da última volta à primeira (nunca a mesma faixa em sequência).
+      if (!prox && passo === 1 && continuo.current && f.length > 1) prox = f[0];
+      if (!prox || prox.id === a.id) return false;
       tocar(prox);
       return true;
     },
@@ -228,8 +239,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }
 
   const acoes = useMemo<Acoes>(
-    () => ({ atual, estado, fila, tocar, alternar, proxima, anterior, buscar, aberto, abrir, reacoes, reagir }),
-    [atual, estado, fila, tocar, alternar, proxima, anterior, buscar, aberto, reacoes, reagir],
+    () => ({ atual, estado, fila, tocar, usuarioId, alternar, proxima, anterior, buscar, aberto, abrir, reacoes, reagir }),
+    [atual, estado, fila, tocar, usuarioId, alternar, proxima, anterior, buscar, aberto, reacoes, reagir],
   );
 
   return (

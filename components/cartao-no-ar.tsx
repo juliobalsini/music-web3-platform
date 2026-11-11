@@ -9,42 +9,32 @@ import type { FaixaListada, Programa } from "@/lib/radio/rules";
 
 const hora = (h: number) => `${String(h % 24).padStart(2, "0")}h`;
 
-/** Cartão "No ar": compacto, com o programa atual e o próximo. */
+/** Cartão "No ar": programa do horário (se houver) ou a Rádio radioOn; título em até duas linhas. */
 export function CartaoNoAr({
   faixa,
   fila,
+  continuo,
   atual,
   proximo,
-  ouvindo,
 }: {
   faixa: FaixaListada;
   fila: FaixaListada[];
+  continuo: boolean;
   atual: Programa | null;
   proximo: Programa | null;
-  ouvindo: number | null;
 }) {
   const p = usePlayer();
   const aqui = p.atual?.id === faixa.id;
   const tocando = aqui && p.estado === "tocando";
+  const propria = p.usuarioId !== null && p.usuarioId === faixa.artistId;
   return (
     <section aria-label="No ar" className="flex flex-col gap-3 rounded-xl bg-white/10 p-3">
-      <div className="flex items-center justify-between text-sm">
-        <span className="flex items-center gap-2 font-bold text-brand">
-          <span aria-hidden="true" className="size-2 rounded-full bg-brand" style={{ animation: "eq 1.4s ease-in-out infinite" }} />
-          No ar
-          {ouvindo !== null && ouvindo > 0 && (
-            <span data-testid="ouvindo" className="font-semibold text-white/80">
-              · {ouvindo} ouvindo
-            </span>
-          )}
-        </span>
-        <span className="truncate pl-2 text-white/70">{atual ? `${atual.title} · ${hora(atual.startHour)}–${hora(atual.endHour)}` : "Programa da casa"}</span>
-      </div>
+      <p className="truncate text-sm font-semibold text-white/70">{atual ? `${atual.title} · ${hora(atual.startHour)}–${hora(atual.endHour)}` : "Rádio radioOn"}</p>
       <div className="flex items-center gap-3">
         <Capa id={faixa.id} title={faixa.title} hasCover={faixa.hasCover} className="size-20" />
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 truncate text-lg font-bold">
-            <span className="truncate">{faixa.title}</span>
+          <p className="flex items-start gap-2 text-lg font-bold leading-tight">
+            <span data-testid="titulo-no-ar" className="line-clamp-2 min-w-0 break-words">{faixa.title}</span>
             {tocando && <Equalizador />}
           </p>
           <p className="truncate text-sm text-white/70">
@@ -56,7 +46,7 @@ export function CartaoNoAr({
           <button
             type="button"
             data-testid="play"
-            onClick={() => p.tocar(faixa, fila)}
+            onClick={() => p.tocar(faixa, fila, continuo)}
             aria-label={tocando ? `Pausar ${faixa.title}` : `Tocar ${faixa.title}`}
             className="foco-claro flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900 shadow-[0_6px_14px_-6px_rgba(232,154,60,0.7)]"
           >
@@ -64,7 +54,7 @@ export function CartaoNoAr({
           </button>
           <button
             type="button"
-            onClick={() => (aqui ? p.proxima() : p.tocar(fila[1] ?? faixa, fila))}
+            onClick={() => (aqui ? p.proxima() : p.tocar(fila[1] ?? faixa, fila, continuo))}
             aria-label="Próxima faixa"
             className="flex size-11 items-center justify-center rounded-full hover:bg-white/10"
           >
@@ -79,7 +69,7 @@ export function CartaoNoAr({
         </p>
       )}
       <div className="flex items-center justify-between gap-3 text-xs text-white/70">
-        <span>Ouça 30s e ganhe pontos</span>
+        <span data-testid="regra-pontos">{propria ? "Suas faixas não geram pontos para você" : "Ouça 30s e ganhe pontos"}</span>
         {proximo && (
           <span className="truncate">
             A seguir: {proximo.title} · {hora(proximo.startHour)}

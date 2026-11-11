@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const abas = [
   { href: "/", label: "Rádio", Icone: Radio },
   { href: "/explorar", label: "Explorar", Icone: Compass },
-  { href: "/minha-radio", label: "Minha rádio", Icone: UserRound },
+  { href: "/minha-radio", label: "Perfil", Icone: UserRound },
 ] as const;
 
 /** Navegação inferior de 3 abas, fixa; respeita a área segura do celular. */
