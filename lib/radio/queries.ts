@@ -63,7 +63,7 @@ const VAZIO: Radio = {
 type Cliente = Awaited<ReturnType<typeof createClient>>;
 type LinhaTrack = {
   id: string; title: string; artist_id: string; duration_sec: number | null; cover_key?: string | null;
-  created_at: string; composer?: string | null; performers?: string | null; album?: string | null; label?: string | null;
+  created_at: string; composer?: string | null; performers?: string | null; album?: string | null; label?: string | null; genre?: string | null; mood?: string | null;
 };
 type LinhaPlaylist = {
   id: string; title: string; curator_id: string; created_at: string;
@@ -72,7 +72,8 @@ type LinhaPlaylist = {
 type LinhaPrograma = { id: string; title: string; start_hour: number; end_hour: number; playlist_id: string; curator_id: string };
 
 const COLUNAS_BASE = "id,title,artist_id,duration_sec,created_at";
-const COLUNAS_TRACKS = `${COLUNAS_BASE},cover_key,composer,performers,album,label`;
+const COLUNAS_FICHA = `${COLUNAS_BASE},cover_key,composer,performers,album,label`;
+const COLUNAS_TRACKS = `${COLUNAS_FICHA},genre,mood`;
 
 function adminOuNulo(): Cliente | null {
   try {
@@ -91,6 +92,7 @@ async function lerFaixasPublicadas(supabase: Cliente): Promise<LinhaTrack[]> {
   const admin = adminOuNulo();
   const tentativas: { rotulo: string; cliente: Cliente; colunas: string }[] = [
     { rotulo: "completa", cliente: supabase, colunas: COLUNAS_TRACKS },
+    { rotulo: "ficha", cliente: supabase, colunas: COLUNAS_FICHA },
     { rotulo: "base", cliente: supabase, colunas: COLUNAS_BASE },
     ...(admin
       ? [
@@ -232,6 +234,8 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       performers: t.performers ?? null,
       album: t.album ?? null,
       label: t.label ?? null,
+      genre: t.genre ?? null,
+      mood: t.mood ?? null,
       plays: plays.get(t.id) ?? 0,
       likes: likes.get(t.id) ?? 0,
       note: notas.get(t.id)?.note ?? null,

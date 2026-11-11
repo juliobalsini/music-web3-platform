@@ -12,6 +12,8 @@ export type FaixaRadio = {
   performers: string | null;
   album: string | null;
   label: string | null;
+  genre: string | null;
+  mood: string | null;
 };
 
 export type FaixaListada = FaixaRadio & {

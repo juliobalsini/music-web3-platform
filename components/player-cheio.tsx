@@ -43,9 +43,21 @@ export function PlayerCheio() {
 
   async function compartilhar() {
     const url = `${location.origin}/faixa/${atual!.id}`;
+    const dados: ShareData = { title: atual!.title, text: `${atual!.title} · ${atual!.artistName}`, url };
     try {
-      if (navigator.share) await navigator.share({ title: atual!.title, text: `${atual!.title} · ${atual!.artistName}`, url });
-      else {
+      if (navigator.share) {
+        // Quando o aparelho aceita arquivos, envia também a imagem da faixa (cartão 1200x630).
+        try {
+          const r = await fetch(`/api/tracks/${atual!.id}/og`);
+          if (r.ok) {
+            const arquivo = new File([await r.blob()], `${atual!.title}.png`, { type: "image/png" });
+            if (navigator.canShare?.({ files: [arquivo] })) dados.files = [arquivo];
+          }
+        } catch {
+          /* segue só com o link */
+        }
+        await navigator.share(dados);
+      } else {
         await navigator.clipboard.writeText(url);
         setAviso({ texto: "Link copiado." });
       }
