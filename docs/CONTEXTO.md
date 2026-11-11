@@ -255,3 +255,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-11 (4ª execução) — instrução do Julio: auditoria de segurança para anônimos (item s); ver relatório.
 
 - 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).
+
+## Correções avulsas
+
+- [x] **Ícones do PWA / tela de abertura no Android** — concluído em 2026-11-11: manifest com ícones
+  `any` (logo inteiro) e `maskable` (zona segura validada, raio 32,7% < 40%) em 192/512, marinho `#00112A`.
+  Julio precisa desinstalar e reinstalar o app. Ver `docs/reports/2026-11-11-icones-pwa.md`.
