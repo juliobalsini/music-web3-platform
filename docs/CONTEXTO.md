@@ -155,7 +155,7 @@ relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem 
   abas nunca vazias; selo No ar; Rádio radioOn contínua; Open Graph por faixa; gênero e clima no envio.
 - [x] **Fase B — conteúdo (14–16):** PR #66. Explorar visual, Perfil (resumo da semana, minhas faixas/playlists,
   botão +), qualquer conta cria playlist, álbum/EP com capa única.
-- [x] **Fase C — Stories v1 (17–20):** PR item fase-c-stories. Texto + imagem + trecho de 15 s; 7 dias na home,
+- [x] **Fase C — Stories v1 (17–20):** PR #67. Texto + imagem + trecho de 15 s; 7 dias na home,
   depois no perfil; cartão 9:16; denúncias.
 - **Regra de recompensas (Julio):** pontos de sessões anônimas **nunca** podem ser resgatados; resgate só para
   contas. Vale para o item o) e qualquer recompensa futura.
