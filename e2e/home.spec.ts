@@ -81,8 +81,9 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   await page.goto("/enviar");
   // O login lembra o destino pedido.
   await expect(page).toHaveURL(/\/login\?next=%2Fenviar/);
+  // Perfil de visitante não redireciona: mostra o convite com Entrar com Google.
   await page.goto("/minha-radio");
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole("region", { name: "Entre no radioOn" })).toBeVisible({ timeout: 20_000 });
 });
 
 test("páginas legais são públicas, com contato e links no rodapé e no login", async ({ page }) => {
