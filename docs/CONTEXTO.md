@@ -287,8 +287,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-12 (6ª) — ciclo "reduzir ações manuais": #83 atualizado sobre a main e ampliado (regras permanentes, E2E do Dependabot no app compilado, override minimatch, correções de `worker-deploy`/`transcodificar`, regras do #27, que foi fechado). Aguarda `travas`. Pendentes após o merge: redeploy do Worker (registra `workers.dev`), gravar a URL como padrão de `NEXT_PUBLIC_AUDIO_BASE_URL`, transcodificar lote=5 e medições do #78 (itens 4–5); precisa do secret `SUPABASE_SECRET_KEY` no ambiente `producao-db`. Relatório `2026-11-12-ciclo-reduzir-acoes-manuais.md`.
 
-- 2026-11-12 (7ª) — #81 e #83 mergeados. `worker-deploy` rodou na main: Worker em https://radioon-audio.radioon.workers.dev; URL gravada como padrão de
-  `NEXT_PUBLIC_AUDIO_BASE_URL` (PR audio-url-padrao, DECISIONS 82). `transcodificar` (lote=5) **pulou**: `SUPABASE_SECRET_KEY` vazio no ambiente
-  `producao-db` (único bloqueio real). Itens 4–5 do #78 (CPU/memória, 206, KV, ganho) seguem pendentes desse secret e da transcodificação;
-  PRs de Dependabot menores seguem com o E2E sem secrets. Major (#88–90, #92–93) = proposta.
-
+- 2026-11-12 (7ª) — `worker-deploy` rodou: Worker em https://radioon-audio.radioon.workers.dev. #95 ligou o proxy por padrão, mas o Worker dava 503
+  (endpoint B2 vazio) → rollback no #96 (`PROXY_LIGADO_POR_PADRAO=false`, DECISIONS 82–83). #97 (protegido, aguarda `travas`) corrige o `worker-deploy`;
+  depois: redeploy, validar 200/206, religar o proxy, medir (itens 4–5 do #78). `transcodificar` pulou: falta `SUPABASE_SECRET_KEY` em `producao-db`
+  (só o Julio). Relatório `2026-11-12-worker-e-bloqueios.md`.
