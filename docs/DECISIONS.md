@@ -343,3 +343,6 @@ Formato: data · decisão · motivo. Mais recente no fim.
 82. **URL do Worker como padrão no código (2026-11-12):** `https://radioon-audio.radioon.workers.dev` (pública, registrada pelo
     `worker-deploy`) é o padrão em `lib/audio/base-url.ts`; `NEXT_PUBLIC_AUDIO_BASE_URL` sobrescreve e o valor `off` volta às URLs
     assinadas do B2. Nada a configurar na Vercel. Reversível: trocar o padrão ou definir `off`.
+83. **Rollback do proxy por padrão (2026-11-12):** minutos após a decisão 82, o Worker respondia 503 (`B2_ENDPOINT` vazio no
+    `worker-deploy`), o que quebraria a reprodução em produção. `PROXY_LIGADO_POR_PADRAO = false` em `lib/audio/base-url.ts`
+    devolve o app às URLs assinadas do B2; a URL padrão fica no código. Religar (true) só após o Worker responder 200/206.
