@@ -1,4 +1,4 @@
-# PROPOSTA (arquivo protegido): copiar para .github/workflows/worker-deploy.yml (aprovação do Julio).
+# Arquivo protegido. Deploy do Worker de áudio (plano gratuito do Cloudflare). Imprime a URL *.workers.dev.
 name: worker-deploy
 on:
   push:
@@ -10,6 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: producao-db   # B2_READ_KEY*/S3_*/CF_* ficam neste ambiente (só branch main)
     defaults: { run: { working-directory: workers/audio-proxy } }
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
@@ -29,7 +30,11 @@ jobs:
           cp wrangler.toml wrangler.generated.toml
           printf '\n[[kv_namespaces]]\nbinding = "CACHE"\nid = "%s"\n' "$ID" >> wrangler.generated.toml
       - name: Deploy
-        run: npx wrangler deploy --config wrangler.generated.toml
+        run: |
+          npx wrangler deploy --config wrangler.generated.toml 2>&1 | tee deploy.log
+          url=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): $url"
+          echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): \`$url\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Secrets do Worker (chave B2 SOMENTE LEITURA; valores nunca aparecem no log)
         env:
           B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
