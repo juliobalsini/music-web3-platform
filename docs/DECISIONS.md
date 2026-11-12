@@ -351,3 +351,10 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `SUPABASE_DB_URL` (conexão do `migracao`, via `pg`, só `UPDATE` em colunas de transcode de `tracks`) em vez de
     `SUPABASE_SECRET_KEY`. Regra permanente no CLAUDE.md: endurecimento próprio sem ampliar acesso é risco baixo; antes de pedir
     secret, checar se um existente resolve. Reversível por PR.
+85. **Verificação de segurança dos workflows no gate (2026-11-12, issue #102):** `scripts/ci/verificar-workflows.mjs` (sem
+    dependências; regex/linhas) roda no job `workflows` do gate, com o script da main e os workflows do PR. Regras R1 (autor
+    `juliobalsini` no `if` de job em `issues`/`issue_comment`), R2 (nada de título/corpo/comentário/head_ref em `run:`/`script:`),
+    R3 (sem `pull_request_target`, `write-all` ou `cancel-in-progress` em fluxo que espera aprovação). Exceção deliberada em R3:
+    workflow só de `pull_request` (o próprio `gate.yml`), pois novo commit invalida a aprovação anterior. `aprovacao`,
+    `avisar-travas`, `gate-ok` e `merge` dependem do job: a trava só é pedida depois que ele passa. Bootstrap: se a main ainda não
+    tem o script, o job usa o do PR (aviso); some após o merge. Falha por dúvida de parsing é preferível a passar em falso.
