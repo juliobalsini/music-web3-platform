@@ -259,6 +259,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-12 (2ª) — mesma instrução reaplicada sobre a main: filtros próprios e Continue ouvindo com retomada (decisões 67–68; relatório `2026-11-12-home-filtros.md`).
 - 2026-11-12 — instrução do Julio: redesenho da Home "rádio viva" (PR item home-radio-viva); relatório `2026-11-12-home-radio-viva.md`.
 
+- 2026-11-12 (3ª) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n). Nada executado.
+
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
