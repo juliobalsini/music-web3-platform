@@ -22,7 +22,8 @@ const geistMono = Geist_Mono({
 });
 
 // Base dos links absolutos (Open Graph). Na Vercel usa o domínio de produção; local, localhost.
-const base = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000";
+const PRODUCAO = "https://radioon-ten.vercel.app";
+const base = process.env.VERCEL ? PRODUCAO : "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(base),

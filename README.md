@@ -1,85 +1,127 @@
+<p align="center">
+  <img src="public/brand/cartao-marca.png" alt="radioOn — Música para os melhores ouvintes." width="720">
+</p>
+
 # radioOn
 
-Streaming de música independente global. Entre e dê play.
+**Resumo (pt-BR):** o radioOn é um streaming mobile-first de música independente global. O público entra e dá play já;
+artistas enviam faixas em `/enviar`; curadores montam playlists; ouvintes ganham pontos por escutas válidas (validadas no
+servidor). Produção: <https://radioon-ten.vercel.app>. Stack 100% gratuita e desenvolvimento autônomo com Claude Code.
+Código público só para consulta (ver [License](#license)).
 
-> MVP em construção. Perfis: **listener**, **artist**, **curator**.
+---
 
-## Stack
+> **Música para os melhores ouvintes.** · *Music for the best listeners.*
 
-| Camada        | Tecnologia                                              |
-| ------------- | ------------------------------------------------------- |
-| App           | Next.js (App Router) · TypeScript strict · Tailwind CSS |
-| Pacotes       | pnpm (via corepack)                                     |
-| Dados / Auth  | Supabase (Postgres, Auth, RLS) via `@supabase/ssr`      |
-| Áudio         | Backblaze B2 (S3, URLs assinadas) via `@aws-sdk/client-s3` |
-| Deploy        | Vercel — região `pdx1` (Supabase em `us-west-2`)        |
-| CI            | GitHub Actions (lint, typecheck, testes, build)         |
-| Ícones        | lucide-react                                            |
-| Dev           | GitHub Codespaces                                       |
+radioOn is a mobile-first streaming platform for independent music from around the world. Open it and press play — the
+explanation can come later.
 
-## Começando
+**Live:** <https://radioon-ten.vercel.app> (installable as a PWA)
+
+## Features in production
+
+- **Radio-first home** — a live "now playing" radio, stories, a curated selection and artists to discover.
+- **Player** — global mini-player and full player, resume where you left off ("Continue ouvindo"), volume normalization
+  (Settings), audio delivered through a cache proxy to save free-tier quota.
+- **Discover** — search, genre and mood filters, tracks, albums/EPs, playlists, and public artist and curator pages.
+- **Listen-to-earn (off-chain)** — a listen counts after 30 continuous seconds, confirmed by server-side heartbeats, with
+  daily limits and anti-abuse rules. Points live in an append-only ledger. Points from anonymous sessions can never be redeemed.
+- **Playlists** — curators (and any account) create, reorder, highlight and annotate playlists.
+- **Stories** — text, image and a 15-second audio excerpt, visible for 7 days, with community reporting and auto-hide.
+- **Frictionless access** — start listening anonymously; sign in with a magic link when you want to keep your data.
+- **Artist metrics** and a Web Share Target: share an audio file from your phone straight into radioOn.
+
+## For artists: uploading tracks
+
+1. Sign in at <https://radioon-ten.vercel.app/login> and choose the **artist** profile.
+2. Open **`/enviar`**, pick your audio (MP3, M4A, OGG or FLAC, up to 25 MB), add cover art and details, and confirm you hold
+   the rights.
+3. The file goes straight from your browser to private storage through a short-lived signed URL (10 minutes), and the track
+   is published once the upload is confirmed.
+
+## Stack — 100% free tier
+
+| Layer          | Technology                                                            |
+| -------------- | --------------------------------------------------------------------- |
+| App            | Next.js (App Router) · TypeScript strict · Tailwind CSS · pnpm        |
+| Data / Auth    | Supabase (Postgres, Auth, RLS) via `@supabase/ssr`                    |
+| Audio storage  | Backblaze B2 (S3-compatible, signed URLs) via `@aws-sdk/client-s3`    |
+| Audio delivery | Cloudflare Workers + KV (cache proxy, `workers/audio-proxy`)          |
+| Hosting        | Vercel (`pdx1`, next to Supabase `us-west-2`)                         |
+| CI / agent     | GitHub Actions · Playwright E2E                                       |
+| Icons          | lucide-react                                                          |
+
+No dependency or service that requires a paid plan is allowed in the project.
+
+## Autonomous development
+
+radioOn is built largely by an autonomous agent: **Claude Code running on GitHub Actions**, twice a day and on demand.
+
+- **Queue and context:** the agent reads [`docs/CONTEXTO.md`](docs/CONTEXTO.md), takes the next free item and runs the
+  full cycle: branch → code → lint + typecheck + tests + build → pull request.
+- **Gate:** a PR is merged automatically only after checks pass **and** E2E tests pass against the Vercel preview. Production
+  deploys are verified afterwards; a broken deploy is rolled back.
+- **Locks (travas):** the agent never runs destructive database writes, never commits secrets, and cannot change its own
+  guardrails. Protected paths (`.github/**`, `.claude/**`, existing migrations, CI scripts) need the owner's approval.
+  Migrations go through an allowlist validator.
+- **Reports:** decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md) and reports land in
+  [`docs/reports/`](docs/reports/). New features stay "proposed" until the owner approves them.
+
+## Getting started
 
 ```bash
 corepack enable
 pnpm install
-cp .env.example .env.local   # preencha os valores
+cp .env.example .env.local   # fill in the values
 pnpm dev
 ```
 
-### Variáveis de ambiente
+| Command          | Action                                      |
+| ---------------- | ------------------------------------------- |
+| `pnpm dev`       | development server                          |
+| `pnpm lint`      | ESLint                                      |
+| `pnpm typecheck` | route types + `tsc`                         |
+| `pnpm test`      | unit tests (`node --test`)                  |
+| `pnpm build`     | production build                            |
+| `pnpm validate`  | everything above, in the pre-commit order   |
 
-| Variável                                | Onde      | Observação                                   |
-| --------------------------------------- | --------- | -------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`              | browser   |                                              |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`         | browser   | ou `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`    |
-| `SUPABASE_SERVICE_ROLE_KEY`             | servidor  | ou `SUPABASE_SECRET_KEY` — nunca no browser  |
-| `SUPABASE_DB_PASSWORD`                  | CLI       | usada em `supabase link` / `db push`         |
-| `SUPABASE_PROJECT_REF`                  | CLI       |                                              |
-| `S3_ENDPOINT`                           | servidor  | ex.: `https://s3.us-west-004.backblazeb2.com` |
-| `S3_REGION`                             | servidor  | ex.: `us-west-004`                           |
-| `S3_ACCESS_KEY_ID`                      | servidor  | keyID da application key do B2               |
-| `S3_SECRET_ACCESS_KEY`                  | servidor  | applicationKey — nunca no browser            |
-| `S3_BUCKET`                             | servidor  | bucket privado de áudio                      |
+### Environment variables
 
-## Scripts
+| Variable                                | Where   | Notes                                              |
+| --------------------------------------- | ------- | -------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`              | browser |                                                    |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`         | browser | or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`          |
+| `SUPABASE_SERVICE_ROLE_KEY`             | server  | or `SUPABASE_SECRET_KEY` — never in the browser    |
+| `SUPABASE_DB_PASSWORD`                  | CLI     | used by `supabase link` / `db push`                |
+| `SUPABASE_PROJECT_REF`                  | CLI     |                                                    |
+| `S3_ENDPOINT` / `S3_REGION`             | server  | e.g. `https://s3.us-west-004.backblazeb2.com`      |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | server | B2 application key — never in the browser      |
+| `S3_BUCKET`                             | server  | private audio bucket                               |
 
-| Comando          | Ação                                   |
-| ---------------- | -------------------------------------- |
-| `pnpm dev`       | servidor de desenvolvimento            |
-| `pnpm lint`      | ESLint                                 |
-| `pnpm typecheck` | geração de tipos de rota + `tsc`       |
-| `pnpm test`      | testes (`node --test`)                 |
-| `pnpm build`     | build de produção                      |
-| `pnpm validate`  | tudo acima, na ordem usada antes de commits |
+Schema changes live **only** in `supabase/migrations/`. All tables have RLS; sensitive writes (listens, points, track
+status, role changes) happen on the server with the admin key.
 
-## Banco de dados
-
-O schema é versionado **apenas** em `supabase/migrations/`.
-
-```bash
-npx supabase db start          # Postgres local (Docker)
-npx supabase db reset --local  # aplica as migrations localmente
-npx supabase db push           # aplica no projeto remoto linkado
-```
-
-Tabelas: `profiles`, `tracks`, `playlists`, `playlist_tracks`, `listen_events`,
-`points_ledger` — todas com RLS. Escritas sensíveis (escutas, pontos, status de
-faixas, troca de papel) acontecem só no servidor com a chave admin.
-
-## Estrutura
+## Project layout
 
 ```
-app/                 rotas (App Router)
-components/          componentes de UI
-lib/supabase/        clientes Supabase (browser, server, admin)
-supabase/            config e migrations
-tests/               testes unitários
-docs/                DECISIONS.md e relatórios de ciclo
-legacy/contracts/    contratos Solidity do protótipo (referência, fora do MVP)
+app/                 routes (App Router)
+components/          UI components
+lib/                 domain logic, Supabase clients, storage
+workers/audio-proxy/ Cloudflare Worker + KV audio cache
+supabase/            config and migrations
+tests/ · e2e/        unit tests · Playwright
+docs/                CONTEXTO, DECISIONS, plan and reports
+legacy/contracts/    Solidity contracts from the old prototype (reference only)
 ```
 
-O protótipo Vite/Web3 anterior está preservado na branch `legacy-vite`.
+## Roadmap
 
-## Licença
+Tokenization / on-chain features are a possible **future direction** only; they are not part of the product today and are
+currently blocked pending the owner's decision.
 
-[MIT](LICENSE)
+## License
+
+Copyright (c) 2026 Julio Balsini. All rights reserved.
+
+This source code is public for viewing and reference only. Any use, copying, modification or distribution requires prior
+written permission. See [LICENSE](LICENSE). The brand assets (name, logo, icons, tagline) are not licensed for reuse.

@@ -314,3 +314,12 @@ Formato: data · decisão · motivo. Mais recente no fim.
 75. **Workflows ficam como proposta** em `docs/propostas/workflows/` (o PAT do agente não tem *Workflows* e `.github/**` é
     protegido). O transcodificador precisa de uma chave B2 de **escrita restrita a `audio/stream/`**, inexistente entre os
     secrets; o agente não cria credenciais nem toca nas de escrita existentes.
+76. **Licença proprietária (2026-11-12, aprovada pelo Julio):** o `LICENSE` MIT (2025) foi substituído por
+    "Copyright (c) 2026 Julio Balsini. All rights reserved." — código público só para consulta; uso, cópia, modificação
+    ou distribuição exigem autorização escrita. `package.json` ganhou `"license": "UNLICENSED"` (valor npm para "sem
+    licença de uso") e o README tem seção "License". Motivo: o repositório é vitrine de um produto, não projeto aberto.
+    Exceção deliberada: `.claude/skills/impeccable/` (LICENSE Apache-2.0 e NOTICE com a licença MIT original) é código
+    de terceiros, protegido, e mantém as licenças de origem.
+77. **Vitrine:** README em inglês com resumo em pt-BR; `metadataBase` usa a URL de produção fixa
+    `https://radioon-ten.vercel.app` na Vercel (antes dependia de `VERCEL_PROJECT_PRODUCTION_URL`). Não havia referência
+    literal a `music-web3-platform.vercel.app` no repositório.
