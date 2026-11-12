@@ -16,7 +16,7 @@ export function CarrosselFaixas({ titulo, dica, faixas }: { titulo: string; dica
         <h2 className="text-lg font-bold">{titulo}</h2>
         {dica && <p className="text-sm text-white/70">{dica}</p>}
       </div>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+      <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">
         {faixas.map((f) => {
           const tocando = atual?.id === f.id && estado === "tocando";
           return (

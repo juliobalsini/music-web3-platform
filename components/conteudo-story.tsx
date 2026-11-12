@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { usePlayer } from "@/components/player-provider";
+import { PLATAFORMA_ID } from "@/lib/radio/home";
 import { capaGerada } from "@/lib/radio/rules";
 import { CLIP_SEGUNDOS, diasRestantes, inicioDoTrecho, linksCompartilhar, type Story } from "@/lib/stories/rules";
 
@@ -161,7 +162,9 @@ export function ConteudoStory({ story, faixa, agora }: { story: Story; faixa: Fa
         </span>
         <div className="min-w-0">
           {story.isPlatform ? (
-            <p className="truncate font-semibold">{story.authorName}</p>
+            <p className="truncate font-semibold">
+              {story.authorId === PLATAFORMA_ID ? <Link href={`/perfil/${story.authorId}`} className="underline-offset-2 hover:underline">{story.authorName}</Link> : story.authorName}
+            </p>
           ) : (
             <Link href={`/perfil/${story.authorId}`} className="block truncate font-semibold underline-offset-2 hover:underline">{story.authorName}</Link>
           )}
@@ -171,10 +174,10 @@ export function ConteudoStory({ story, faixa, agora }: { story: Story; faixa: Fa
       {story.hasImage && !imagemFalhou && (
         <img src={`/api/stories/${story.id}/imagem`} alt="" onError={() => setImagemFalhou(true)} className="max-h-[50vh] w-full rounded-xl bg-night-800 object-cover" />
       )}
-      {story.body && <p className="text-xl font-semibold text-pretty">{story.body}</p>}
+      {story.body && <p className="whitespace-pre-line text-xl font-semibold text-pretty">{story.body}</p>}
       {faixa && <Trecho faixa={faixa} inicio={story.clipStart} />}
       <Compartilhar story={story} />
-      <Denunciar id={story.id} />
+      {!story.isPlatform && <Denunciar id={story.id} />}
     </article>
   );
 }

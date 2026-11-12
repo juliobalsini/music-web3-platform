@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { cache } from "react";
 
 import { dadosDemo, demoAtivo } from "./demo";
+import { totalOuvindo } from "./home";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -45,8 +46,8 @@ export type Radio = {
   programa: { atual: Programa | null; proximo: Programa | null };
   /** Faixa "No ar" e a fila que segue (playlist do programa no horário; senão, o fluxo da Rádio radioOn). */
   noAr: { faixa: FaixaListada; fila: FaixaListada[]; continuo: boolean } | null;
-  /** null = indisponível (sem service_role); a UI esconde o contador. */
-  ouvindo: number | null;
+  /** Ouvintes agora, contando você: nunca menos de 1 (sem service_role, só você). */
+  ouvindo: number;
 };
 
 const VAZIO: Radio = {
@@ -61,7 +62,7 @@ const VAZIO: Radio = {
   todasPlaylists: [],
   programa: { atual: null, proximo: null },
   noAr: null,
-  ouvindo: null,
+  ouvindo: 1,
 };
 
 type Cliente = Awaited<ReturnType<typeof createClient>>;
@@ -201,7 +202,8 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
     const plays = new Map<string, number>();
     const likes = new Map<string, number>();
     let escutas: { track_id: string; started_at: string }[] = [];
-    let ouvindo: number | null = null;
+    let outros: number | null = null;
+    const meuId = await supabase.auth.getUser().then((r) => r.data.user?.id ?? null).catch(() => null);
     try {
       const admin = createAdminClient();
       const [v, l, o] = await Promise.all([
@@ -220,14 +222,14 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       ]);
       escutas = (v.data ?? []) as typeof escutas;
       for (const r of (l.data ?? []) as { track_id: string }[]) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);
-      if (!v.error && !o.error) ouvindo = ouvindoAgora((o.data ?? []) as { user_id: string; last_beat_at: string | null }[], agora);
+      if (!v.error && !o.error) outros = ouvindoAgora(((o.data ?? []) as { user_id: string; last_beat_at: string | null }[]).filter((l) => l.user_id !== meuId), agora);
     } catch {
       /* sem service_role (prévias/testes): contagens zeradas */
     }
     if (demo) {
       escutas = [...escutas, ...demo.escutas];
       for (const r of demo.curtidas) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);
-      ouvindo = ouvindo ?? 3;
+      outros = outros ?? 3;
     }
     for (const e of escutas) plays.set(e.track_id, (plays.get(e.track_id) ?? 0) + 1);
 
@@ -312,7 +314,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
         .map(resumo),
       todasPlaylists: playlists.map(resumo),
       programa,
-      ouvindo,
+      ouvindo: totalOuvindo(outros ?? 0),
     };
   } catch (e) {
     console.error("[radio] falha geral:", e instanceof Error ? e.message : e);

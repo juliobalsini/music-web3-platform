@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { LogoCabecalho } from "@/components/logo-cabecalho";
+import { OcultarNaHome } from "@/components/ocultar-na-home";
 import { getSessionRole } from "@/lib/session";
 
-async function Entrar() {
+export async function Entrar() {
   let sessao: Awaited<ReturnType<typeof getSessionRole>> = null;
   try {
     sessao = await getSessionRole();
@@ -25,12 +26,17 @@ async function Entrar() {
 }
 
 export function Cabecalho() {
-  return (
+  const cabecalho = (
     <header className="mx-auto flex min-h-14 w-full max-w-md items-center justify-between gap-4 px-4 py-2">
       <LogoCabecalho />
       <Suspense>
         <Entrar />
       </Suspense>
     </header>
+  );
+  return (
+    <Suspense fallback={cabecalho}>
+      <OcultarNaHome>{cabecalho}</OcultarNaHome>
+    </Suspense>
   );
 }

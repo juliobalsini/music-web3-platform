@@ -11,7 +11,7 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   await expect(page.getByRole("img", { name: "radioOn" }).first()).toBeVisible();
 
   // Play em destaque: botão (com faixas) ou marca inerte (sem faixas).
-  await expect(page.getByRole("navigation", { name: "Filtros" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
+  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
   await expect(page.locator("[data-testid=play]:visible, [data-testid=play-vazio]:visible").first()).toBeVisible();
 });
 
@@ -31,14 +31,15 @@ test("estado vazio: play inerte e convite ao artista (catálogo sem faixas)", as
   // Cookie de teste: desliga o catálogo de demonstração (só tem efeito fora de produção).
   await page.context().addCookies([{ name: "radioon_sem_demo", value: "1", url: baseURL! }]);
   await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Filtros" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
+  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 }); // conteúdo em streaming
   const vazio = page.locator("[data-testid=play-vazio]:visible");
   // Se o banco da prévia já tiver faixas reais, o estado vazio não existe: vale a Rádio com faixas.
   if (!(await vazio.first().isVisible())) {
     await expect(page.getByRole("region", { name: "No ar" })).toBeVisible();
     return;
   }
-  await expect(page.getByRole("button")).toHaveCount(0);
+  // Sem faixa não há play: só o story fixo da plataforma é botão.
+  await expect(page.getByTestId("play")).toHaveCount(0);
   await expect(vazio).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
   await page.getByRole("link", { name: "Enviar primeira faixa" }).click();

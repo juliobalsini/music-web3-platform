@@ -269,3 +269,17 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `PLATFORM_STORY_IDS`). Trecho de 15 s usa `<audio>` próprio (não gera escuta/pontos). Sem DELETE: o story "expira"
     por data (7 dias na home, depois só no perfil). Ocultação automática com 3 denunciantes distintos, feita no app
     (SECURITY DEFINER não passa na allowlist de migrations).
+
+## 2026-11-12 · Redesenho da Home (instrução do Julio)
+
+63. **Perfil oficial radioOn é virtual:** não há usuário no Auth, e migration não pode criar um (allowlist). Ids fixos em
+    `lib/radio/home.ts` (`PLATAFORMA_ID`, `STORY_BOAS_VINDAS_ID`); sem escrita no banco. O story de boas-vindas é
+    injetado em `carregarStories` com data de agora (nunca vira arquivo), sem botão Denunciar. Nenhuma migration nova.
+64. **Seleção radioOn é calculada, não gravada:** ids `radioon-novidades|genero-<id>|clima-<id>`, recalculados a cada
+    leitura (atualizam sozinhas). Gênero exige ≥3 faixas; clima ≥1; Novidades da semana cai nas 10 mais recentes se a
+    semana estiver vazia. Página `/playlist/radioon-…`; o dono aponta para `/perfil/<PLATAFORMA_ID>`.
+65. **Clima do horário (Brasília):** Madrugada 0–5h; Pista sex/sáb 21h+; Domingo aos domingos; Foco 6–11h; Estrada
+    17–20h; Chuva nos demais horários. Prioridade nesta ordem. Sem faixas do clima → Chuva → recentes.
+66. **"N ouvindo" inclui o próprio ouvinte** (`totalOuvindo`): ouvintes ativos sem contar a sessão atual + 1; nunca "No ar" só.
+67. **Home sem busca nem chips de filtro** (são do Explorar). "Álbuns e EPs" ficou no fim da Home para não perder o acesso
+    (não está na ordem pedida; fácil de remover). A Home tem cabeçalho próprio (`role="banner"`); o global some em `/`.

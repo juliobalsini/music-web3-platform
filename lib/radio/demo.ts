@@ -1,6 +1,8 @@
 // Catálogo de demonstração: só fora de produção (prévias da Vercel, testes locais).
 // Áudio = public/demo/tom.wav (arquivo estático, sem B2 e sem cota). Produção nunca vê estes dados.
 
+import { PLATAFORMA_ID } from "./home";
+
 export const DEMO_AUDIO_URL = "/demo/tom.wav";
 export const DEMO_DURACAO = 8;
 
@@ -94,7 +96,7 @@ export function dadosDemo(agora: number): DemoDados {
   const albums = [{ id: id(401), title: "Sinais", kind: "ep", artist_id: ARTISTAS[0].id, created_at: new Date(agora - 4 * 3600 * 1000).toISOString() }];
   const stories = [
     { id: id(501), author_id: ARTISTAS[0].id, is_platform: false, body: "Ensaio aberto hoje à noite. Esse é o refrão novo.", image_key: null, track_id: id(1), clip_start: 0, hidden: false, created_at: new Date(agora - 2 * 3600 * 1000).toISOString() },
-    { id: id(502), author_id: ARTISTAS[1].id, is_platform: true, body: "Bem-vindo à rádio. Música independente, sem cadastro para ouvir.", image_key: null, track_id: null, clip_start: null, hidden: false, created_at: new Date(agora - 5 * 3600 * 1000).toISOString() },
+    { id: id(502), author_id: PLATAFORMA_ID, is_platform: true, body: "Bem-vindo à rádio. Música independente, sem cadastro para ouvir.", image_key: null, track_id: null, clip_start: null, hidden: false, created_at: new Date(agora - 5 * 3600 * 1000).toISOString() },
     { id: id(503), author_id: CURADORES[0].id, is_platform: false, body: "Story antigo: já saiu da faixa da home, fica no perfil.", image_key: null, track_id: null, clip_start: null, hidden: false, created_at: new Date(agora - 9 * dia).toISOString() },
   ];
   return { tracks, albums, stories, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }] };
