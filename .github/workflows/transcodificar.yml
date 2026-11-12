@@ -27,14 +27,24 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: node scripts/transcodificar.mjs
+      - name: Derivar valores públicos que faltarem (S3_ENDPOINT/REGION/BUCKET, SUPABASE_URL)
         env:
-          LOTE_MAX: ${{ inputs.lote || '15' }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
+          B2_READ_KEY: ${{ secrets.B2_READ_KEY }}
           S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
           S3_REGION: ${{ secrets.S3_REGION }}
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: bash scripts/ci/derivar-env.sh
+      - run: node scripts/transcodificar.mjs
+        env:
+          LOTE_MAX: ${{ inputs.lote || '15' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || env.SUPABASE_URL }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT || env.S3_ENDPOINT }}
+          S3_REGION: ${{ secrets.S3_REGION || env.S3_REGION }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET || env.S3_BUCKET }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
           B2_READ_KEY: ${{ secrets.B2_READ_KEY }}
           S3_WRITE_KEY_ID: ${{ secrets.S3_WRITE_KEY_ID }}   # NOVA: chave B2 só com escrita em audio/stream/

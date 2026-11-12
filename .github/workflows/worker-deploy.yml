@@ -29,10 +29,24 @@ jobs:
           fi
           cp wrangler.toml wrangler.generated.toml
           printf '\n[[kv_namespaces]]\nbinding = "CACHE"\nid = "%s"\n' "$ID" >> wrangler.generated.toml
+      - name: Subdomínio workers.dev (registra via API se a conta ainda não tiver)
+        run: |
+          api="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/subdomain"
+          atual=$(curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$api" | jq -r '.result.subdomain // empty')
+          if [ -z "$atual" ]; then
+            for nome in radioon radioon-app radioon-music radioon-$RANDOM; do
+              if curl -fsS -X PUT -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" \
+                   --data "{\"subdomain\":\"$nome\"}" "$api" >/dev/null 2>&1; then atual="$nome"; break; fi
+            done
+          fi
+          [ -n "$atual" ] || { echo "::error::Não foi possível registrar o subdomínio workers.dev (token sem permissão Workers Scripts: Edit?)"; exit 1; }
+          echo "Subdomínio workers.dev: $atual"
       - name: Deploy
         run: |
+          set -o pipefail
           npx wrangler deploy --config wrangler.generated.toml 2>&1 | tee deploy.log
           url=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          [ -n "$url" ] || { echo "::error::Deploy sem URL workers.dev"; exit 1; }
           echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): $url"
           echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): \`$url\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Secrets do Worker (chave B2 SOMENTE LEITURA; valores nunca aparecem no log)
