@@ -90,3 +90,12 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
 - **Fase A** — transcodificação AAC 192 (só origens sem perda/≥256 kbps), loudness medida, ganho no player, Ajustes. *Código pronto; falta workflow e chave de escrita.*
 - **Fase B** — Worker `workers/audio-proxy` com cache em KV e `NEXT_PUBLIC_AUDIO_BASE_URL`. *Código pronto; falta workflow, secrets do Worker no ambiente e deploy.*
 - **Fase C** — medição após 48 h em produção (relatório). *Depende de A e B no ar.*
+
+## Autonomia de planejamento e segurança (2026-11-12, issue própria)
+
+- **Fase A** — regras no `CLAUDE.md` (aprovação por "aprovado", exceções sem aprovação). *Feita.*
+- **Fase B** — `dependabot.yml` (PR #81, aguarda trava), auditoria semanal (`scripts/auditoria-seguranca.mjs`), headers. *Em PR.*
+- **Fase C** — E2E mobile com screenshots (`e2e/mobile-visual.spec.ts`). *Em PR.*
+- **Fase D** — diagnóstico do modelo do fluxo, no relatório. *Feita (relatório).*
+- **Propostas de segurança em aberto:** CSP completa com nonces (médio, 2–3 execuções); `story_reports` sem policy (intencional?);
+  PAT sem leitura de alertas de segurança (precisa do Julio).

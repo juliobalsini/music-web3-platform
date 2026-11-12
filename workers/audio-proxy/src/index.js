@@ -20,7 +20,7 @@ async function lerCtl(kv) {
 
 function cors(req, env) {
   const origem = origemPermitida(req.headers.get("Origin"), (env.ALLOWED_ORIGINS ?? "").split(","), env.ALLOWED_ORIGIN_REGEX);
-  const h = new Headers({ Vary: "Origin", "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, X-Cache" });
+  const h = new Headers({ Vary: "Origin", "X-Content-Type-Options": "nosniff", "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, X-Cache" });
   if (origem) {
     h.set("Access-Control-Allow-Origin", origem);
     h.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");

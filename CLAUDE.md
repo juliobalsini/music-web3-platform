@@ -51,6 +51,23 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   na issue do relatório (aceitar "aprovado g, h" ou "recusado j"). Sem aprovação, não executar.
 - Nunca propor: serviço pago, credencial nova, mudança de provedor, nada do Ciclo 6.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
+- **Aprovação (Fase A):** o Julio aprova respondendo "aprovado <itens>" na issue/e-mail do relatório. Ao ler a
+  aprovação, criar a issue do trabalho e executar sem precisar de "Instrução extra". Cada relatório propõe 1–3
+  tarefas com objetivo, escopo, arquivos, risco (baixo/médio/alto), se toca arquivos protegidos e execuções estimadas.
+- **Sem aprovação prévia só:** correções de segurança de risco baixo, atualizações de dependências com testes verdes,
+  correção de testes instáveis e documentação. Sempre por PR e gate; arquivos protegidos seguem exigindo a trava.
+- Preferir tarefas maiores e completas por execução (várias fases) sem enfraquecer o gate. `docs/PLANO.md` é a fonte
+  única de prioridades: atualizar ao propor, receber aprovação e concluir.
+## Segurança contínua (defensiva, só no próprio projeto)
+- **Dependabot** (`.github/dependabot.yml`): PR patch/minor com todo o gate verde pode ser mergeado pelo agente;
+  **major nunca** — vai para proposta no relatório. Não existe `codeql.yml` (CodeQL em modo Default; um avançado conflita).
+- **Auditoria semanal** (1ª execução de cada segunda-feira, ou se a última tem >7 dias): `node scripts/auditoria-seguranca.mjs`
+  + alertas Dependabot/CodeQL/secret scanning/malware quando o token os lê; resultado na seção "Segurança" do relatório.
+  Severidade crítico/alto/médio/baixo. Corrigir sozinho só baixo que não toca protegidos; o resto vira proposta.
+  Crítico → `bash scripts/notify.sh pause` com título "⚠️ Ação necessária" na hora.
+- **Nunca** rotacionar, apagar ou alterar secrets/chaves; listar no relatório o que rotacionar e a ordem segura
+  (nova chave na Vercel → validar upload → só então revogar a antiga/master).
+- AI Scan e Agentic autofix do GitHub ficam desligados (consomem AI credits); não ativar nem depender deles.
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);
   credenciais em arquivos versionados; aprovar ou contornar mudanças nas próprias travas.
