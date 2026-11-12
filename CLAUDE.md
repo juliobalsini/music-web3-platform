@@ -69,6 +69,9 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 8. Erro do Supabase: (a) antes de abrir "Ação necessária", consultar status.supabase.com; com incidente ativo, registrar
    no CONTEXTO.md e tentar na próxima execução, sem alertar; (b) consultar o Supabase Knowledge Base antes de tentar soluções.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
+- **Endurecimento de segurança próprio:** o que o agente identificar e que não amplie acesso é risco baixo e se executa sem
+  pedir aprovação (por PR e gate; protegidos seguem exigindo a trava). **Antes de pedir qualquer secret ao Julio**, verificar se
+  um secret/conexão já existente resolve (ex.: `SUPABASE_DB_URL` em vez de `SUPABASE_SECRET_KEY`).
 - **Aprovação (Fase A):** o Julio aprova respondendo "aprovado <itens>" na issue/e-mail do relatório. Ao ler a
   aprovação, criar a issue do trabalho e executar sem precisar de "Instrução extra". Cada relatório propõe 1–3
   tarefas com objetivo, escopo, arquivos, risco (baixo/médio/alto), se toca arquivos protegidos e execuções estimadas.

@@ -44,6 +44,7 @@ describe("urlDoProxy", () => {
     assert.equal(urlDoProxy("audio/stream/x.m4a", "https://p.workers.dev/"), "https://p.workers.dev/a/audio/stream/x.m4a");
     assert.equal(urlDoProxy("audio/stream/x.m4a", undefined), undefined);
     assert.equal(urlDoProxy("outro/x", "https://p.workers.dev"), undefined);
+    assert.equal(urlDoProxy("tracks/a/b", "https://p.workers.dev"), undefined); // originais só por URL assinada
     assert.equal(urlDoProxy("covers/a/b", "http://inseguro"), undefined);
   });
 });
