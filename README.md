@@ -67,6 +67,12 @@ radioOn is built largely by an autonomous agent: **Claude Code running on GitHub
 - **Reports:** decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md) and reports land in
   [`docs/reports/`](docs/reports/). New features stay "proposed" until the owner approves them.
 
+- **Issue queue:** the owner queues work by opening an issue labelled `fila` (add `urgente` to jump the line). Applying the
+  label, or commenting "aprovado…"/"recusado…", also triggers a run. Only issues and comments by the owner's account are
+  honoured; others are silently ignored, and issue text is treated as data, never interpolated into shell. Runs never cancel
+  each other: if one is active the new one exits, and the queue (persisted in issues) is read on the next run. Order: `urgente`
+  first, then oldest to newest; on completion the agent comments the result, removes `fila` and closes the issue.
+
 ## Getting started
 
 ```bash
