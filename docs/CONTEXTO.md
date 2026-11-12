@@ -283,3 +283,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-12 (4ª) — instrução do Julio: #78 + autonomia. PR #81 (workflows e dependabot.yml) e #83 (CLAUDE.md, auditoria, headers, E2E mobile)
   aguardam `travas`; issue #82; relatório `2026-11-12-autonomia-e-bloqueios.md`. Itens 3–5 do #78 pendentes do merge do #81.
+
+- 2026-11-12 (5ª) — instrução do Julio: vitrine do repositório e licença proprietária (issue #86, DECISIONS 76–77); relatório `2026-11-12-vitrine-licenca.md`.
