@@ -22,3 +22,6 @@ Já mergeada antes (#87, issue #86, DECISIONS 76–77, relatório `2026-11-12-vi
 ## O que fazer (só o que o agente não consegue)
 - **Aprovar o ambiente `travas` do #83** — o agente não pode aprovar a própria trava.
 - **Criar o secret `SUPABASE_SECRET_KEY` no ambiente `producao-db`** (e `SUPABASE_URL` se `SUPABASE_DB_URL` não existir lá) — credencial: agente não cria nem lê secrets (PAT sem acesso à API de secrets, 403).
+
+## Extra
+- `scripts/notify.sh` na main estava quebrado (corpo de `gh_dispatch` truncado no #76: "gh_# Confirma…"), então nenhum alerta/relatório saía. Restaurado no #83 (mesma aprovação de trava); até lá, quem roda `notify.sh` da main falha.
