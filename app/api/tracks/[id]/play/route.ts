@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DEMO_AUDIO_URL, DEMO_DURACAO, demoAtivo, ehFaixaDemo } from "@/lib/radio/demo";
 import { isStorageConfigured, signPlayback } from "@/lib/storage/client";
+import { chaveDeReproducao } from "@/lib/audio/transcode";
 import { PLAYBACK_TTL_SECONDS } from "@/lib/storage/rules";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +21,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
   const supabase = await createClient();
   const consulta = (c: typeof supabase) =>
-    c.from("tracks").select("r2_key, duration_sec").eq("id", id).eq("status", "published").maybeSingle();
+    c.from("tracks").select("r2_key, duration_sec, stream_path, transcode_status, loudness_lufs").eq("id", id).eq("status", "published").maybeSingle();
   let { data } = await consulta(supabase);
   if (!data) {
     // A Rádio lista faixas publicadas também via service_role; tocar precisa seguir a mesma regra
@@ -32,11 +33,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     }
   }
   if (!data) return Response.json({ error: "faixa não encontrada" }, { status: 404, headers: noStore });
-  const url = await signPlayback(data.r2_key);
+  const url = await signPlayback(chaveDeReproducao(data));
   return Response.json(
     {
       url,
       durationSec: data.duration_sec,
+      loudnessLufs: data.loudness_lufs ?? null,
       expiresAt: Date.now() + PLAYBACK_TTL_SECONDS * 1000,
     },
     { headers: noStore },

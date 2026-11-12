@@ -82,3 +82,11 @@ Sem serviço pago, credencial nova ou troca de provedor. Regras invioláveis do 
 - **Vídeo em stories** — depende de armazenamento maior que a cota grátis do B2; hoje só texto, imagem e trecho de áudio.
 - **Central de recompensas (item o)** — metas diárias e histórico por perfil; resgate **só para contas**
   (pontos de sessão anônima nunca são resgatáveis).
+
+
+## Entrega de áudio econômica (2026-11-12, issue #78)
+
+Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no beta.
+- **Fase A** — transcodificação AAC 192 (só origens sem perda/≥256 kbps), loudness medida, ganho no player, Ajustes. *Código pronto; falta workflow e chave de escrita.*
+- **Fase B** — Worker `workers/audio-proxy` com cache em KV e `NEXT_PUBLIC_AUDIO_BASE_URL`. *Código pronto; falta workflow, secrets do Worker no ambiente e deploy.*
+- **Fase C** — medição após 48 h em produção (relatório). *Depende de A e B no ar.*

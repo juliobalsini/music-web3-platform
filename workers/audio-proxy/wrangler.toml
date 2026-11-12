@@ -1,0 +1,18 @@
+# Proxy de áudio e imagens do radioOn (plano gratuito do Cloudflare Workers + KV).
+# NÃO é armazenamento: o B2 continua sendo o único armazenamento definitivo; o KV é cache com TTL de 7 dias.
+name = "radioon-audio"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+# O namespace KV é criado pelo workflow (worker-deploy.yml), que injeta o id em tempo de deploy
+# (wrangler deploy --var não cobre bindings; o workflow grava o id em wrangler.generated.toml).
+[vars]
+ALLOWED_PREFIXES = "audio/stream/,tracks/,covers/,stories/"
+ALLOWED_ORIGINS = "https://radioon-ten.vercel.app"
+ALLOWED_ORIGIN_REGEX = "^https://radioon-[a-z0-9-]+-juliobalsinis-projects\\.vercel\\.app$"
+KV_MAX_ITEM_BYTES = "26214400"
+KV_MAX_TOTAL_BYTES = "943718400"
+KV_TTL_SECONDS = "604800"
+KV_WRITES_DAILY = "1000"
+KV_READS_DAILY = "100000"

@@ -4,7 +4,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { limpar } from "../env";
-import { PLAYBACK_TTL_SECONDS, UPLOAD_TTL_SECONDS } from "./rules";
+import { PLAYBACK_TTL_SECONDS, UPLOAD_TTL_SECONDS, urlDoProxy } from "./rules";
 
 export class StorageUnavailableError extends Error {
   constructor() {
@@ -67,6 +67,8 @@ export async function signUpload(key: string, contentType: string, size: number)
 
 /** URL assinada de reprodução (1 h). */
 export async function signPlayback(key: string) {
+  const proxy = urlDoProxy(key, process.env.NEXT_PUBLIC_AUDIO_BASE_URL);
+  if (proxy) return proxy;
   const { s3, bucket } = getClient();
   return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), {
     expiresIn: PLAYBACK_TTL_SECONDS,
@@ -75,6 +77,8 @@ export async function signPlayback(key: string) {
 
 /** URL assinada de capa (1 h); o navegador pode guardar a imagem por 1 h. */
 export async function signCover(key: string) {
+  const proxy = urlDoProxy(key, process.env.NEXT_PUBLIC_AUDIO_BASE_URL);
+  if (proxy) return proxy;
   const { s3, bucket } = getClient();
   return getSignedUrl(
     s3,

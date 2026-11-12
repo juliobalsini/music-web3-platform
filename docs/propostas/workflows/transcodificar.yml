@@ -1,0 +1,34 @@
+# PROPOSTA (arquivo protegido): copiar para .github/workflows/transcodificar.yml (aprovação do Julio).
+name: transcodificar
+on:
+  schedule: [{ cron: "*/30 * * * *" }]
+  workflow_dispatch:
+  # Ao fim de cada upload: o app pode disparar `gh workflow run` via repository_dispatch (opcional).
+  repository_dispatch:
+    types: [upload-concluido]
+concurrency: { group: transcodificar, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  transcodificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: producao-db   # SUPABASE_* e S3_* só existem neste ambiente (branch main)
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/transcodificar.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_REGION: ${{ secrets.S3_REGION }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
+          B2_READ_KEY: ${{ secrets.B2_READ_KEY }}
+          S3_WRITE_KEY_ID: ${{ secrets.S3_WRITE_KEY_ID }}   # NOVA: chave B2 só com escrita em audio/stream/
+          S3_WRITE_KEY: ${{ secrets.S3_WRITE_KEY }}

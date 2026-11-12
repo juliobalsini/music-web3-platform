@@ -6,6 +6,7 @@ import { PlayerCheio } from "@/components/player-cheio";
 import { capaGerada, type FaixaListada } from "@/lib/radio/rules";
 import { salvarPosicao } from "@/lib/radio/continuar-local";
 import { createUrlCache } from "@/lib/player/url-cache";
+import { criarGanho } from "@/lib/player/ganho";
 
 export type FaixaTocavel = FaixaListada;
 export type EstadoPlayer = "parado" | "carregando" | "tocando" | "erro" | "limite";
@@ -41,11 +42,16 @@ export function usePlayer(): Acoes {
 }
 export const useTempo = () => useContext(TempoCtx);
 
+const lufsPorFaixa = new Map<string, number | null>();
+const BASE_PROXY = process.env.NEXT_PUBLIC_AUDIO_BASE_URL?.trim().replace(/\/+$/, "");
+const ehProxy = (url: string) => !!BASE_PROXY && url.startsWith(`${BASE_PROXY}/`);
+
 // Cota diária do B2: uma URL assinada por faixa, reusada (decisão 22 do DECISIONS.md).
 const cache = createUrlCache(async (id) => {
   const r = await fetch(`/api/tracks/${id}/play`);
   if (!r.ok) throw new Error(String(r.status));
-  const j = (await r.json()) as { url: string; expiresAt: number };
+  const j = (await r.json()) as { url: string; expiresAt: number; loudnessLufs?: number | null };
+  lufsPorFaixa.set(id, j.loudnessLufs ?? null);
   return { url: j.url, expiresAt: j.expiresAt };
 });
 
@@ -57,6 +63,7 @@ const vazio = (): Record<TipoReacao, Set<string>> => ({ like: new Set(), save: n
  */
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audio = useRef<HTMLAudioElement>(null);
+  const ganho = useRef<ReturnType<typeof criarGanho> | null>(null);
   const carregada = useRef<string | null>(null);
   const tentou = useRef(false);
   const evento = useRef<string | null>(null);
@@ -133,7 +140,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     try {
       if (carregada.current !== id || forcar) {
         setEstado("carregando");
-        el.src = await cache.get(id, forcar);
+        const url = await cache.get(id, forcar);
+        ganho.current ??= criarGanho(el);
+        ganho.current.preparar(url, ehProxy(url));
+        ganho.current.aplicar(lufsPorFaixa.get(id), ehProxy(url));
+        el.src = url;
         carregada.current = id;
       }
       // Retomada: com metadados já carregados o ponto vale agora; senão, em onLoadedMetadata.
@@ -145,6 +156,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     } catch {
       setEstado("erro");
     }
+  }, []);
+
+  // Ajustes › Normalizar volume: reaplica o ganho na faixa atual.
+  useEffect(() => {
+    const reaplicar = () => {
+      const id = carregada.current;
+      if (id && ganho.current && audio.current?.src) ganho.current.aplicar(lufsPorFaixa.get(id), ehProxy(audio.current.src));
+    };
+    window.addEventListener("radioon:normalizar", reaplicar);
+    return () => window.removeEventListener("radioon:normalizar", reaplicar);
   }, []);
 
   // Guarda o ponto exato da faixa atual (Continue ouvindo). Chamado a cada ~5 s, na pausa e ao sair.
