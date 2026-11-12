@@ -19,6 +19,8 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 - [~] **Fila por issues (PR #100, protegido, aguarda trava do Julio):** `autonomo.yml` dispara em label `fila` e comentário
   "aprovado/recusado" (só `juliobalsini`), sem cancelamento (guarda de execução única). Labels `fila` e `urgente` criados.
   Pendência aprovada do PLANO.md virou a issue #101 (label `fila`); depende do PR #97 mergeado.
+- [~] **Gate: verificação de segurança dos workflows (issue #102, PR protegido, aguarda trava do Julio):** job `workflows`
+  + `scripts/ci/verificar-workflows.mjs` + testes; `autonomo.yml` já mergeado passa (R1–R3). Decisão 84.
 
 Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
 

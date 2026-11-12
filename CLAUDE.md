@@ -98,6 +98,11 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 - **Pendências aprovadas no `docs/PLANO.md`:** viram issues `fila` criadas pelo agente e são tratadas como aprovadas
   (única exceção à regra do autor, só para itens já aprovados no PLANO.md).
 
+- **Verificação dos workflows:** o gate roda `scripts/ci/verificar-workflows.mjs` (job `workflows`) sobre os workflows do PR
+  (autor `juliobalsini` em `issues`/`issue_comment`; nada de título/corpo/comentário/head_ref em `run:`; sem
+  `pull_request_target`, `write-all` nem `cancel-in-progress` em fluxo que espera aprovação). **PR protegido só pede a
+  trava depois que essa verificação passar**: o Julio aprova sem revisar o código dos workflows.
+
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);
   credenciais em arquivos versionados; aprovar ou contornar mudanças nas próprias travas.
