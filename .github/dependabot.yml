@@ -1,0 +1,25 @@
+# Arquivo protegido. Atualizações semanais; menores/patch agrupadas num único PR por ecossistema.
+# Major vem em PR separado e vai para proposta no relatório (nunca é mergeado automaticamente).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /workers/audio-proxy
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 2
+    groups:
+      minor-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 3
+    groups:
+      minor-patch:
+        update-types: [minor, patch]

@@ -1,8 +1,14 @@
-# PROPOSTA (arquivo protegido): copiar para .github/workflows/transcodificar.yml (aprovação do Julio).
+# Arquivo protegido. Transcodifica faixas pendentes (ffmpeg); lê originais com B2_READ_KEY*, escreve só com S3_WRITE_KEY*.
 name: transcodificar
 on:
   schedule: [{ cron: "*/30 * * * *" }]
   workflow_dispatch:
+    inputs:
+      lote:
+        description: "Máximo de faixas nesta execução (teste: 5)"
+        required: false
+        default: "15"
+        type: string
   # Ao fim de cada upload: o app pode disparar `gh workflow run` via repository_dispatch (opcional).
   repository_dispatch:
     types: [upload-concluido]
@@ -23,6 +29,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/transcodificar.mjs
         env:
+          LOTE_MAX: ${{ inputs.lote || '15' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}

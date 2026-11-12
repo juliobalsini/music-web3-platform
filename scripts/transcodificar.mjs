@@ -23,7 +23,7 @@ import { FILTRO_PENDENTES, TENTATIVAS_MAX, chaveStream, lerLufs, planejar } from
 
 const e = process.env;
 const faltam = ["SUPABASE_URL", "SUPABASE_SECRET_KEY", "S3_ENDPOINT", "S3_REGION", "S3_BUCKET"].filter((k) => !e[k]);
-const leitura = { accessKeyId: e.B2_READ_KEY_ID ?? e.S3_ACCESS_KEY_ID, secretAccessKey: e.B2_READ_KEY ?? e.S3_SECRET_ACCESS_KEY };
+const leitura = { accessKeyId: e.B2_READ_KEY_ID || e.S3_ACCESS_KEY_ID, secretAccessKey: e.B2_READ_KEY || e.S3_SECRET_ACCESS_KEY };
 const escrita = { accessKeyId: e.S3_WRITE_KEY_ID, secretAccessKey: e.S3_WRITE_KEY };
 if (faltam.length || !leitura.accessKeyId || !escrita.accessKeyId) {
   console.log(`Transcodificação pulada: configuração ausente (${[...faltam, !leitura.accessKeyId && "chave de leitura", !escrita.accessKeyId && "chave de escrita"].filter(Boolean).join(", ")}).`);
