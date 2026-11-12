@@ -295,3 +295,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (endpoint B2 vazio) → rollback no #96 (`PROXY_LIGADO_POR_PADRAO=false`, DECISIONS 82–83). #97 (protegido, aguarda `travas`) corrige o `worker-deploy`;
   depois: redeploy, validar 200/206, religar o proxy, medir (itens 4–5 do #78). `transcodificar` pulou: falta `SUPABASE_SECRET_KEY` em `producao-db`
   (só o Julio). Relatório `2026-11-12-worker-e-bloqueios.md`.
+
+- 2026-11-12 (8ª) — issue #101 (aprovada): proxy restrito a `audio/stream/`, `covers/`, `stories/`; `transcodificar.mjs` via `SUPABASE_DB_URL`; regra no CLAUDE.md (DECISIONS 84).
+  **Bloqueado:** #97 ainda aguarda `travas` (redeploy do Worker, 200/206, religar proxy, medições); `transcodificar.yml` precisa passar `SUPABASE_DB_URL` ao passo
+  do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.

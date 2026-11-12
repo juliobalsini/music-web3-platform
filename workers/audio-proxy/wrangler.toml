@@ -8,7 +8,7 @@ workers_dev = true
 # O namespace KV é criado pelo workflow (worker-deploy.yml), que injeta o id em tempo de deploy
 # (wrangler deploy --var não cobre bindings; o workflow grava o id em wrangler.generated.toml).
 [vars]
-ALLOWED_PREFIXES = "audio/stream/,tracks/,covers/,stories/"
+ALLOWED_PREFIXES = "audio/stream/,covers/,stories/"
 ALLOWED_ORIGINS = "https://radioon-ten.vercel.app"
 ALLOWED_ORIGIN_REGEX = "^https://radioon-[a-z0-9-]+-juliobalsinis-projects\\.vercel\\.app$"
 KV_MAX_ITEM_BYTES = "26214400"

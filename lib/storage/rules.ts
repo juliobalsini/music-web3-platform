@@ -123,11 +123,11 @@ export function coverKey(artistId: string, uuid: string): string {
 
 /**
  * URL do proxy de áudio (Cloudflare Worker) para uma chave do bucket; `undefined` sem a variável
- * (fallback: URL assinada do B2). O Worker só serve prefixos permitidos; o resto cai no B2.
+ * (fallback: URL assinada do B2). O Worker só serve audio/stream/, covers/ e stories/; originais em tracks/ só por URL assinada.
  */
 export function urlDoProxy(key: string, base: string | undefined): string | undefined {
   const b = base?.trim().replace(/\/+$/, "");
   if (!b || !/^https:\/\//.test(b)) return undefined;
-  if (!/^(audio\/stream|tracks|covers|stories)\//.test(key)) return undefined;
+  if (!/^(audio\/stream|covers|stories)\//.test(key)) return undefined;
   return `${b}/a/${key.split("/").map(encodeURIComponent).join("/")}`;
 }

@@ -346,3 +346,8 @@ Formato: data · decisão · motivo. Mais recente no fim.
 83. **Rollback do proxy por padrão (2026-11-12):** minutos após a decisão 82, o Worker respondia 503 (`B2_ENDPOINT` vazio no
     `worker-deploy`), o que quebraria a reprodução em produção. `PROXY_LIGADO_POR_PADRAO = false` em `lib/audio/base-url.ts`
     devolve o app às URLs assinadas do B2; a URL padrão fica no código. Religar (true) só após o Worker responder 200/206.
+84. **Proxy restrito e transcodificar sem secret novo (2026-11-12, issue #101):** o proxy só serve `audio/stream/`, `covers/` e
+    `stories/` (`urlDoProxy` e `ALLOWED_PREFIXES`); originais em `tracks/` só por URL assinada. `transcodificar.mjs` usa
+    `SUPABASE_DB_URL` (conexão do `migracao`, via `pg`, só `UPDATE` em colunas de transcode de `tracks`) em vez de
+    `SUPABASE_SECRET_KEY`. Regra permanente no CLAUDE.md: endurecimento próprio sem ampliar acesso é risco baixo; antes de pedir
+    secret, checar se um existente resolve. Reversível por PR.
