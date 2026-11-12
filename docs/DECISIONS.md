@@ -343,3 +343,5 @@ Formato: data · decisão · motivo. Mais recente no fim.
 82. **URL do Worker como padrão no código (2026-11-12):** `https://radioon-audio.radioon.workers.dev` (pública, registrada pelo
     `worker-deploy`) é o padrão em `lib/audio/base-url.ts`; `NEXT_PUBLIC_AUDIO_BASE_URL` sobrescreve e o valor `off` volta às URLs
     assinadas do B2. Nada a configurar na Vercel. Reversível: trocar o padrão ou definir `off`.
+84. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
+    falhar se algum vier vazio (antes gravava vazio em silêncio e o Worker respondia 503). Arquivo protegido (`.github/**`): PR próprio, trava.
