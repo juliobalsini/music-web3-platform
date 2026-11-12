@@ -64,6 +64,10 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 5. PR do Dependabot: o E2E roda contra o app compilado no próprio CI (`next build` + `start`), sem prévia da Vercel
    nem secrets. Não pedir secrets ao Julio para isso.
 6. Rota nova em `PUBLICAS_OK` (auditoria de segurança) exige justificativa no relatório.
+7. Fim de cada execução: fechar (`gh issue close`) as issues "Ação necessária" e "Relatório" já resolvidas ou
+   substituídas; deixar aberta só a do dia, se houver pendência real.
+8. Erro do Supabase: (a) antes de abrir "Ação necessária", consultar status.supabase.com; com incidente ativo, registrar
+   no CONTEXTO.md e tentar na próxima execução, sem alertar; (b) consultar o Supabase Knowledge Base antes de tentar soluções.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
 - **Aprovação (Fase A):** o Julio aprova respondendo "aprovado <itens>" na issue/e-mail do relatório. Ao ler a
   aprovação, criar a issue do trabalho e executar sem precisar de "Instrução extra". Cada relatório propõe 1–3
