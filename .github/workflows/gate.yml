@@ -115,15 +115,19 @@ jobs:
             echo "::error::Sem script \"e2e\" no package.json: nada é mergeado sem a suíte E2E."
             exit 1
           fi
-          if [ -z "${BYPASS}" ]; then
+          if [ "${DEPENDABOT}" != true ] && [ -z "${BYPASS}" ]; then
             echo "::error::Secret VERCEL_AUTOMATION_BYPASS_SECRET ausente."
             exit 1
           fi
         env:
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
 
+      # PR do Dependabot não recebe secrets de Actions: o E2E roda contra o app compilado aqui
+      # (next build + start, via webServer do playwright.config.ts), sem prévia da Vercel.
       - name: Aguardar prévia da Vercel
         id: previa
+        if: github.actor != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ github.token }}
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -173,7 +177,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
 
+      - name: E2E no app compilado (Dependabot)
+        if: github.actor == 'dependabot[bot]'
+        env:
+          # Valores fictícios: as páginas públicas e os redirects não falam com o banco real.
+          NEXT_PUBLIC_SUPABASE_URL: https://e2e.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: e2e-publishable-key
+        run: pnpm e2e
+
       - name: E2E na prévia
+        if: github.actor != 'dependabot[bot]'
         env:
           E2E_BASE_URL: ${{ steps.previa.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}

@@ -93,5 +93,5 @@ for (const s of ordem) {
   const l = ach.filter((a) => a.sev === s);
   if (l.length) console.log(`**${s[0].toUpperCase() + s.slice(1)}** (${l.length})\n${l.map((a) => `- [${a.area}] ${a.msg}`).join("\n")}\n`);
 }
-console.log("_Não cobre: alertas Dependabot/CodeQL/secret scanning (o PAT do agente não os lê; ver relatório) nem RLS contra banco real (tests/rls-anonimos.test.ts)._");
+console.log("_Não cobre: alertas Dependabot/CodeQL/secret scanning (o Julio já os recebe por e-mail; a auditoria não depende da API deles e não exige ampliar o PAT) nem RLS contra banco real (tests/rls-anonimos.test.ts)._");
 process.exit(ach.some((a) => a.sev === "crítico") ? 2 : 0);

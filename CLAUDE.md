@@ -52,6 +52,18 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 - Funcionalidade nova ou mudança de escopo ficam "proposto" até o comentário "aprovado" do Julio
   na issue do relatório (aceitar "aprovado g, h" ou "recusado j"). Sem aprovação, não executar.
 - Nunca propor: serviço pago, credencial nova, mudança de provedor, nada do Ciclo 6.
+## Reduzir ações manuais do Julio (regra permanente)
+1. Nunca pedir ao Julio para rodar workflows: o PAT tem *Actions: Read and write*; disparar com `gh workflow run`
+   (workflow_dispatch) e acompanhar o resultado (`gh run watch`/`gh run view`).
+2. Valores públicos (ex.: URL `*.workers.dev`) entram no código como padrão, com variável de ambiente como sobrescrita
+   opcional; não pedir configuração na Vercel para isso.
+3. Alterações em arquivos protegidos de um mesmo ciclo vão em **um único PR**, para uma só aprovação de trava por ciclo.
+   Antes de abrir (ou reaproveitar) um PR protegido, atualizá-lo sobre a `main` para evitar conflito após a aprovação.
+4. "O que fazer" para o Julio só quando a ação for impossível ao agente (criar contas, chaves, secrets, permissões);
+   para cada uma, explicar por que o agente não pode.
+5. PR do Dependabot: o E2E roda contra o app compilado no próprio CI (`next build` + `start`), sem prévia da Vercel
+   nem secrets. Não pedir secrets ao Julio para isso.
+6. Rota nova em `PUBLICAS_OK` (auditoria de segurança) exige justificativa no relatório.
 <!-- TRAVAS:INICIO (protegida: mudar exige aprovação do Julio no ambiente "travas") -->
 - **Aprovação (Fase A):** o Julio aprova respondendo "aprovado <itens>" na issue/e-mail do relatório. Ao ler a
   aprovação, criar a issue do trabalho e executar sem precisar de "Instrução extra". Cada relatório propõe 1–3
@@ -64,7 +76,7 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 - **Dependabot** (`.github/dependabot.yml`): PR patch/minor com todo o gate verde pode ser mergeado pelo agente;
   **major nunca** — vai para proposta no relatório. Não existe `codeql.yml` (CodeQL em modo Default; um avançado conflita).
 - **Auditoria semanal** (1ª execução de cada segunda-feira, ou se a última tem >7 dias): `node scripts/auditoria-seguranca.mjs`
-  + alertas Dependabot/CodeQL/secret scanning/malware quando o token os lê; resultado na seção "Segurança" do relatório.
+  (não depende de alertas Dependabot/CodeQL/secret scanning: o Julio os recebe por e-mail; não pedir ampliação do PAT); resultado na seção "Segurança" do relatório.
   Severidade crítico/alto/médio/baixo. Corrigir sozinho só baixo que não toca protegidos; o resto vira proposta.
   Crítico → `bash scripts/notify.sh pause` com título "⚠️ Ação necessária" na hora.
 - **Nunca** rotacionar, apagar ou alterar secrets/chaves; listar no relatório o que rotacionar e a ordem segura

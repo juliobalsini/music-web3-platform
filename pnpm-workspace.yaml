@@ -1,3 +1,8 @@
 allowBuilds:
   sharp: false
   unrs-resolver: false
+
+# minimatch 10.x (via @typescript-eslint/typescript-estree) tem advisory corrigido só na 11.0.1;
+# o Dependabot não consegue subir a transitiva sozinho (job "minimatch" falhava com "No update possible").
+overrides:
+  'minimatch@10': '^11.0.1'
