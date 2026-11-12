@@ -280,3 +280,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - [x] **Ícones do PWA / tela de abertura no Android** — concluído em 2026-11-11: manifest com ícones
   `any` (logo inteiro) e `maskable` (zona segura validada, raio 32,7% < 40%) em 192/512, marinho `#00112A`.
   Julio precisa desinstalar e reinstalar o app. Ver `docs/reports/2026-11-11-icones-pwa.md`.
+
+- 2026-11-12 (4ª) — instrução do Julio: #78 + autonomia. PR #81 (workflows e dependabot.yml) e #83 (CLAUDE.md, auditoria, headers, E2E mobile)
+  aguardam `travas`; issue #82; relatório `2026-11-12-autonomia-e-bloqueios.md`. Itens 3–5 do #78 pendentes do merge do #81.
