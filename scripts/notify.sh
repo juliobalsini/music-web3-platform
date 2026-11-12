@@ -38,7 +38,17 @@ redact() {
 #   1. NOTIFY_GH_TOKEN (secret do Codespaces: PAT fine-grained com Actions: write)
 #   2. login próprio do gh (gh auth login), ignorando o GITHUB_TOKEN do Codespace
 #   3. credencial padrão do gh
-gh_# Confirma que o workflow disparado realmente iniciou. Um disparo aceito pela API ainda pode
+gh_dispatch() {
+  if [ -n "${NOTIFY_GH_TOKEN:-}" ]; then
+    GH_TOKEN="$NOTIFY_GH_TOKEN" gh "$@"
+  elif env -u GITHUB_TOKEN -u GH_TOKEN gh auth status >/dev/null 2>&1; then
+    env -u GITHUB_TOKEN -u GH_TOKEN gh "$@"
+  else
+    gh "$@"
+  fi
+}
+
+# Confirma que o workflow disparado realmente iniciou. Um disparo aceito pela API ainda pode
 # terminar em "startup_failure" (instabilidade do GitHub Actions, ex.: notify #33 em 2026-11-11)
 # e o aviso se perderia em silêncio. Devolve 1 só se a execução falhou; sem resposta = ok.
 confirmar() {
