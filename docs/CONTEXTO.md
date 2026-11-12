@@ -264,7 +264,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [~] **Fase A/B — código** (PR entrega-audio-economica): migration `20261112000000`, `lib/audio/`, `scripts/transcodificar.mjs`,
   player com ganho, `/ajustes`, `workers/audio-proxy/`. DECISIONS 69–75; relatório `2026-11-12-entrega-audio.md`.
-- [!] **Bloqueado pelo Julio:** copiar `docs/propostas/workflows/*.yml` para `.github/workflows/`; criar chave B2 de escrita
+- [!] **Bloqueado pelo Julio:** copiar `.github/workflows/{transcodificar,worker-deploy}.yml` para `.github/workflows/`; criar chave B2 de escrita
   só em `audio/stream/` (`S3_WRITE_KEY_ID`/`S3_WRITE_KEY`); conferir se o ambiente tem `SUPABASE_URL`/`SUPABASE_SECRET_KEY`.
 - [ ] **Fase B — E2E na prévia (206 do Worker, KV, ganho) e medição de CPU/memória** — depende do deploy do Worker.
 - [ ] **Fase C — verificação após 48 h em produção** — depende de A e B no ar.
