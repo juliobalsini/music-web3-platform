@@ -284,3 +284,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   aguardam `travas`; issue #82; relatório `2026-11-12-autonomia-e-bloqueios.md`. Itens 3–5 do #78 pendentes do merge do #81.
 
 - 2026-11-12 (5ª) — instrução do Julio: vitrine do repositório e licença proprietária (issue #86, DECISIONS 76–77); relatório `2026-11-12-vitrine-licenca.md`.
+
+- 2026-11-12 (6ª) — ciclo "reduzir ações manuais": #83 atualizado sobre a main e ampliado (regras permanentes, E2E do Dependabot no app compilado, override minimatch, correções de `worker-deploy`/`transcodificar`, regras do #27, que foi fechado). Aguarda `travas`. Pendentes após o merge: redeploy do Worker (registra `workers.dev`), gravar a URL como padrão de `NEXT_PUBLIC_AUDIO_BASE_URL`, transcodificar lote=5 e medições do #78 (itens 4–5); precisa do secret `SUPABASE_SECRET_KEY` no ambiente `producao-db`. Relatório `2026-11-12-ciclo-reduzir-acoes-manuais.md`.

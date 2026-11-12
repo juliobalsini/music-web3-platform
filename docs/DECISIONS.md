@@ -311,7 +311,7 @@ Formato: data · decisão · motivo. Mais recente no fim.
     estimadas por amostragem (contar cada uma gastaria a cota de escritas); exatas só no painel da Cloudflare (Fase C).
 74. **`NEXT_PUBLIC_AUDIO_BASE_URL`:** com ela, `signPlayback`/`signCover` devolvem `<base>/a/<chave>` (sem assinatura); sem ela,
     URL assinada do B2 como hoje. O app nunca lista o bucket.
-75. **Workflows ficam como proposta** em `docs/propostas/workflows/` (o PAT do agente não tem *Workflows* e `.github/**` é
+75. **Workflows** (substituída pela 78: saíram de `docs/propostas/` para `.github/workflows/` no PR #81; o PAT do agente não tem *Workflows* e `.github/**` é
     protegido). O transcodificador precisa de uma chave B2 de **escrita restrita a `audio/stream/`**, inexistente entre os
     secrets; o agente não cria credenciais nem toca nas de escrita existentes.
 76. **Licença proprietária (2026-11-12, aprovada pelo Julio):** o `LICENSE` MIT (2025) foi substituído por
@@ -323,3 +323,21 @@ Formato: data · decisão · motivo. Mais recente no fim.
 77. **Vitrine:** README em inglês com resumo em pt-BR; `metadataBase` usa a URL de produção fixa
     `https://radioon-ten.vercel.app` na Vercel (antes dependia de `VERCEL_PROJECT_PRODUCTION_URL`). Não havia referência
     literal a `music-web3-platform.vercel.app` no repositório.
+78. **Causa real do bloqueio em `.github/**` (2026-11-12):** o `actions/checkout` do `autonomo.yml` usa `token: AGENT_GH_TOKEN`
+    (PAT), então o git empurra com o PAT, não com o GITHUB_TOKEN. O PAT antigo não tinha *Workflows*; o atual tem: um push de
+    teste em `.github/workflows/` foi aceito (branch descartada). O ruleset `main-protecao` só protege a `main` (PR + gate-ok),
+    não bloqueia branches. Logo, PRs em `.github/**` funcionam e esperam só a trava `travas`. O PAT **não** lê alertas de
+    Dependabot, CodeQL nem secret scanning (403): falta *Dependabot alerts / Code scanning alerts / Secret scanning alerts: Read*.
+79. **Autonomia de planejamento e segurança** (regras no CLAUDE.md): aprovação por "aprovado <itens>"; sem aprovação só
+    segurança baixa, dependências verdes, testes instáveis e docs. Dependabot patch/minor com gate verde pode ser
+    mergeado, major vira proposta. Não criamos `codeql.yml`. Dependabot PRs não recebem os secrets de Actions (E2E da prévia
+    precisa de `VERCEL_AUTOMATION_BYPASS_SECRET`): o Julio deve copiá-lo para *Dependabot secrets* ou o agente valida e
+    mergeia manualmente após rodar o gate localmente (decisão do relatório).
+80. **Auditoria de segurança:** `scripts/auditoria-seguranca.mjs` (estática, sem rede, sem imprimir valores). Roda na 1ª execução
+    da semana (sem workflow novo). Headers: HSTS, nosniff, Referrer-Policy, Permissions-Policy e CSP mínima
+    (`frame-ancestors/base-uri/object-src`); `form-action` ficou de fora porque o Chrome o aplica nos redirecionamentos do
+    login (Google). CSP completa com nonces fica como proposta. Worker de áudio ganhou `nosniff`.
+81. **Teste visual mobile:** projetos Playwright `iphone` (viewport/UA iPhone 14, Chromium) e `android` (Pixel 7) só para
+    `e2e/mobile-visual.spec.ts`; screenshots anexados ao relatório HTML do Playwright (artefato do gate). O iPhone não é WebKit
+    real (o gate instala só Chromium).
+
