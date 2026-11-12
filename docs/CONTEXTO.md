@@ -248,18 +248,17 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-10 (2ª execução) — fila vazia; criado `docs/PLANO.md` (roadmap), regra de autoplanejamento
   no `CLAUDE.md` (fora das travas) e proposta da próxima fase (k–o). Sem comentários do Julio nas
   issues de relatório abertas (#32, #38).
-- 2026-11-11 — execução autônoma: nenhum item livre. O único restante (o) segue "proposto", sem
   "aprovado" do Julio (issues #45 aprovou só k–n; #56 sem comentários). Nada executado.
 - 2026-11-11 (2ª execução) — instrução do Julio: acesso sem atrito (item q); ver relatório.
-- 2026-11-11 (3ª execução) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (issues #45, #56, #59 sem comentários dele). Nada executado.
 - 2026-11-11 (4ª execução) — instrução do Julio: auditoria de segurança para anônimos (item s); ver relatório.
 
 - 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).
 
 - 2026-11-12 (2ª) — mesma instrução reaplicada sobre a main: filtros próprios e Continue ouvindo com retomada (decisões 67–68; relatório `2026-11-12-home-filtros.md`).
 - 2026-11-12 — instrução do Julio: redesenho da Home "rádio viva" (PR item home-radio-viva); relatório `2026-11-12-home-radio-viva.md`.
+- 2026-11-11 a 2026-11-12 — execuções sem item livre (4x): o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n); nada executado. Daqui em diante essas execuções não abrem PR nem alteram arquivos: só resumo do workflow + Painel.
+- 2026-11-12 (manutenção) — #68 (checks presos na fila desde 11/11, incidente do Actions junto com o notify #33 `startup_failure`) rebaseado e reenviado; `notify.sh` repete e cria a issue direto se o workflow falhar; teste E2E "toca do cartão No ar" estabilizado (clicava na faixa já tocando e pausava; #75 fechado).
 
-- 2026-11-12 (3ª) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n). Nada executado.
 
 ## Entrega de áudio econômica (instrução do Julio, 2026-11-12; issue #78)
 

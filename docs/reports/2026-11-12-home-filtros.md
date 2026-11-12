@@ -20,3 +20,10 @@ Já corrigido (#69): any com logo inteiro, maskable na zona segura, marinho `#00
 
 ## Capturas 390×844 (`docs/reports/img/home/`)
 `home-topo.png`, `home-completa.png`, `filtro-faixas.png`, `filtro-playlists.png`, `filtro-albuns.png`, `filtro-stories.png` (versões `-completa` com a página inteira; a barra inferior fixa aparece sobre a rolagem nelas).
+`continue-ouvindo.png` (adicionada na execução de manutenção): grade 2×3 com barra de progresso e equalizador na faixa tocando.
+
+## Manutenção (2026-11-12)
+- **#68 (checks na fila desde 11/11):** os runs de gate/CI nunca iniciaram (`queued` sem jobs), no mesmo minuto em que o notify #33 deu `startup_failure`: incidente do GitHub Actions, não do código. Rebase na `main` + novo push reiniciou os checks.
+- **notify #33:** `startup_failure` sem causa no arquivo (o notify seguinte, com o mesmo YAML, passou). `scripts/notify.sh` agora confere o resultado do workflow, repete até 3x e, em último caso, cria a issue direto. ⚠️ `scripts/notify.sh` é protegido: este PR espera o Julio.
+- **Gate #68 no PR #75:** teste instável de verdade (`toca do cartão No ar e de uma aba de lista`): o botão da faixa tocando vira "Pausar …" e o `.first()` às vezes o escolhia, pausando. O teste agora clica numa faixa parada ("Tocar …"). #75 fechado.
+- **Sem item livre:** não abre PR nem altera arquivos (regra no `CLAUDE.md`); registros antigos consolidados numa linha no CONTEXTO. ⚠️ O `autonomo.yml` (protegido) não foi alterado: a regra vale pelo `CLAUDE.md`.

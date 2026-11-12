@@ -115,7 +115,9 @@ test("toca do cartão No ar e de uma aba de lista", async ({ page }) => {
   await page.getByRole("region", { name: "No ar" }).getByTestId("play").click();
   const mini = page.getByTestId("mini-player");
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: DEMO }).first().click();
+  // Só uma faixa parada ("Tocar …"): a que já toca vira "Pausar …" e clicar nela pausaria (causa da instabilidade no gate #68).
+  const outra = page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: new RegExp(`^Tocar (${DEMO.source})`) }).first();
+  await outra.click();
   await expect(mini.getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
 });
 
