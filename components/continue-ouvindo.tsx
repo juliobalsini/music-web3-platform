@@ -13,7 +13,7 @@ export function ContinueOuvindo({ faixas }: { faixas: FaixaListada[] }) {
   return (
     <section aria-label="Continue ouvindo" className="flex flex-col gap-2">
       <h2 className="text-lg font-bold">Continue ouvindo</h2>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+      <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">
         {lista.map((f) => (
           <li key={f.id} className="w-28 shrink-0 snap-start">
             <button

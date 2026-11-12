@@ -7,6 +7,7 @@ import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
 import Link from "next/link";
 
+import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
 import { carregarRadio } from "@/lib/radio/queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
@@ -33,6 +34,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{nome}</h1>
+          {id === PLATAFORMA_ID && <p className="text-sm font-semibold text-brand">Perfil oficial</p>}
           <p className="text-sm text-white/70">
             {[faixas.length > 0 && `${faixas.length} ${faixas.length === 1 ? "faixa" : "faixas"}`, faixas.length > 0 && `${plays} escutas`, playlists.length > 0 && `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}`].filter(Boolean).join(" · ")}
           </p>
@@ -45,6 +47,21 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
         </section>
       )}
       <PlaylistsDaSemana titulo="Playlists" lista={playlists} />
+      {id === PLATAFORMA_ID && (
+        <section aria-label="Seleção radioOn" className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold">Seleção radioOn</h2>
+          <ul className="flex flex-col gap-2">
+            {selecaoRadioOn(radio.faixas, agora).map((s) => (
+              <li key={s.id}>
+                <Link href={`/playlist/${s.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">
+                  <span className="truncate font-semibold">{s.title}</span>
+                  <span className="shrink-0 text-sm text-white/70 tabular-nums">{s.faixas.length} faixas</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {stories.length > 0 && (
         <section aria-label="Stories do perfil" className="flex flex-col gap-2">
           <h2 className="text-lg font-bold">Stories</h2>

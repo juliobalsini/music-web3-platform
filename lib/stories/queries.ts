@@ -8,6 +8,8 @@ import { dadosDemo, demoAtivo } from "@/lib/radio/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+import { PLATAFORMA_ID, PLATAFORMA_NOME, STORY_BOAS_VINDAS_ID, TEXTO_BOAS_VINDAS } from "@/lib/radio/home";
+
 import type { Story } from "./rules";
 
 type Linha = {
@@ -67,5 +69,10 @@ export const carregarStories = cache(async (): Promise<Story[]> => {
   const todas = [...linhas, ...(demo?.stories ?? [])];
   const nomes = await nomesDe([...new Set(todas.filter((l) => !l.is_platform).map((l) => l.author_id))].filter((id) => !demo?.nomes.has(id)));
   for (const [k, v] of demo?.nomes ?? []) nomes.set(k, v);
-  return todas.map((l) => paraStory(l, nomes)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Story fixo de boas-vindas do perfil oficial radioOn: virtual, sempre ativo (nunca vira arquivo).
+  const boasVindas: Story = {
+    id: STORY_BOAS_VINDAS_ID, authorId: PLATAFORMA_ID, authorName: PLATAFORMA_NOME, isPlatform: true, body: TEXTO_BOAS_VINDAS,
+    hasImage: false, trackId: null, clipStart: null, createdAt: new Date().toISOString(),
+  };
+  return [boasVindas, ...todas.map((l) => paraStory(l, nomes))].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 });

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 
-import { Busca } from "@/components/busca";
+import { CabecalhoHome } from "@/components/cabecalho-home";
 import { RadioCliente } from "@/components/radio-cliente";
 import { PlayVazio } from "@/components/secoes-radio";
-import { lerAba, lerFiltro } from "@/lib/menu";
+import { lerAba } from "@/lib/menu";
 import { carregarRadio, continuarOuvindo } from "@/lib/radio/queries";
 import { getSessaoAny } from "@/lib/session";
 import { carregarStories } from "@/lib/stories/queries";
@@ -29,21 +29,24 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
 
   return (
     <>
-      <Busca />
-      <RadioCliente radio={radio} continuar={continuar} stories={stories} faixasDosStories={faixasDosStories} agora={agora} filtroInicial={lerFiltro(sp.f)} abaInicial={lerAba(sp.aba)} />
+      <CabecalhoHome ouvindo={radio.ouvindo} />
+      <RadioCliente radio={radio} continuar={continuar} stories={stories} faixasDosStories={faixasDosStories} agora={agora} abaInicial={lerAba(sp.aba)} />
     </>
   );
 }
 
 export default function Radio({ searchParams }: PageProps<"/">) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-2">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4">
       <h1 className="sr-only">radioOn · Rádio</h1>
       <Suspense
         fallback={
-          <div className="flex justify-center py-16">
-            <PlayVazio />
-          </div>
+          <>
+            <CabecalhoHome ouvindo={1} />
+            <div className="flex justify-center py-16">
+              <PlayVazio />
+            </div>
+          </>
         }
       >
         <Conteudo searchParams={searchParams} />

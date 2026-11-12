@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { ConteudoStory, type FaixaDoStory } from "@/components/conteudo-story";
+import { Logo } from "@/components/logo";
 import { capaGerada } from "@/lib/radio/rules";
 import { agruparPorAutor, type Story } from "@/lib/stories/rules";
 
@@ -12,7 +13,8 @@ import { agruparPorAutor, type Story } from "@/lib/stories/rules";
  * autor (do mais antigo ao mais novo) e depois fecha. `agora` vem do servidor (render puro).
  */
 export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; faixas: Record<string, FaixaDoStory>; agora: number }) {
-  const grupos = agruparPorAutor(stories);
+  // O perfil oficial radioOn vem sempre primeiro, como o story fixo do Instagram.
+  const grupos = agruparPorAutor(stories).sort((a, b) => Number(b.isPlatform) - Number(a.isPlatform));
   const [aberto, setAberto] = useState<{ g: number; i: number } | null>(null);
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -35,17 +37,17 @@ export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; fai
 
   return (
     <section aria-label="Stories" className="flex flex-col gap-2">
-      <ul className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+      <ul className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
         {grupos.map((g, idx) => (
-          <li key={g.authorId} className="w-[4.5rem] shrink-0">
+          <li key={g.authorId} className="w-[4.75rem] shrink-0">
             <button type="button" onClick={() => setAberto({ g: idx, i: 0 })} aria-label={`Ver stories de ${g.authorName}`} className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
               <span className="rounded-full bg-gradient-to-br from-brand to-brand-2 p-[3px]">
                 <span
                   aria-hidden="true"
-                  style={{ background: capaGerada(g.authorName).fundo }}
-                  className="flex size-14 items-center justify-center rounded-full border-2 border-night-900 text-xl font-bold text-white"
+                  style={g.isPlatform ? undefined : { background: capaGerada(g.authorName).fundo }}
+                  className={`flex size-16 items-center justify-center rounded-full border-[3px] border-night-900 text-xl font-bold text-white ${g.isPlatform ? "bg-night-800" : ""}`}
                 >
-                  {g.authorName.charAt(0).toUpperCase()}
+                  {g.isPlatform ? <Logo className="h-10 w-auto" alt="" /> : g.authorName.charAt(0).toUpperCase()}
                 </span>
               </span>
               <span className="w-full truncate text-center text-xs font-semibold">{g.authorName}</span>

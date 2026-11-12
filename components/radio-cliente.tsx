@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Albuns } from "@/components/albuns";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
@@ -8,31 +8,19 @@ import { ContinueOuvindo } from "@/components/continue-ouvindo";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { FaixaStories } from "@/components/faixa-stories";
 import type { FaixaDoStory } from "@/components/conteudo-story";
-import { EstadoVazio, PlaylistsDaSemana } from "@/components/secoes-radio";
-import { ABAS, abaVizinha, direcaoDoGesto, filtrosVisiveis, type Aba, type Filtro } from "@/lib/menu";
+import { CarrosselFaixas } from "@/components/carrossel-faixas";
+import { ArtistasParaConhecer, SelecaoRadioOn } from "@/components/home-prateleiras";
+import { EstadoVazio } from "@/components/secoes-radio";
+import { ABAS, abaVizinha, direcaoDoGesto, type Aba } from "@/lib/menu";
+import { artistasParaConhecer, selecaoRadioOn } from "@/lib/radio/home";
+import { prateleiraClima } from "@/lib/radio/home";
+import { rotuloClima } from "@/lib/radio/generos";
 import type { Radio } from "@/lib/radio/queries";
 import type { FaixaListada } from "@/lib/radio/rules";
 import type { Story } from "@/lib/stories/rules";
 
-const chip = "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold";
-
-/** Selo "No ar · N ouvindo" no topo da Rádio. */
-function SeloNoAr({ ouvindo }: { ouvindo: number | null }) {
-  return (
-    <p data-testid="selo-no-ar" className="flex items-center gap-2 self-start rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-brand">
-      <span aria-hidden="true" className="size-2 rounded-full bg-brand" style={{ animation: "eq 1.4s ease-in-out infinite" }} />
-      No ar
-      {ouvindo !== null && ouvindo > 0 && (
-        <span data-testid="ouvindo" className="font-semibold text-white/80">
-          · {ouvindo} ouvindo
-        </span>
-      )}
-    </p>
-  );
-}
-
 /**
- * Rádio no cliente: filtros e abas trocam por estado local (sem ida ao servidor) e as abas aceitam
+ * Home no cliente: as abas trocam por estado local (sem ida ao servidor) e as abas aceitam
  * o gesto de arrastar. A URL só informa o ponto de partida (?f=, ?aba=) e é atualizada sem navegar.
  */
 export function RadioCliente({
@@ -41,7 +29,6 @@ export function RadioCliente({
   stories,
   faixasDosStories,
   agora,
-  filtroInicial,
   abaInicial,
 }: {
   radio: Radio;
@@ -50,106 +37,83 @@ export function RadioCliente({
   stories: Story[];
   faixasDosStories: Record<string, FaixaDoStory>;
   agora: number;
-  filtroInicial: Filtro;
   abaInicial: Aba | null;
 }) {
-  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: stories.length > 0 });
-  const [filtro, setFiltro] = useState<Filtro>(filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo");
   const [aba, setAba] = useState<Aba>(abaInicial ?? "descobertas");
   const toque = useRef<{ x: number; y: number } | null>(null);
-  const mostra = (...f: Filtro[]) => filtro === "tudo" || f.includes(filtro);
+  const clima = useMemo(() => prateleiraClima(radio.faixas, agora), [radio.faixas, agora]);
+  const selecao = useMemo(() => selecaoRadioOn(radio.faixas, agora), [radio.faixas, agora]);
+  const artistas = useMemo(() => artistasParaConhecer(radio.faixas), [radio.faixas]);
 
-  function lembrar(f: Filtro, a: Aba) {
-    const q = new URLSearchParams();
-    if (f !== "tudo") q.set("f", f);
-    if (a !== "descobertas") q.set("aba", a);
-    history.replaceState(null, "", q.size ? `/?${q}` : "/");
-  }
-  const escolherFiltro = (f: Filtro) => {
-    setFiltro(f);
-    lembrar(f, aba);
-  };
   const escolherAba = (a: Aba) => {
     setAba(a);
-    lembrar(filtro, a);
+    history.replaceState(null, "", a === "descobertas" ? "/" : `/?aba=${a}`);
   };
 
   const alta = radio.emAlta;
   return (
     <>
-      <SeloNoAr ouvindo={radio.ouvindo} />
-      {mostra("stories") && <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />}
-      <nav aria-label="Filtros" className="-mx-4 flex gap-2 overflow-x-auto px-4">
-        {filtros.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => escolherFiltro(f.id)}
-            aria-pressed={filtro === f.id}
-            className={`${chip} ${filtro === f.id ? "bg-brand text-night-900" : "bg-white/10 text-white hover:bg-white/15"}`}
+      <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />
+      {radio.faixas.length === 0 || !radio.noAr ? (
+        <EstadoVazio />
+      ) : (
+        <>
+          <CartaoNoAr faixa={radio.noAr.faixa} fila={radio.noAr.fila} continuo={radio.noAr.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
+          <CarrosselFaixas
+            titulo={`Agora combina com ${rotuloClima(clima.clima)}`}
+            dica={clima.recentes ? "Ainda sem faixas deste clima: as mais recentes" : undefined}
+            faixas={clima.faixas}
+          />
+          <ContinueOuvindo faixas={continuar} />
+          <SelecaoRadioOn lista={selecao} />
+          <section
+            aria-label="Faixas"
+            className="flex touch-pan-y flex-col gap-1"
+            onTouchStart={(e) => {
+              toque.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }}
+            onTouchEnd={(e) => {
+              const t = toque.current;
+              toque.current = null;
+              if (!t) return;
+              const d = direcaoDoGesto(e.changedTouches[0].clientX - t.x, e.changedTouches[0].clientY - t.y);
+              if (d !== 0) escolherAba(abaVizinha(aba, d));
+            }}
           >
-            {f.label}
-          </button>
-        ))}
-      </nav>
-
-      {mostra("faixas") &&
-        (radio.faixas.length === 0 || !radio.noAr ? (
-          <EstadoVazio />
-        ) : (
-          <>
-            <CartaoNoAr faixa={radio.noAr.faixa} fila={radio.noAr.fila} continuo={radio.noAr.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
-            <ContinueOuvindo faixas={continuar} />
-            <section
-              aria-label="Faixas"
-              className="flex touch-pan-y flex-col gap-1"
-              onTouchStart={(e) => {
-                toque.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-              }}
-              onTouchEnd={(e) => {
-                const t = toque.current;
-                toque.current = null;
-                if (!t) return;
-                const d = direcaoDoGesto(e.changedTouches[0].clientX - t.x, e.changedTouches[0].clientY - t.y);
-                if (d !== 0) escolherAba(abaVizinha(aba, d));
-              }}
-            >
-              <div role="tablist" aria-label="Listas" className="mb-1 flex gap-1 border-b border-white/10">
-                {ABAS.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={aba === a.id}
-                    onClick={() => escolherAba(a.id)}
-                    className={`flex min-h-11 items-center px-3 text-sm font-semibold ${aba === a.id ? "border-b-2 border-brand text-brand" : "text-white/70 hover:text-white"}`}
-                  >
-                    {a.label}
-                  </button>
-                ))}
-              </div>
-              {aba === "descobertas" && (
-                <ListaFaixas
-                  rotulo="Descobertas"
-                  faixas={radio.descobertas}
-                  numerar
-                  dica={radio.descobertasCuradas ? "Pouco ouvidas, escolhidas a dedo por playlisters" : "Ainda sem curadoria: as faixas menos ouvidas"}
-                />
-              )}
-              {aba === "alta" &&
-                (alta.length > 0 ? (
-                  <ListaFaixas rotulo="Em alta" dica="As mais ouvidas da semana na rádio" ranking={alta} />
-                ) : (
-                  <ListaFaixas rotulo="Em alta" dica="Ainda sem ranking: mais recentes" faixas={radio.novidades} numerar />
-                ))}
-              {aba === "novidades" && <ListaFaixas rotulo="Novidades" numerar dica="Acabaram de chegar de artistas independentes" faixas={radio.novidades} />}
-            </section>
-          </>
-        ))}
-
-      {mostra("albuns") && <Albuns lista={radio.albuns} />}
-      {mostra("playlists") && <PlaylistsDaSemana lista={radio.playlists} />}
-      {filtro === "playlists" && radio.playlists.length === 0 && <p className="text-white/70">Nenhuma playlist pública ainda.</p>}
+            <div role="tablist" aria-label="Listas" className="mb-1 flex gap-1 border-b border-white/10">
+              {ABAS.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={aba === a.id}
+                  onClick={() => escolherAba(a.id)}
+                  className={`flex min-h-11 items-center px-3 text-sm font-semibold ${aba === a.id ? "border-b-2 border-brand text-brand" : "text-white/70 hover:text-white"}`}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            {aba === "descobertas" && (
+              <ListaFaixas
+                rotulo="Descobertas"
+                faixas={radio.descobertas}
+                numerar
+                dica={radio.descobertasCuradas ? "Pouco ouvidas, escolhidas a dedo por playlisters" : "Ainda sem curadoria: as faixas menos ouvidas"}
+              />
+            )}
+            {aba === "alta" &&
+              (alta.length > 0 ? (
+                <ListaFaixas rotulo="Em alta" dica="As mais ouvidas da semana na rádio" ranking={alta} />
+              ) : (
+                <ListaFaixas rotulo="Em alta" dica="Ainda sem ranking: mais recentes" faixas={radio.novidades} numerar />
+              ))}
+            {aba === "novidades" && <ListaFaixas rotulo="Novidades" numerar dica="Acabaram de chegar de artistas independentes" faixas={radio.novidades} />}
+          </section>
+          <ArtistasParaConhecer lista={artistas} />
+        </>
+      )}
+      <Albuns lista={radio.albuns} />
     </>
   );
 }
