@@ -289,3 +289,28 @@ Formato: data · decisão · motivo. Mais recente no fim.
     o servidor só completa com faixas ouvidas pela conta (sem posição). Grade 2×3 de até 6 itens, oculta com menos de 2.
     Não toca em pontos nem validação de escuta. Trade-off: não sincroniza entre aparelhos. Filtro Playlists: Seleção radioOn
     primeiro, depois as dos playlisters (capa da 1ª faixa); "Criar playlist" leva a `/curador` (o proxy pede login).
+
+## 2026-11-12 · Entrega de áudio econômica (instrução do Julio; issue #78)
+
+69. **Vestígio de Cloudflare/R2:** só documental (decisão 22: o R2 saiu por exigir cartão, regra 6). Nenhum `wrangler.toml`,
+    dependência, variável ou código de R2 existia; `tracks.r2_key` mantém o nome só por compatibilidade. Nada a remover.
+    Workers + KV no plano gratuito não pedem cartão e o Worker **não é armazenamento**: o B2 segue sendo o único.
+70. **AAC 192 kbps só para origens sem perda ou lossy ≥ 256 kbps** (taxa original até 48 kHz, sem filtro). Lossy < 256 kbps
+    não é recodificada (remux para .m4a só se já for AAC); codec ou bitrate desconhecido mantém o original. Original nunca é
+    apagado. Regra em `lib/audio/transcode.ts` (testada); execução em `scripts/transcodificar.mjs`.
+71. **Loudness aplicada no player, nunca no arquivo.** O ffmpeg só mede (ebur128 → `loudness_lufs`). O player leva a faixa a
+    −14 LUFS com ganho máx. +6 dB e um limitador (compressor) contra clipping; Ajustes › "Normalizar volume" (ligado por
+    padrão, por aparelho). Web Audio só quando a origem é o proxy (responde CORS); em URL assinada do B2 (sem CORS de leitura)
+    o `crossOrigin` derrubaria a faixa, então ali só há atenuação via `volume`.
+72. **Migration aditiva sem UPDATE:** a allowlist não aceita backfill. `transcode_status` nulo = pendente (o transcodificador
+    consulta NULL ou `pending`), o que marca todas as faixas existentes sem escrita em massa. Lotes: `LOTE_MAX` (15) e
+    `LOTE_MAX_MB` (250) por execução de 30 min, cada download de original = 1 Classe B.
+73. **Proxy `workers.dev` com cache em KV** (`workers/audio-proxy`): 1 GET completo ao B2 no primeiro acesso, KV com TTL 7 dias
+    (≤ 25 MB, total < 900 MB), Range fatiado do KV (206), prefixos fixos, CORS só produção e prévias. Chave B2 **somente
+    leitura** dedicada ao Worker. A partir de 80% das escritas ou leituras diárias do KV serve direto do B2. Leituras são
+    estimadas por amostragem (contar cada uma gastaria a cota de escritas); exatas só no painel da Cloudflare (Fase C).
+74. **`NEXT_PUBLIC_AUDIO_BASE_URL`:** com ela, `signPlayback`/`signCover` devolvem `<base>/a/<chave>` (sem assinatura); sem ela,
+    URL assinada do B2 como hoje. O app nunca lista o bucket.
+75. **Workflows ficam como proposta** em `docs/propostas/workflows/` (o PAT do agente não tem *Workflows* e `.github/**` é
+    protegido). O transcodificador precisa de uma chave B2 de **escrita restrita a `audio/stream/`**, inexistente entre os
+    secrets; o agente não cria credenciais nem toca nas de escrita existentes.

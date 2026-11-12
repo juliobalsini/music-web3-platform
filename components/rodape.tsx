@@ -6,6 +6,7 @@ const link = "foco-claro inline-flex min-h-11 items-center underline underline-o
 export function Rodape() {
   return (
     <footer className="mx-auto mt-10 flex w-full max-w-md items-center justify-center gap-6 px-6 text-sm text-white/70">
+      <Link href="/ajustes" className={link}>Ajustes</Link>
       <Link href="/privacidade" className={link}>Privacidade</Link>
       <Link href="/termos" className={link}>Termos</Link>
     </footer>
