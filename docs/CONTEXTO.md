@@ -261,6 +261,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-12 (3ª) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n). Nada executado.
 
+- 2026-11-12 (4ª) — nenhum item livre: o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n). A instrução extra era só contexto; Home, stories e filtros (#26, #28 e posteriores) já estão na main. Nada executado.
+
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
