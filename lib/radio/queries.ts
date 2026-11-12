@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { cache } from "react";
 
 import { dadosDemo, demoAtivo } from "./demo";
+import { selecaoRadioOn } from "./home";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,7 +29,13 @@ import {
 
 
 export type PlaylisterResumo = { id: string; name: string; playlists: number; faixas: number; topPlaylistId: string };
-export type PlaylistSemana = { id: string; title: string; curator: string | null; curatorId: string; trackCount: number };
+export type PlaylistSemana = {
+  id: string; title: string; curator: string | null; curatorId: string; trackCount: number;
+  /** Primeira faixa da playlist: a capa dela ilustra a playlist. */
+  capa: { id: string; title: string; hasCover: boolean } | null;
+};
+
+export type SelecaoRadioOn = { id: string; title: string; trackCount: number; capa: { id: string; title: string; hasCover: boolean } | null; faixaIds: string[] };
 
 export type Radio = {
   faixas: FaixaListada[];
@@ -36,6 +43,8 @@ export type Radio = {
   descobertas: FaixaListada[];
   /** true = escolhidas por playlisters; false = fallback "menos ouvidas" (sem curadoria ainda). */
   descobertasCuradas: boolean;
+  /** Seleção radioOn: playlists automáticas da plataforma (virtuais), recalculadas a cada requisição. */
+  selecao: SelecaoRadioOn[];
   novidades: FaixaListada[];
   albuns: AlbumResumo[];
   playlisters: PlaylisterResumo[];
@@ -45,7 +54,7 @@ export type Radio = {
   programa: { atual: Programa | null; proximo: Programa | null };
   /** Faixa "No ar" e a fila que segue (playlist do programa no horário; senão, o fluxo da Rádio radioOn). */
   noAr: { faixa: FaixaListada; fila: FaixaListada[]; continuo: boolean } | null;
-  /** null = indisponível (sem service_role); a UI esconde o contador. */
+  /** Ouvintes com batimento recente (null = indisponível, sem service_role). */
   ouvindo: number | null;
 };
 
@@ -54,6 +63,7 @@ const VAZIO: Radio = {
   emAlta: [],
   descobertas: [],
   descobertasCuradas: false,
+  selecao: [],
   novidades: [],
   albuns: [],
   playlisters: [],
@@ -270,7 +280,15 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       r.faixas += p.playlist_tracks.length;
       porCurador.set(p.curator_id, r);
     }
-    const resumo = (p: LinhaPlaylist): PlaylistSemana => ({ id: p.id, title: p.title, curator: nomeDe(p.curator_id), curatorId: p.curator_id, trackCount: p.playlist_tracks.length });
+    const faixaPorId = new Map(faixas.map((f) => [f.id, f]));
+    const capaDe = (id: string | undefined) => {
+      const f = id ? faixaPorId.get(id) : undefined;
+      return f ? { id: f.id, title: f.title, hasCover: f.hasCover } : null;
+    };
+    const resumo = (p: LinhaPlaylist): PlaylistSemana => ({
+      id: p.id, title: p.title, curator: nomeDe(p.curator_id), curatorId: p.curator_id, trackCount: p.playlist_tracks.length,
+      capa: capaDe([...p.playlist_tracks].sort((a, b) => a.position - b.position).find((i) => faixaPorId.has(i.track_id))?.track_id),
+    });
     const semana = playlists.filter((p) => agora - Date.parse(p.created_at) < SEMANA);
     const base = semana.length > 0 ? semana : playlists;
 
@@ -298,9 +316,14 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       noAr = { faixa: fluxo[0], fila: fluxo, continuo: true };
     }
 
+    const selecao: SelecaoRadioOn[] = selecaoRadioOn(faixas, agora).map((l) => ({
+      id: l.id, title: l.titulo, trackCount: l.faixas.length, capa: capaDe(l.faixas[0]), faixaIds: l.faixas,
+    }));
+
     return {
       faixas,
       noAr,
+      selecao,
       emAlta,
       descobertas: curadas.length > 0 ? curadas : menosOuvidas(faixas),
       descobertasCuradas: curadas.length > 0,
@@ -360,4 +383,26 @@ export async function continuarOuvindo(userId: string, faixas: FaixaListada[], l
   } catch {
     return [];
   }
+}
+
+
+/**
+ * Selo "No ar · N ouvindo": N sempre inclui quem está olhando (mínimo 1). `eu` é o id da sessão (conta ou
+ * visitante); sem sessão, o visitante é somado como mais um.
+ */
+export async function ouvintesNoAr(eu: string | null): Promise<number> {
+  const agora = Date.now();
+  const ids = new Set<string>();
+  try {
+    const { data, error } = await createAdminClient()
+      .from("listen_events")
+      .select("user_id,last_beat_at")
+      .gte("last_beat_at", new Date(agora - 3 * 60 * 1000).toISOString())
+      .limit(2000);
+    if (!error) for (const l of (data ?? []) as { user_id: string; last_beat_at: string | null }[]) if (l.last_beat_at) ids.add(l.user_id);
+  } catch {
+    /* sem service_role: só quem olha */
+  }
+  if (demoAtivo() && ids.size === 0) for (const d of ["demo-1", "demo-2"]) ids.add(d);
+  return ids.size + (eu && ids.has(eu) ? 0 : 1);
 }

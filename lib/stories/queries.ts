@@ -4,11 +4,12 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { cache } from "react";
 
+import { RADIOON_ID } from "@/lib/radio/home";
 import { dadosDemo, demoAtivo } from "@/lib/radio/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import type { Story } from "./rules";
+import { storyBoasVindas, type Story } from "./rules";
 
 type Linha = {
   id: string; author_id: string; is_platform: boolean; body: string | null; image_key: string | null;
@@ -20,7 +21,8 @@ const COLUNAS = "id,author_id,is_platform,body,image_key,track_id,clip_start,hid
 export function paraStory(l: Linha, nomes: Map<string, string>): Story {
   return {
     id: l.id,
-    authorId: l.author_id,
+    // Todo story de plataforma sai pelo perfil oficial radioOn (um só círculo).
+    authorId: l.is_platform ? RADIOON_ID : l.author_id,
     authorName: l.is_platform ? "radioOn" : (nomes.get(l.author_id) ?? "Artista"),
     isPlatform: l.is_platform,
     body: l.body,
@@ -67,5 +69,6 @@ export const carregarStories = cache(async (): Promise<Story[]> => {
   const todas = [...linhas, ...(demo?.stories ?? [])];
   const nomes = await nomesDe([...new Set(todas.filter((l) => !l.is_platform).map((l) => l.author_id))].filter((id) => !demo?.nomes.has(id)));
   for (const [k, v] of demo?.nomes ?? []) nomes.set(k, v);
-  return todas.map((l) => paraStory(l, nomes)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const agora = Date.now();
+  return [storyBoasVindas(agora), ...todas.map((l) => paraStory(l, nomes))].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 });

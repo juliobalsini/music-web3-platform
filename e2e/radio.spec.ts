@@ -46,7 +46,7 @@ test("Rádio cheia: cartão No ar, grade, abas, playlisters e playlists", async 
   const noAr = page.getByRole("region", { name: "No ar" });
   await expect(noAr).toBeVisible();
   await expect(noAr.getByText("Ouça 30s e ganhe pontos")).toBeVisible();
-  await expect(page.getByTestId("selo-no-ar")).toContainText("No ar");
+  await expect(page.getByTestId("selo-no-ar")).toContainText(/No ar\s*·\s*[1-9]\d* ouvindo/);
   // Sem histórico, "Continue ouvindo" fica oculto; Playlisters saiu da Rádio.
   await expect(page.getByRole("region", { name: "Continue ouvindo" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Playlisters em alta" })).toHaveCount(0);
@@ -56,7 +56,91 @@ test("Rádio cheia: cartão No ar, grade, abas, playlisters e playlists", async 
   await expect(page.getByRole("list", { name: "Descobertas" }).getByRole("button").first()).toBeVisible();
   await abas.getByRole("tab", { name: "Em alta" }).click();
   await expect(page.getByRole("list", { name: "Em alta" }).getByRole("button").first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Playlists da semana" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Seleção radioOn" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Artistas para conhecer" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Agora combina com / })).toBeVisible();
+});
+
+test("Home: stories logo após o cabeçalho, A seguir com 3 faixas que pulam, ordem das seções", async ({ page }) => {
+  await radioCarregada(page);
+  const stories = page.getByRole("region", { name: "Stories" });
+  await expect(stories.getByRole("button", { name: "Ver stories de radioOn" })).toBeVisible();
+  const seguir = page.getByTestId("a-seguir");
+  await expect(seguir.getByRole("listitem")).toHaveCount(3);
+  // Ordem vertical: stories, No ar, Agora combina, Seleção, Descobertas, Artistas.
+  const topo = async (l: ReturnType<Page["locator"]>) => (await l.first().boundingBox())!.y;
+  const ys = [
+    await topo(stories),
+    await topo(page.getByRole("region", { name: "No ar" })),
+    await topo(page.getByTestId("agora-combina")),
+    await topo(page.getByTestId("selecao")),
+    await topo(page.getByRole("tablist", { name: "Listas" })),
+    await topo(page.getByTestId("artistas")),
+  ];
+  expect(ys).toEqual([...ys].sort((a, b) => a - b));
+  // Toque numa faixa de "A seguir" pula até ela.
+  const alvo = seguir.getByRole("button").first();
+  const nome = (await alvo.getAttribute("aria-label"))!.replace("Pular para ", "").split(",")[0];
+  await alvo.click();
+  await expect(page.getByTestId("mini-player")).toContainText(nome, { timeout: 15_000 });
+});
+
+test("Continue ouvindo: grade de atalhos, progresso e retomada do ponto exato", async ({ page }) => {
+  await radioCarregada(page);
+  // Histórico local do aparelho: duas faixas (uma com progresso), uma playlist e um perfil.
+  const faixas = await page.getByRole("list", { name: "Descobertas" }).getByRole("button").evaluateAll((bs) => bs.length);
+  expect(faixas).toBeGreaterThan(1);
+  await page.getByRole("list", { name: "Descobertas" }).getByRole("button").first().click();
+  await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  await page.waitForTimeout(2500);
+  await page.getByTestId("mini-player").getByRole("button", { name: "Pausar" }).click();
+  await page.goto("/album/00000000-0000-4000-8000-000000000401");
+  await expect(page.getByRole("heading", { name: "Sinais" })).toBeVisible({ timeout: 20_000 });
+  await page.goto("/");
+  const secao = page.getByRole("region", { name: "Continue ouvindo" });
+  await expect(secao).toBeVisible({ timeout: 20_000 });
+  expect(await secao.getByRole("listitem").count()).toBeGreaterThanOrEqual(2);
+  expect(await secao.getByRole("listitem").count()).toBeLessThanOrEqual(6);
+  await expect(secao.getByTestId("progresso").first()).toBeVisible();
+});
+
+test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
+  await radioCarregada(page);
+  const filtros = page.getByRole("navigation", { name: "Filtros" });
+  // Faixas: catálogo com ordenação, gêneros, Tocar tudo e Aleatório; artista abre o perfil.
+  await filtros.getByRole("button", { name: "Faixas" }).click();
+  await expect(page.getByRole("region", { name: "Últimas adicionadas" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Ordenar" }).getByRole("button")).toHaveText(["Recentes", "Mais ouvidas", "Mais curtidas", "A–Z"]);
+  await expect(page.getByTestId("tocar-tudo")).toBeVisible();
+  await expect(page.getByTestId("aleatorio")).toBeVisible();
+  await page.getByRole("group", { name: "Ordenar" }).getByRole("button", { name: "A–Z" }).click();
+  const catalogo = page.getByTestId("catalogo");
+  const titulos = await catalogo.getByRole("listitem").getByTestId("titulo-faixa").allTextContents();
+  expect(titulos.length).toBeGreaterThanOrEqual(8);
+  expect(titulos).toEqual([...titulos].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" })));
+  await expect(catalogo.getByRole("link").first()).toHaveAttribute("href", /\/perfil\//);
+  // Rolagem própria de cada filtro.
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await filtros.getByRole("button", { name: "Playlists" }).click();
+  await expect(page.getByTestId("criar-playlist")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Seleção radioOn" })).toBeVisible();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await filtros.getByRole("button", { name: "Faixas" }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  await filtros.getByRole("button", { name: "Álbuns" }).click();
+  await expect(page.getByRole("region", { name: "Álbuns e EPs" }).getByRole("link").first()).toBeVisible();
+  await filtros.getByRole("button", { name: "Stories" }).click();
+  await expect(page.getByTestId("stories-grade").getByRole("button").first()).toBeVisible();
+});
+
+test("Seleção radioOn abre a playlist automática e o perfil radioOn tem o story fixo", async ({ page }) => {
+  await radioCarregada(page);
+  await page.getByRole("region", { name: "Seleção radioOn" }).getByRole("link").first().click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByText("Seleção radioOn ·")).toBeVisible();
+  await page.goto("/perfil/00000000-0000-4000-8000-00000000f001");
+  await expect(page.getByRole("heading", { name: "radioOn", exact: true })).toBeVisible();
+  await expect(page.getByText("Bem-vindo ao radioOn")).toBeVisible();
 });
 
 test("Ouvir agora toca, mini player persiste e abre o player cheio", async ({ page }) => {

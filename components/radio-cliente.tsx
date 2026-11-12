@@ -1,14 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Albuns } from "@/components/albuns";
+import { CatalogoFaixas } from "@/components/catalogo-faixas";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
-import { ContinueOuvindo } from "@/components/continue-ouvindo";
-import { ListaFaixas } from "@/components/lista-faixas";
-import { FaixaStories } from "@/components/faixa-stories";
+import { CarrosselFaixas } from "@/components/carrossel-faixas";
 import type { FaixaDoStory } from "@/components/conteudo-story";
-import { EstadoVazio, PlaylistsDaSemana } from "@/components/secoes-radio";
+import { ContinueOuvindo } from "@/components/continue-ouvindo";
+import { FaixaStories } from "@/components/faixa-stories";
+import { GradeAlbuns, GradePlaylists } from "@/components/grades";
+import { ListaFaixas } from "@/components/lista-faixas";
+import { ArtistasParaConhecer, SelecaoPrateleira } from "@/components/prateleiras";
+import { EstadoVazio } from "@/components/secoes-radio";
+import type { ArtistaConhecer } from "@/lib/radio/home";
 import { ABAS, abaVizinha, direcaoDoGesto, filtrosVisiveis, type Aba, type Filtro } from "@/lib/menu";
 import type { Radio } from "@/lib/radio/queries";
 import type { FaixaListada } from "@/lib/radio/rules";
@@ -16,28 +20,19 @@ import type { Story } from "@/lib/stories/rules";
 
 const chip = "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold";
 
-/** Selo "No ar · N ouvindo" no topo da Rádio. */
-function SeloNoAr({ ouvindo }: { ouvindo: number | null }) {
-  return (
-    <p data-testid="selo-no-ar" className="flex items-center gap-2 self-start rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold text-brand">
-      <span aria-hidden="true" className="size-2 rounded-full bg-brand" style={{ animation: "eq 1.4s ease-in-out infinite" }} />
-      No ar
-      {ouvindo !== null && ouvindo > 0 && (
-        <span data-testid="ouvindo" className="font-semibold text-white/80">
-          · {ouvindo} ouvindo
-        </span>
-      )}
-    </p>
-  );
-}
+export type ClimaAgora = { id: string; label: string; faixas: FaixaListada[]; doClima: boolean };
 
 /**
- * Rádio no cliente: filtros e abas trocam por estado local (sem ida ao servidor) e as abas aceitam
- * o gesto de arrastar. A URL só informa o ponto de partida (?f=, ?aba=) e é atualizada sem navegar.
+ * Rádio no cliente. Cada filtro é uma visão própria (não um recorte da Home): a troca é instantânea
+ * (as visões já abertas ficam montadas, só escondidas) e cada uma lembra a posição de rolagem.
+ * A URL só informa o ponto de partida (?f=, ?aba=) e é atualizada sem navegar.
  */
 export function RadioCliente({
   radio,
-  continuar,
+  continuarServidor,
+  validos,
+  clima,
+  artistas,
   stories,
   faixasDosStories,
   agora,
@@ -45,7 +40,12 @@ export function RadioCliente({
   abaInicial,
 }: {
   radio: Radio;
-  continuar: FaixaListada[];
+  /** Escutas da conta (servidor), para completar o histórico local do Continue ouvindo. */
+  continuarServidor: FaixaListada[];
+  /** Ids de playlists, álbuns e perfis que existem (valida os atalhos locais). */
+  validos: string[];
+  clima: ClimaAgora;
+  artistas: ArtistaConhecer[];
   /** Stories ativos (últimos 7 dias). */
   stories: Story[];
   faixasDosStories: Record<string, FaixaDoStory>;
@@ -54,10 +54,24 @@ export function RadioCliente({
   abaInicial: Aba | null;
 }) {
   const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: stories.length > 0 });
-  const [filtro, setFiltro] = useState<Filtro>(filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo");
+  const inicial: Filtro = filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo";
+  const [filtro, setFiltro] = useState<Filtro>(inicial);
+  const [abertos, setAbertos] = useState<Set<Filtro>>(() => new Set<Filtro>([inicial]));
   const [aba, setAba] = useState<Aba>(abaInicial ?? "descobertas");
   const toque = useRef<{ x: number; y: number } | null>(null);
-  const mostra = (...f: Filtro[]) => filtro === "tudo" || f.includes(filtro);
+  const rolagem = useRef<Partial<Record<Filtro, number>>>({});
+
+  // Depois de abrir a tela, monta as outras visões em segundo plano: a primeira troca também é instantânea.
+  useEffect(() => {
+    const t = setTimeout(() => setAbertos(new Set(filtros.map((f) => f.id))), 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só no primeiro desenho
+  }, []);
+
+  // Restaura a rolagem da visão escolhida (a de cada filtro é independente).
+  useEffect(() => {
+    window.scrollTo(0, rolagem.current[filtro] ?? 0);
+  }, [filtro]);
 
   function lembrar(f: Filtro, a: Aba) {
     const q = new URLSearchParams();
@@ -66,6 +80,9 @@ export function RadioCliente({
     history.replaceState(null, "", q.size ? `/?${q}` : "/");
   }
   const escolherFiltro = (f: Filtro) => {
+    if (f === filtro) return;
+    rolagem.current[filtro] = window.scrollY;
+    setAbertos((s) => new Set(s).add(f));
     setFiltro(f);
     lembrar(f, aba);
   };
@@ -75,11 +92,16 @@ export function RadioCliente({
   };
 
   const alta = radio.emAlta;
+  const vazio = radio.faixas.length === 0 || !radio.noAr;
+  const visao = (f: Filtro) => (filtro === f ? "flex flex-col gap-5" : "hidden");
+  const aberta = (f: Filtro) => abertos.has(f);
+
   return (
     <>
-      <SeloNoAr ouvindo={radio.ouvindo} />
-      {mostra("stories") && <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />}
-      <nav aria-label="Filtros" className="-mx-4 flex gap-2 overflow-x-auto px-4">
+      <div className={filtro === "tudo" ? "" : "hidden"}>
+        <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />
+      </div>
+      <nav aria-label="Filtros" className="sticky top-0 z-20 -mx-4 flex gap-2 overflow-x-auto bg-night-900 px-4 py-2">
         {filtros.map((f) => (
           <button
             key={f.id}
@@ -93,13 +115,23 @@ export function RadioCliente({
         ))}
       </nav>
 
-      {mostra("faixas") &&
-        (radio.faixas.length === 0 || !radio.noAr ? (
+      {/* TUDO: a Home, uma rádio viva. */}
+      <div data-testid="visao-tudo" className={visao("tudo")}>
+        {vazio ? (
           <EstadoVazio />
         ) : (
           <>
-            <CartaoNoAr faixa={radio.noAr.faixa} fila={radio.noAr.fila} continuo={radio.noAr.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
-            <ContinueOuvindo faixas={continuar} />
+            <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
+            <div data-testid="agora-combina">
+              <CarrosselFaixas
+                titulo={`Agora combina com ${clima.label}`}
+                dica={clima.doClima ? "Faixas desse clima, no horário de Brasília" : "Ainda sem faixas desse clima: as mais recentes"}
+                faixas={clima.faixas}
+                margemSnap
+              />
+            </div>
+            <ContinueOuvindo faixas={radio.faixas} servidor={continuarServidor} validos={validos} />
+            <SelecaoPrateleira lista={radio.selecao} />
             <section
               aria-label="Faixas"
               className="flex touch-pan-y flex-col gap-1"
@@ -144,12 +176,27 @@ export function RadioCliente({
                 ))}
               {aba === "novidades" && <ListaFaixas rotulo="Novidades" numerar dica="Acabaram de chegar de artistas independentes" faixas={radio.novidades} />}
             </section>
+            <ArtistasParaConhecer lista={artistas} />
           </>
-        ))}
+        )}
+      </div>
 
-      {mostra("albuns") && <Albuns lista={radio.albuns} />}
-      {mostra("playlists") && <PlaylistsDaSemana lista={radio.playlists} />}
-      {filtro === "playlists" && radio.playlists.length === 0 && <p className="text-white/70">Nenhuma playlist pública ainda.</p>}
+      <div data-testid="visao-faixas" className={visao("faixas")}>
+        {aberta("faixas") && (vazio ? <EstadoVazio /> : <CatalogoFaixas faixas={radio.faixas} />)}
+      </div>
+      <div data-testid="visao-playlists" className={visao("playlists")}>
+        {aberta("playlists") && <GradePlaylists selecao={radio.selecao} playlists={radio.todasPlaylists} />}
+      </div>
+      {radio.albuns.length > 0 && (
+        <div data-testid="visao-albuns" className={visao("albuns")}>
+          {aberta("albuns") && <GradeAlbuns lista={radio.albuns} />}
+        </div>
+      )}
+      {stories.length > 0 && (
+        <div data-testid="visao-stories" className={visao("stories")}>
+          {aberta("stories") && <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} modo="grade" />}
+        </div>
+      )}
     </>
   );
 }

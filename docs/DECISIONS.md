@@ -269,3 +269,17 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `PLATFORM_STORY_IDS`). Trecho de 15 s usa `<audio>` próprio (não gera escuta/pontos). Sem DELETE: o story "expira"
     por data (7 dias na home, depois só no perfil). Ocultação automática com 3 denunciantes distintos, feita no app
     (SECURITY DEFINER não passa na allowlist de migrations).
+63. **Home como rádio viva (instrução do Julio, 2026-11-12):** cada filtro é uma visão própria. Ordem da Home: cabeçalho
+    (logo + selo "No ar · N ouvindo"), stories, No ar (com "A seguir"), Agora combina com, Continue ouvindo, Seleção
+    radioOn, Descobertas/Em alta/Novidades, Artistas para conhecer. A busca saiu da Home (fica no Explorar, intocado).
+    Visões já abertas ficam montadas e escondidas (troca instantânea) e cada filtro guarda a própria rolagem.
+64. **Selo:** `/api/ouvindo` devolve só o número; N inclui quem olha (mínimo 1; sem service_role mostra "1 ouvindo").
+65. **Clima do horário (Brasília):** 0–5 h Madrugada (vale também no domingo), 6–11 h Foco, domingo o resto do dia
+    Domingo, 17–20 h Estrada, sex/sáb 21–23 h Pista, Chuva como alternativa (tarde e noites comuns).
+66. **Perfil radioOn e Seleção radioOn são virtuais** (sem conta nem tabela; agente não cria usuários): id fixo
+    `RADIOON_ID`, playlists calculadas a cada requisição em `lib/radio/home.ts` (Novidades da semana, gênero com ≥3
+    faixas, clima), página `/selecao/[id]`. Todo story de plataforma sai pelo autor radioOn; o story fixo de
+    boas-vindas é injetado em `carregarStories` (garante ≥1 story). Sem migration.
+67. **Continue ouvindo no aparelho (localStorage):** guarda faixa, posição exata e visitas a playlists, álbuns e perfis;
+    o servidor só completa com faixas ouvidas pela conta (sem posição). Não toca em pontos nem em validação de escuta.
+    Até 6 itens em grade 2×3, oculto com menos de 2. Trade-off: não sincroniza entre aparelhos.

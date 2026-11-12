@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import { PlayerCheio } from "@/components/player-cheio";
 import { capaGerada, type FaixaListada } from "@/lib/radio/rules";
+import { salvarPosicao } from "@/lib/radio/continuar-local";
 import { createUrlCache } from "@/lib/player/url-cache";
 
 export type FaixaTocavel = FaixaListada;
@@ -15,7 +16,7 @@ type Acoes = {
   estado: EstadoPlayer;
   fila: FaixaTocavel[];
   /** `continuo`: ao fim da fila volta ao começo (Rádio radioOn), sem repetir a mesma faixa em sequência. */
-  tocar: (faixa: FaixaTocavel, fila?: FaixaTocavel[], continuo?: boolean) => void;
+  tocar: (faixa: FaixaTocavel, fila?: FaixaTocavel[], continuo?: boolean, inicio?: number) => void;
   /** Id do usuário (conta ou visitante anônimo) quando há sessão; serve para saber se a faixa é dele. */
   usuarioId: string | null;
   alternar: () => void;
@@ -61,6 +62,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const evento = useRef<string | null>(null);
   const logado = useRef(true);
   const continuo = useRef(false);
+  const inicio = useRef(0);
+  const salvoEm = useRef(0);
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
   const [atual, setAtual] = useState<FaixaTocavel | null>(null);
   const [fila, setFila] = useState<FaixaTocavel[]>([]);
@@ -133,21 +136,44 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         el.src = await cache.get(id, forcar);
         carregada.current = id;
       }
+      // Retomada: com metadados já carregados o ponto vale agora; senão, em onLoadedMetadata.
+      if (inicio.current > 0 && el.readyState >= 1) {
+        el.currentTime = inicio.current;
+        inicio.current = 0;
+      }
       await el.play();
     } catch {
       setEstado("erro");
     }
   }, []);
 
+  // Guarda o ponto exato da faixa atual (Continue ouvindo). Chamado a cada ~5 s, na pausa e ao sair.
+  const guardarPonto = useCallback((fim = false) => {
+    const el = audio.current;
+    const a = refs.current.atual;
+    if (!el || !a || carregada.current !== a.id) return;
+    if (!fim && el.currentTime < 1) return;
+    const dur = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : (a.durationSec ?? 0);
+    salvarPosicao(a, fim ? 0 : el.currentTime, dur);
+    salvoEm.current = el.currentTime;
+  }, []);
+  useEffect(() => {
+    const sair = () => guardarPonto();
+    window.addEventListener("pagehide", sair);
+    return () => window.removeEventListener("pagehide", sair);
+  }, [guardarPonto]);
+
   const tocar = useCallback(
-    (faixa: FaixaTocavel, novaFila?: FaixaTocavel[], seguido = false) => {
+    (faixa: FaixaTocavel, novaFila?: FaixaTocavel[], seguido = false, desde = 0) => {
       const el = audio.current;
       if (refs.current.atual?.id === faixa.id && el && carregada.current === faixa.id) {
+        if (desde > 0) el.currentTime = desde;
         if (el.paused) void el.play().catch(() => setEstado("erro"));
-        else el.pause();
+        else if (desde <= 0) el.pause();
         return;
       }
       tentou.current = false;
+      inicio.current = desde;
       setAtual(faixa);
       if (novaFila) {
         setFila(novaFila);
@@ -253,17 +279,26 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         ref={audio}
         preload="none"
         onPlay={() => setEstado("tocando")}
-        onPause={() => setEstado((e) => (e === "tocando" ? "parado" : e))}
+        onPause={() => {
+          setEstado((e) => (e === "tocando" ? "parado" : e));
+          if (!audio.current?.ended) guardarPonto();
+        }}
         onTimeUpdate={(e) => {
           // Ler antes: dentro do updater o currentTarget já é null e derrubava a página ao tocar.
           const agora = e.currentTarget.currentTime;
+          if (Math.abs(agora - salvoEm.current) >= 5) guardarPonto();
           setTempo((t) => ({ ...t, atual: agora }));
         }}
         onLoadedMetadata={(e) => {
           const d = e.currentTarget.duration;
           if (Number.isFinite(d)) setTempo((t) => ({ ...t, duracao: d }));
+          if (inicio.current > 0) {
+            e.currentTarget.currentTime = inicio.current;
+            inicio.current = 0;
+          }
         }}
         onEnded={() => {
+          guardarPonto(true);
           evento.current = null;
           setEstado("parado");
           if (!vizinha(1)) setTempo((t) => ({ ...t, atual: 0 }));

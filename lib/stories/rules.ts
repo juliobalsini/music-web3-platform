@@ -1,5 +1,7 @@
 // Regras puras de Stories (sem servidor; testáveis).
 
+import { RADIOON_ID, RADIOON_NOME } from "../radio/home.ts";
+
 export const DIA_MS = 24 * 3600 * 1000;
 /** Quanto tempo o story fica na faixa de stories da home; depois só no perfil do autor. */
 export const ATIVO_MS = 7 * DIA_MS;
@@ -21,7 +23,27 @@ export type Story = {
   trackId: string | null;
   clipStart: number | null;
   createdAt: string;
+  /** Story fixo do perfil oficial radioOn (virtual, sempre no ar, primeiro do grupo). */
+  pinned?: boolean;
 };
+
+export const STORY_BOAS_VINDAS_ID = "00000000-0000-4000-8000-00000000f002";
+
+/** Story fixo de boas-vindas do perfil radioOn: garante ao menos um story da plataforma. */
+export function storyBoasVindas(agora: number): Story {
+  return {
+    id: STORY_BOAS_VINDAS_ID,
+    authorId: RADIOON_ID,
+    authorName: RADIOON_NOME,
+    isPlatform: true,
+    body: "Bem-vindo ao radioOn: música independente, sem cadastro para ouvir. Ouça, ganhe pontos, envie sua música e crie playlists.",
+    hasImage: false,
+    trackId: null,
+    clipStart: null,
+    createdAt: new Date(agora).toISOString(),
+    pinned: true,
+  };
+}
 
 export const ativo = (createdAt: string, agora: number) => agora - Date.parse(createdAt) < ATIVO_MS;
 
@@ -46,7 +68,9 @@ export function agruparPorAutor(stories: Story[]): GrupoStories[] {
     g.stories.push(s);
     m.set(s.authorId, g);
   }
-  return [...m.values()].map((g) => ({ ...g, stories: g.stories.reverse() }));
+  return [...m.values()]
+    .map((g) => ({ ...g, stories: g.stories.reverse().sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned)) }))
+    .sort((a, b) => Number(b.isPlatform) - Number(a.isPlatform));
 }
 
 export type StoryInput = { body: string | null; image: { contentType: string; size: number } | null; trackId: string | null; clipStart: number | null };

@@ -2,6 +2,7 @@ import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { SeloNoAr } from "@/components/selo-no-ar";
 import { LogoCabecalho } from "@/components/logo-cabecalho";
 import { getSessionRole } from "@/lib/session";
 
@@ -28,9 +29,14 @@ export function Cabecalho() {
   return (
     <header className="mx-auto flex min-h-14 w-full max-w-md items-center justify-between gap-4 px-4 py-2">
       <LogoCabecalho />
-      <Suspense>
-        <Entrar />
-      </Suspense>
+      <div className="flex items-center gap-2">
+        <Suspense>
+          <SeloNoAr />
+        </Suspense>
+        <Suspense>
+          <Entrar />
+        </Suspense>
+      </div>
     </header>
   );
 }

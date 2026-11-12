@@ -38,7 +38,7 @@ test("estado vazio: play inerte e convite ao artista (catálogo sem faixas)", as
     await expect(page.getByRole("region", { name: "No ar" })).toBeVisible();
     return;
   }
-  await expect(page.getByRole("button")).toHaveCount(0);
+  await expect(page.getByTestId("visao-tudo").getByRole("button")).toHaveCount(0);
   await expect(vazio).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
   await page.getByRole("link", { name: "Enviar primeira faixa" }).click();

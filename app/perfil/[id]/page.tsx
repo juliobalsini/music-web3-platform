@@ -2,11 +2,14 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ListaFaixas } from "@/components/lista-faixas";
+import { RegistrarVisita } from "@/components/registrar-visita";
+import { SelecaoPrateleira } from "@/components/prateleiras";
 import { PlaylistsDaSemana } from "@/components/secoes-radio";
 import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
 import Link from "next/link";
 
+import { RADIOON_ID } from "@/lib/radio/home";
 import { carregarRadio } from "@/lib/radio/queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
@@ -24,9 +27,11 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const playlists = radio.todasPlaylists.filter((p) => p.curatorId === id);
   if (faixas.length === 0 && playlists.length === 0 && stories.length === 0) notFound();
   const nome = faixas[0]?.artistName ?? playlists[0]?.curator ?? stories[0]?.authorName ?? "Perfil";
+  const oficial = id === RADIOON_ID;
   const plays = faixas.reduce((n, f) => n + f.plays, 0);
   return (
     <>
+      <RegistrarVisita tipo="perfil" id={id} titulo={nome} sub={oficial ? "Perfil oficial" : "Perfil"} />
       <div className="flex items-center gap-4">
         <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900">
           {nome.charAt(0).toUpperCase()}
@@ -38,6 +43,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
           </p>
         </div>
       </div>
+      {oficial && <SelecaoPrateleira lista={radio.selecao} />}
       {faixas.length > 0 && (
         <section aria-label="Faixas do artista" className="flex flex-col gap-1">
           <h2 className="text-lg font-bold">Faixas</h2>

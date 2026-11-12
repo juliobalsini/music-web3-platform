@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- imagem do bucket por URL assinada; sem otimizador (cota). */
 
-import { Download, Flag, Pause, Play, Share2 } from "lucide-react";
+import { Download, Flag, Headphones, ListMusic, Pause, Play, Share2, Star, Upload } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -160,12 +160,8 @@ export function ConteudoStory({ story, faixa, agora }: { story: Story; faixa: Fa
           {story.authorName.charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0">
-          {story.isPlatform ? (
-            <p className="truncate font-semibold">{story.authorName}</p>
-          ) : (
-            <Link href={`/perfil/${story.authorId}`} className="block truncate font-semibold underline-offset-2 hover:underline">{story.authorName}</Link>
-          )}
-          <p className="text-xs text-white/70">{dias > 0 ? `No ar por mais ${dias} ${dias === 1 ? "dia" : "dias"}` : "Arquivado no perfil"}</p>
+          <Link href={`/perfil/${story.authorId}`} className="block truncate font-semibold underline-offset-2 hover:underline">{story.authorName}</Link>
+          <p className="text-xs text-white/70">{story.pinned ? "Fixo no perfil radioOn" : dias > 0 ? `No ar por mais ${dias} ${dias === 1 ? "dia" : "dias"}` : "Arquivado no perfil"}</p>
         </div>
       </header>
       {story.hasImage && !imagemFalhou && (
@@ -173,8 +169,16 @@ export function ConteudoStory({ story, faixa, agora }: { story: Story; faixa: Fa
       )}
       {story.body && <p className="text-xl font-semibold text-pretty">{story.body}</p>}
       {faixa && <Trecho faixa={faixa} inicio={story.clipStart} />}
+      {story.pinned && (
+        <nav aria-label="Primeiros passos" className="grid grid-cols-2 gap-2">
+          <Link href="/" className={chip}><Headphones className="size-4" aria-hidden="true" /> Ouvir</Link>
+          <Link href="/pontos" className={chip}><Star className="size-4" aria-hidden="true" /> Ganhar pontos</Link>
+          <Link href="/enviar" className={chip}><Upload className="size-4" aria-hidden="true" /> Enviar música</Link>
+          <Link href="/curador" className={chip}><ListMusic className="size-4" aria-hidden="true" /> Criar playlists</Link>
+        </nav>
+      )}
       <Compartilhar story={story} />
-      <Denunciar id={story.id} />
+      {!story.pinned && <Denunciar id={story.id} />}
     </article>
   );
 }

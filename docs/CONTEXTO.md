@@ -256,6 +256,12 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).
 
+### Redesenho da Home, dos filtros e do Continue ouvindo (Julio, 2026-11-12)
+
+- [x] **Home viva, filtros próprios, Continue ouvindo com retomada, ícone** — branch home-redesenho; DECISIONS 63–67;
+  relatório `2026-11-12-home-filtros.md`. Ícone já estava corrigido (#69): Julio precisa reinstalar o app.
+  Pendências: conferir logado/no celular o selo com ouvintes reais e a retomada de ponto; histórico não sincroniza entre aparelhos.
+
 ## Correções avulsas
 
 - [x] **Ícones do PWA / tela de abertura no Android** — concluído em 2026-11-11: manifest com ícones
