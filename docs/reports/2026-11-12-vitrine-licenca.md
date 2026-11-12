@@ -15,8 +15,8 @@
 Busca em código, docs, metadados, Open Graph e manifest: **nenhuma ocorrência literal** do domínio antigo; o manifest não
 usa URL absoluta. Alterado: `app/layout.tsx` — `metadataBase` (base do Open Graph) agora usa a URL fixa
 `https://radioon-ten.vercel.app` na Vercel (antes dependia de `VERCEL_PROJECT_PRODUCTION_URL`, que pode apontar para
-outro domínio do projeto). Mantidos: nome do repositório GitHub `music-web3-platform` (URLs em `scripts/painel.sh`,
-protegido? não, mas é o nome real do repo) e `project_id` em `supabase/config.toml` (arquivo protegido).
+outro domínio do projeto). Mantidos: nome do repositório GitHub `music-web3-platform` (URLs em `scripts/painel.sh`;
+é o nome real do repo) e `project_id` em `supabase/config.toml` (arquivo protegido).
 Observação: a imagem `public/brand/cartao-marca.png` exibe "www.radioon.com.br" (arte, não alterada).
 
 ## Ativos de marca (referência futura)
