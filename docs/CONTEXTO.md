@@ -256,12 +256,15 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).
 
+- 2026-11-12 (2ª) — mesma instrução reaplicada sobre a main: filtros próprios e Continue ouvindo com retomada (decisões 67–68; relatório `2026-11-12-home-filtros.md`).
 - 2026-11-12 — instrução do Julio: redesenho da Home "rádio viva" (PR item home-radio-viva); relatório `2026-11-12-home-radio-viva.md`.
 
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
   em destaque com "A seguir", Agora combina com <clima>, Seleção radioOn, Artistas para conhecer; sem migration (DECISIONS 63–67).
+- [x] **Filtros próprios + Continue ouvindo com retomada (2026-11-12)** — Faixas (catálogo, ordenação, gênero, tocar tudo/aleatório),
+  Playlists, Álbuns, Stories; histórico local com posição exata (DECISIONS 67–68). Pendência: conferir no celular e logado; não sincroniza entre aparelhos.
 
 - [x] **Ícones do PWA / tela de abertura no Android** — concluído em 2026-11-11: manifest com ícones
   `any` (logo inteiro) e `maskable` (zona segura validada, raio 32,7% < 40%) em 192/512, marinho `#00112A`.

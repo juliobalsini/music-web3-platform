@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { RegistrarVisita } from "@/components/registrar-visita";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { Tela } from "@/components/ui";
 import { obterPlaylist } from "@/lib/playlists/queries";
@@ -19,6 +20,7 @@ async function SelecaoPagina({ id }: { id: string }) {
   const faixas = sel.faixas.map((i) => porId.get(i)).filter((f): f is FaixaListada => !!f);
   return (
     <>
+      <RegistrarVisita tipo="playlist" id={sel.id} titulo={sel.title} sub={PLATAFORMA_NOME} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold text-balance">{sel.title}</h1>
         <p className="text-white/70">Seleção de <Link href={`/perfil/${PLATAFORMA_ID}`} className="font-semibold text-brand underline-offset-2 hover:underline">{PLATAFORMA_NOME}</Link> · atualizada sozinha</p>
@@ -47,6 +49,7 @@ async function Conteudo({ params }: Pick<PageProps<"/playlist/[id]">, "params">)
   const destaques = todas.filter((x) => x.destaque).map((x) => x.faixa);
   return (
     <>
+      <RegistrarVisita tipo="playlist" id={id} titulo={playlist.title} sub={playlist.curator ?? "Playlist"} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
         {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}

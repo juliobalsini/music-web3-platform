@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { CabecalhoHome } from "@/components/cabecalho-home";
 import { RadioCliente } from "@/components/radio-cliente";
 import { PlayVazio } from "@/components/secoes-radio";
-import { lerAba } from "@/lib/menu";
+import { lerAba, lerFiltro } from "@/lib/menu";
+import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
 import { carregarRadio, continuarOuvindo } from "@/lib/radio/queries";
 import { getSessaoAny } from "@/lib/session";
 import { carregarStories } from "@/lib/stories/queries";
@@ -27,10 +28,20 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
     /* sem sessão */
   }
 
+  // Ids que existem (playlists, seleção, álbuns, perfis): validam os atalhos locais do "Continue ouvindo".
+  const validos = [
+    ...radio.todasPlaylists.map((p) => p.id),
+    ...selecaoRadioOn(radio.faixas, agora).map((s) => s.id),
+    ...radio.albuns.map((a) => a.id),
+    ...radio.faixas.map((f) => f.artistId),
+    ...radio.todasPlaylists.map((p) => p.curatorId),
+    PLATAFORMA_ID,
+  ];
+
   return (
     <>
       <CabecalhoHome ouvindo={radio.ouvindo} />
-      <RadioCliente radio={radio} continuar={continuar} stories={stories} faixasDosStories={faixasDosStories} agora={agora} abaInicial={lerAba(sp.aba)} />
+      <RadioCliente radio={radio} continuarServidor={continuar} validos={validos} stories={stories} faixasDosStories={faixasDosStories} agora={agora} filtroInicial={lerFiltro(sp.f)} abaInicial={lerAba(sp.aba)} />
     </>
   );
 }

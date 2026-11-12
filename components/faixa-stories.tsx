@@ -12,7 +12,7 @@ import { agruparPorAutor, type Story } from "@/lib/stories/rules";
  * Faixa de stories recentes (círculos por autor) e visor em tela cheia. O visor percorre os stories do
  * autor (do mais antigo ao mais novo) e depois fecha. `agora` vem do servidor (render puro).
  */
-export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; faixas: Record<string, FaixaDoStory>; agora: number }) {
+export function FaixaStories({ stories, faixas, agora, modo = "circulos" }: { stories: Story[]; faixas: Record<string, FaixaDoStory>; agora: number; modo?: "circulos" | "grade" }) {
   // O perfil oficial radioOn vem sempre primeiro, como o story fixo do Instagram.
   const grupos = agruparPorAutor(stories).sort((a, b) => Number(b.isPlatform) - Number(a.isPlatform));
   const [aberto, setAberto] = useState<{ g: number; i: number } | null>(null);
@@ -37,7 +37,8 @@ export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; fai
 
   return (
     <section aria-label="Stories" className="flex flex-col gap-2">
-      <ul className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
+      {modo === "circulos" ? (
+      <ul data-testid="stories-circulos" className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
         {grupos.map((g, idx) => (
           <li key={g.authorId} className="w-[4.75rem] shrink-0">
             <button type="button" onClick={() => setAberto({ g: idx, i: 0 })} aria-label={`Ver stories de ${g.authorName}`} className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
@@ -55,6 +56,29 @@ export function FaixaStories({ stories, faixas, agora }: { stories: Story[]; fai
           </li>
         ))}
       </ul>
+      ) : (
+        <>
+          <h2 className="text-lg font-bold">Stories no ar</h2>
+          <ul data-testid="stories-grade" className="grid grid-cols-2 gap-3">
+            {grupos.flatMap((g, gi) =>
+              g.stories.map((st, i) => (
+                <li key={st.id}>
+                  <button
+                    type="button"
+                    onClick={() => setAberto({ g: gi, i })}
+                    aria-label={`Ver story de ${g.authorName}`}
+                    style={{ background: capaGerada(g.authorName).fundo }}
+                    className="flex aspect-[3/4] w-full flex-col justify-between rounded-xl p-3 text-left"
+                  >
+                    <span className="self-start truncate rounded-full bg-night-900/70 px-2 py-0.5 text-sm font-bold">{g.authorName}</span>
+                    <span className="line-clamp-4 text-pretty rounded-lg bg-night-900/70 px-2 py-1.5 text-sm font-semibold">{st.body?.split("\n")[0] || (st.hasImage ? "Imagem" : "Trecho de música")}</span>
+                  </button>
+                </li>
+              )),
+            )}
+          </ul>
+        </>
+      )}
       <dialog
         ref={ref}
         aria-label={grupo ? `Stories de ${grupo.authorName}` : "Stories"}
