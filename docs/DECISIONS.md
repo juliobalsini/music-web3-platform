@@ -281,5 +281,11 @@ Formato: data · decisão · motivo. Mais recente no fim.
 65. **Clima do horário (Brasília):** Madrugada 0–5h; Pista sex/sáb 21h+; Domingo aos domingos; Foco 6–11h; Estrada
     17–20h; Chuva nos demais horários. Prioridade nesta ordem. Sem faixas do clima → Chuva → recentes.
 66. **"N ouvindo" inclui o próprio ouvinte** (`totalOuvindo`): ouvintes ativos sem contar a sessão atual + 1; nunca "No ar" só.
-67. **Home sem busca nem chips de filtro** (são do Explorar). "Álbuns e EPs" ficou no fim da Home para não perder o acesso
-    (não está na ordem pedida; fácil de remover). A Home tem cabeçalho próprio (`role="banner"`); o global some em `/`.
+67. **(revisada em 2026-11-12, 2ª instrução do Julio)** A Home segue sem busca (é do Explorar), mas **volta com os filtros**
+    Tudo · Faixas · Álbuns · Playlists · Stories, cada um uma visão própria (não um recorte da Home): troca instantânea
+    (visões abertas ficam montadas, só escondidas) e rolagem própria por filtro; chips fixos no topo. "Álbuns e EPs" saiu do
+    fim da Home e vive no filtro Álbuns. A Home tem cabeçalho próprio (`role="banner"`); o global some em `/`.
+68. **Continue ouvindo no aparelho (localStorage):** guarda faixa, posição exata e visitas a playlists, álbuns e perfis;
+    o servidor só completa com faixas ouvidas pela conta (sem posição). Grade 2×3 de até 6 itens, oculta com menos de 2.
+    Não toca em pontos nem validação de escuta. Trade-off: não sincroniza entre aparelhos. Filtro Playlists: Seleção radioOn
+    primeiro, depois as dos playlisters (capa da 1ª faixa); "Criar playlist" leva a `/curador` (o proxy pede login).

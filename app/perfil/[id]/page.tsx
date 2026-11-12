@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { ListaFaixas } from "@/components/lista-faixas";
 import { PlaylistsDaSemana } from "@/components/secoes-radio";
+import { RegistrarVisita } from "@/components/registrar-visita";
 import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
 import Link from "next/link";
@@ -28,6 +29,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const plays = faixas.reduce((n, f) => n + f.plays, 0);
   return (
     <>
+      <RegistrarVisita tipo="perfil" id={id} titulo={nome} sub={id === PLATAFORMA_ID ? "Perfil oficial" : "Perfil"} />
       <div className="flex items-center gap-4">
         <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900">
           {nome.charAt(0).toUpperCase()}

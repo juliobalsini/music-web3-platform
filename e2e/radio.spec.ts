@@ -40,9 +40,9 @@ test("Home segue a ordem: stories, No ar, Agora combina, Seleção radioOn, Arti
   }
   await expect(page.getByRole("region", { name: "A seguir" })).toHaveCount(0);
   await expect(page.getByRole("group", { name: "A seguir" }).getByRole("button")).toHaveCount(3);
-  // Sem busca nem filtros: isso é do Explorar.
-  await expect(page.getByRole("navigation", { name: "Filtros" })).toHaveCount(0);
+  // Sem busca na Home (é do Explorar); os filtros são visões próprias.
   await expect(page.getByRole("search")).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Filtros" }).getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists", "Stories"]);
 });
 
 test("story de boas-vindas abre e a Seleção radioOn tem página", async ({ page }) => {
@@ -237,6 +237,7 @@ test("Explorar: recomendações, carrosséis, artistas, gêneros e climas naveg�
 
 test("Álbuns: na Rádio, página do álbum e tocar álbum", async ({ page }) => {
   await radioCarregada(page);
+  await page.getByRole("navigation", { name: "Filtros" }).getByRole("button", { name: "Álbuns" }).click();
   const link = page.getByRole("region", { name: "Álbuns e EPs" }).getByRole("link", { name: /Sinais/ });
   await link.click();
   await expect(page).toHaveURL(/\/album\//);
@@ -298,4 +299,51 @@ test("Stories: publicar e denunciar exigem conta; novo story redireciona ao logi
   expect([401, 503]).toContain((await request.post(`/api/stories/${STORY_DEMO}/denunciar`, { data: {} })).status());
   await page.goto("/stories/novo");
   await expect(page).toHaveURL(/\/login\?next=%2Fstories%2Fnovo/);
+});
+
+test("Continue ouvindo: grade de atalhos, progresso e retomada do ponto exato", async ({ page }) => {
+  await radioCarregada(page);
+  await page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: DEMO }).first().click();
+  await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  await page.waitForTimeout(2500);
+  await page.getByTestId("mini-player").getByRole("button", { name: "Pausar" }).click();
+  // Visitar um álbum e um perfil também entra no histórico (mistura de tipos).
+  await page.goto("/album/00000000-0000-4000-8000-000000000401");
+  await expect(page.getByRole("heading", { name: "Sinais" })).toBeVisible({ timeout: 20_000 });
+  await page.goto("/");
+  const secao = page.getByRole("region", { name: "Continue ouvindo" });
+  await expect(secao).toBeVisible({ timeout: 20_000 });
+  const n = await secao.getByRole("listitem").count();
+  expect(n).toBeGreaterThanOrEqual(2);
+  expect(n).toBeLessThanOrEqual(6);
+  await expect(secao.getByTestId("progresso").first()).toBeVisible();
+  // Toque na faixa retoma de onde parou (≥ 2 s), não do zero.
+  await secao.getByRole("button", { name: /^Retomar/ }).first().click();
+  await expect(page.getByTestId("mini-player").getByRole("button", { name: "Pausar" })).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => page.evaluate(() => document.querySelector("audio")!.currentTime), { timeout: 10_000 }).toBeGreaterThan(1.5);
+});
+
+test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
+  await radioCarregada(page);
+  const filtros = page.getByRole("navigation", { name: "Filtros" });
+  await filtros.getByRole("button", { name: "Faixas" }).click();
+  await expect(page.getByRole("region", { name: "Últimas adicionadas" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Ordenar" }).getByRole("button")).toHaveText(["Recentes", "Mais ouvidas", "Mais curtidas", "A–Z"]);
+  await expect(page.getByTestId("tocar-tudo")).toBeVisible();
+  await expect(page.getByTestId("aleatorio")).toBeVisible();
+  await page.getByRole("group", { name: "Ordenar" }).getByRole("button", { name: "A–Z" }).click();
+  const titulos = await page.getByTestId("catalogo").getByTestId("titulo-faixa").allTextContents();
+  expect(titulos.length).toBeGreaterThanOrEqual(8);
+  expect(titulos).toEqual([...titulos].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" })));
+  await expect(page.getByTestId("catalogo").getByRole("link").first()).toHaveAttribute("href", /\/perfil\//);
+  // Rolagem própria de cada filtro.
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await filtros.getByRole("button", { name: "Playlists" }).click();
+  await expect(page.getByTestId("criar-playlist")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Seleção radioOn" })).toBeVisible();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await filtros.getByRole("button", { name: "Faixas" }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+  await filtros.getByRole("button", { name: "Stories" }).click();
+  await expect(page.getByTestId("stories-grade").getByRole("button").first()).toBeVisible();
 });

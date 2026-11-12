@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { BotaoAlbum } from "@/components/botao-album";
+import { RegistrarVisita } from "@/components/registrar-visita";
 import { Capa } from "@/components/capa";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { Tela } from "@/components/ui";
@@ -20,6 +21,7 @@ async function Conteudo({ params }: Pick<PageProps<"/album/[id]">, "params">) {
   const primeira = album.faixas[0];
   return (
     <>
+      <RegistrarVisita tipo="album" id={album.id} titulo={album.title} sub={`${album.kind === "ep" ? "EP" : "Álbum"} · ${album.artistName}`} capaId={primeira.id} temCapa={primeira.hasCover} />
       <div className="flex flex-col items-center gap-4 text-center">
         <Capa id={primeira.id} title={album.title} hasCover={primeira.hasCover} className="size-56 !rounded-xl" />
         <div>

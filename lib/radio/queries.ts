@@ -29,7 +29,11 @@ import {
 
 
 export type PlaylisterResumo = { id: string; name: string; playlists: number; faixas: number; topPlaylistId: string };
-export type PlaylistSemana = { id: string; title: string; curator: string | null; curatorId: string; trackCount: number };
+export type PlaylistSemana = {
+  id: string; title: string; curator: string | null; curatorId: string; trackCount: number;
+  /** Primeira faixa da playlist: a capa dela ilustra a playlist. */
+  capa: { id: string; title: string; hasCover: boolean } | null;
+};
 
 export type Radio = {
   faixas: FaixaListada[];
@@ -272,7 +276,14 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       r.faixas += p.playlist_tracks.length;
       porCurador.set(p.curator_id, r);
     }
-    const resumo = (p: LinhaPlaylist): PlaylistSemana => ({ id: p.id, title: p.title, curator: nomeDe(p.curator_id), curatorId: p.curator_id, trackCount: p.playlist_tracks.length });
+    const faixaPorId = new Map(faixas.map((f) => [f.id, f]));
+    const resumo = (p: LinhaPlaylist): PlaylistSemana => {
+      const primeira = faixaPorId.get([...p.playlist_tracks].sort((a, b) => a.position - b.position).find((i) => faixaPorId.has(i.track_id))?.track_id ?? "");
+      return {
+        id: p.id, title: p.title, curator: nomeDe(p.curator_id), curatorId: p.curator_id, trackCount: p.playlist_tracks.length,
+        capa: primeira ? { id: primeira.id, title: primeira.title, hasCover: primeira.hasCover } : null,
+      };
+    };
     const semana = playlists.filter((p) => agora - Date.parse(p.created_at) < SEMANA);
     const base = semana.length > 0 ? semana : playlists;
 
