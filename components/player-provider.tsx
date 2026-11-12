@@ -7,6 +7,7 @@ import { capaGerada, type FaixaListada } from "@/lib/radio/rules";
 import { salvarPosicao } from "@/lib/radio/continuar-local";
 import { createUrlCache } from "@/lib/player/url-cache";
 import { criarGanho } from "@/lib/player/ganho";
+import { resolverAudioBaseUrl } from "@/lib/audio/base-url";
 
 export type FaixaTocavel = FaixaListada;
 export type EstadoPlayer = "parado" | "carregando" | "tocando" | "erro" | "limite";
@@ -43,7 +44,7 @@ export function usePlayer(): Acoes {
 export const useTempo = () => useContext(TempoCtx);
 
 const lufsPorFaixa = new Map<string, number | null>();
-const BASE_PROXY = process.env.NEXT_PUBLIC_AUDIO_BASE_URL?.trim().replace(/\/+$/, "");
+const BASE_PROXY = resolverAudioBaseUrl(process.env.NEXT_PUBLIC_AUDIO_BASE_URL);
 const ehProxy = (url: string) => !!BASE_PROXY && url.startsWith(`${BASE_PROXY}/`);
 
 // Cota diária do B2: uma URL assinada por faixa, reusada (decisão 22 do DECISIONS.md).

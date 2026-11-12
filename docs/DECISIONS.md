@@ -340,4 +340,6 @@ Formato: data · decisão · motivo. Mais recente no fim.
 81. **Teste visual mobile:** projetos Playwright `iphone` (viewport/UA iPhone 14, Chromium) e `android` (Pixel 7) só para
     `e2e/mobile-visual.spec.ts`; screenshots anexados ao relatório HTML do Playwright (artefato do gate). O iPhone não é WebKit
     real (o gate instala só Chromium).
-
+82. **URL do Worker como padrão no código (2026-11-12):** `https://radioon-audio.radioon.workers.dev` (pública, registrada pelo
+    `worker-deploy`) é o padrão em `lib/audio/base-url.ts`; `NEXT_PUBLIC_AUDIO_BASE_URL` sobrescreve e o valor `off` volta às URLs
+    assinadas do B2. Nada a configurar na Vercel. Reversível: trocar o padrão ou definir `off`.
