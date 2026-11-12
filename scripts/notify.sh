@@ -38,28 +38,46 @@ redact() {
 #   1. NOTIFY_GH_TOKEN (secret do Codespaces: PAT fine-grained com Actions: write)
 #   2. login próprio do gh (gh auth login), ignorando o GITHUB_TOKEN do Codespace
 #   3. credencial padrão do gh
-gh_dispatch() {
-  if [ -n "${NOTIFY_GH_TOKEN:-}" ]; then
-    GH_TOKEN="$NOTIFY_GH_TOKEN" gh "$@"
-  elif env -u GITHUB_TOKEN -u GH_TOKEN gh auth status >/dev/null 2>&1; then
-    env -u GITHUB_TOKEN -u GH_TOKEN gh "$@"
-  else
-    gh "$@"
-  fi
+gh_# Confirma que o workflow disparado realmente iniciou. Um disparo aceito pela API ainda pode
+# terminar em "startup_failure" (instabilidade do GitHub Actions, ex.: notify #33 em 2026-11-11)
+# e o aviso se perderia em silêncio. Devolve 1 só se a execução falhou; sem resposta = ok.
+confirmar() {
+  local desde="$1" i res
+  for i in 1 2 3 4 5 6 7 8; do
+    sleep 8
+    res="$(gh_dispatch run list --workflow "$WORKFLOW" --event workflow_dispatch --limit 5 \
+      --json createdAt,status,conclusion \
+      --jq "map(select(.createdAt >= \"$desde\")) | first | (.conclusion // .status) // empty" 2>/dev/null || true)"
+    case "$res" in
+      success|in_progress) return 0 ;;
+      failure|startup_failure|cancelled|timed_out) return 1 ;;
+    esac
+  done
+  return 0
 }
 
 dispatch() {
-  local title="$1" body="$2" label="$3"
+  local title="$1" body="$2" label="$3" tentativa desde
   if [ "${#body}" -gt "$MAX_BODY" ]; then
     body="${body:0:$MAX_BODY}
 
 _(truncado)_"
   fi
-  gh_dispatch workflow run "$WORKFLOW" --ref main \
-    -f title="$title" \
-    -f body="$body" \
-    -f label="$label"
-  echo "notify: workflow $WORKFLOW disparado ($label)."
+  for tentativa in 1 2 3; do
+    desde="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    if gh_dispatch workflow run "$WORKFLOW" --ref main \
+      -f title="$title" -f body="$body" -f label="$label" && confirmar "$desde"; then
+      echo "notify: workflow $WORKFLOW disparado ($label, tentativa $tentativa)."
+      return 0
+    fi
+    echo "notify: tentativa $tentativa falhou; repetindo." >&2
+    sleep 10
+  done
+  # Último recurso: cria a issue direto, para o aviso não se perder.
+  gh_dispatch label create "$label" 2>/dev/null || true
+  gh_dispatch issue create --title "$title" --label "$label" \
+    --body "$(printf '@juliobalsini\n\n%s\n\n_(criada direto: o workflow notify falhou)_' "$body")"
+  echo "notify: workflow falhou 3x; issue criada direto ($label)."
 }
 
 action() {

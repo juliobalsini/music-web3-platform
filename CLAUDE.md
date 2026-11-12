@@ -37,6 +37,8 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   concluído no CONTEXTO.md. Tentativas e bloqueios também ficam no CONTEXTO.md.
 - Escopo: decidir pelo CONTEXTO.md e registrar em DECISIONS.md; na dúvida, a opção
   mais segura e reversível. Testes e prévias nunca usam produção (mocks ou prefixo test/).
+- Execução sem item livre: não abrir branch nem PR e não alterar arquivos; registrar só no resumo do
+  workflow (`$GITHUB_STEP_SUMMARY`) e rodar `bash scripts/painel.sh`.
 - Deploy de produção quebrado: rollback na Vercel e registrar.
 - Relatórios só: fim da execução (consolidado), entrega grande em produção, bloqueio que
   exige o Julio → docs/reports/AAAA-MM-DD-<assunto>.md + `bash scripts/notify.sh report <arq>`.
