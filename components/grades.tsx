@@ -24,7 +24,7 @@ const faixasTxt = (n: number) => `${n} ${n === 1 ? "faixa" : "faixas"}`;
 export function GradePlaylists({ selecao, playlists }: { selecao: Selecao[]; playlists: PlaylistSemana[] }) {
   return (
     <div className="flex flex-col gap-5">
-      <Link href="/curador" data-testid="criar-playlist" className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 font-semibold text-night-900">
+      <Link href="/playlist/nova" data-testid="criar-playlist" className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 font-semibold text-night-900">
         <Plus className="size-5" aria-hidden="true" /> Criar playlist
       </Link>
       {selecao.length > 0 && (

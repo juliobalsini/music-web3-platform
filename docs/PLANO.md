@@ -108,3 +108,5 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
   (item-113-stories-v2); DECISIONS 87–88.*
 - **Pós-beta (registrado, não implementar agora):** mensagem direta (resposta privada ao dono do story) e story com foto/vídeo capturado na hora
   (vídeo depende de armazenamento maior que a cota grátis do B2).
+
+- **Pós-beta (issue #122):** playlists colaborativas e notificações — registrado, não implementar agora.

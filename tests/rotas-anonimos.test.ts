@@ -17,6 +17,8 @@ const SO_CONTA = [
   "app/api/tracks/[id]/publish/route.ts",
   "app/curador/actions.ts",
   "app/curador/page.tsx",
+  "app/playlist/actions.ts",
+  "app/playlist/nova/page.tsx",
   "app/enviar/page.tsx",
   "app/onboarding/page.tsx",
 ];
@@ -68,6 +70,7 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/api/listen/start/route.ts",
       "app/api/listen/beat/route.ts",
       "app/curador/actions.ts",
+      "app/playlist/actions.ts",
       "app/onboarding/actions.ts",
     ]);
     const achados = ["app", "lib", "components"]

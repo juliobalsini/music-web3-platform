@@ -383,3 +383,10 @@ Barra inferior: Rádio, Explorar, Biblioteca (`/biblioteca`); `/meus-envios` lis
 Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configurações/conta, login contextual, compartilhar com Simple Icons, RLS.
 
 90. **Ícones de compartilhar (issue #116, item 9):** caminhos SVG do Simple Icons (CC0) copiados para `lib/stories/icones-redes.ts`, sem nova dependência. LinkedIn vem da v13 (removido das versões novas por marca). Painel de stories trocou as siglas pelos ícones.
+
+91. **Playlists v2, fatia 1 (issue #122):** rascunho = `is_public=false` + `published_at` nulo (a RLS existente já o esconde de quem não é dono); migration aditiva `20261113020000`
+    (`description`, `published_at`, `cover_path`, `create_key` + índice único por conta, tabela `playlist_saves` com RLS própria e bloqueio de anônimo). Criação idempotente: a
+    chave nasce com a tela e o índice único barra toque repetido. Publicar exige ≥ 5 faixas (validado no servidor). Contagem de salvamentos lida só no servidor (número, nunca quem salvou).
+    `/curador` virou só "Programação" (curadores); lista/criação de playlists saiu e as do usuário ficam na Biblioteca (rascunhos marcados). Barra inferior: Rádio, Explorar, Biblioteca, Criar
+    (painel: Playlist, Story, Enviar música). Painel de compartilhar virou genérico (`PainelCompartilharAlvo`), usado também por playlists (cartão 9:16 em `/api/playlists/[id]/cartao`).
+    Não apagamos dados existentes (as 3 "Jazz independente" seguem; o dono remove pelo menu ⋯).

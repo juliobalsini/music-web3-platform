@@ -37,6 +37,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{nome}</h1>
           {id === PLATAFORMA_ID && <p className="text-sm font-semibold text-brand">Perfil oficial</p>}
+          {id !== PLATAFORMA_ID && playlists.length > 0 && <p data-testid="selo-playlister" className="text-sm font-semibold text-brand">Playlister</p>}
           <p className="text-sm text-white/70">
             {[faixas.length > 0 && `${faixas.length} ${faixas.length === 1 ? "faixa" : "faixas"}`, faixas.length > 0 && `${plays} escutas`, playlists.length > 0 && `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}`].filter(Boolean).join(" · ")}
           </p>

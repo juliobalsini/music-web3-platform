@@ -18,7 +18,7 @@ async function Conteudo() {
   const curtidas = reacoes ? radio.faixas.filter((f) => reacoes.like.has(f.id)) : [];
   const continuar = sessao ? await continuarOuvindo(sessao.userId, radio.faixas) : [];
   const { data: playlists } = conta
-    ? await conta.supabase.from("playlists").select("id,title,playlist_tracks(count)").eq("curator_id", conta.userId).order("created_at", { ascending: false }).limit(30)
+    ? await conta.supabase.from("playlists").select("id,title,is_public,playlist_tracks(count)").eq("curator_id", conta.userId).order("created_at", { ascending: false }).limit(30)
     : { data: [] };
   const validos = [...radio.todasPlaylists.map((p) => p.id), ...radio.albuns.map((a) => a.id), ...radio.faixas.map((f) => f.artistId)];
 
@@ -37,7 +37,7 @@ async function Conteudo() {
           <section aria-label="Playlists" className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-bold">Playlists</h2>
-              <Link href="/curador" aria-label="Criar playlist" className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
+              <Link href="/playlist/nova" aria-label="Criar playlist" className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
                 <Plus className="size-5" aria-hidden="true" />
               </Link>
             </div>
@@ -48,7 +48,7 @@ async function Conteudo() {
                 {(playlists ?? []).map((p) => (
                   <li key={p.id}>
                     <Link href={`/playlist/${p.id}`} className={`${linha} min-h-12`}>
-                      <span className="truncate font-medium">{p.title}</span>
+                      <span className="truncate font-medium">{p.title}{!p.is_public && <span className="ml-2 text-xs font-normal text-white/60">Rascunho</span>}</span>
                       <span className="shrink-0 text-sm text-white/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
                     </Link>
                   </li>
