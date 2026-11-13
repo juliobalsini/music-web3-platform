@@ -317,7 +317,7 @@ test("Stories: publicar e denunciar exigem conta; novo story redireciona ao logi
   expect([401, 503]).toContain((await request.delete(`/api/stories/comentarios/${STORY_DEMO}`)).status());
   expect([401, 503]).toContain((await request.post(`/api/stories/comentarios/${STORY_DEMO}/denunciar`)).status());
   expect([200, 202]).toContain((await request.post(`/api/stories/${STORY_DEMO}/visualizar`)).status());
-  expect([401, 503]).toContain((await request.get(`/api/stories/${STORY_DEMO}/estatisticas`)).status());
+  expect([401, 403, 503]).toContain((await request.get(`/api/stories/${STORY_DEMO}/estatisticas`)).status()); // 403: o visualizar acima criou sessão anônima
   await page.goto("/stories/novo");
   await expect(page).toHaveURL(/\/login\?next=%2Fstories%2Fnovo/);
 });
