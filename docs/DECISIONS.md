@@ -343,5 +343,20 @@ Formato: data · decisão · motivo. Mais recente no fim.
 82. **URL do Worker como padrão no código (2026-11-12):** `https://radioon-audio.radioon.workers.dev` (pública, registrada pelo
     `worker-deploy`) é o padrão em `lib/audio/base-url.ts`; `NEXT_PUBLIC_AUDIO_BASE_URL` sobrescreve e o valor `off` volta às URLs
     assinadas do B2. Nada a configurar na Vercel. Reversível: trocar o padrão ou definir `off`.
-84. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
+83. **Rollback do proxy por padrão (2026-11-12):** minutos após a decisão 82, o Worker respondia 503 (`B2_ENDPOINT` vazio no
+    `worker-deploy`), o que quebraria a reprodução em produção. `PROXY_LIGADO_POR_PADRAO = false` em `lib/audio/base-url.ts`
+    devolve o app às URLs assinadas do B2; a URL padrão fica no código. Religar (true) só após o Worker responder 200/206.
+84. **Proxy restrito e transcodificar sem secret novo (2026-11-12, issue #101):** o proxy só serve `audio/stream/`, `covers/` e
+    `stories/` (`urlDoProxy` e `ALLOWED_PREFIXES`); originais em `tracks/` só por URL assinada. `transcodificar.mjs` usa
+    `SUPABASE_DB_URL` (conexão do `migracao`, via `pg`, só `UPDATE` em colunas de transcode de `tracks`) em vez de
+    `SUPABASE_SECRET_KEY`. Regra permanente no CLAUDE.md: endurecimento próprio sem ampliar acesso é risco baixo; antes de pedir
+    secret, checar se um existente resolve. Reversível por PR.
+85. **Verificação de segurança dos workflows no gate (2026-11-12, issue #102):** `scripts/ci/verificar-workflows.mjs` (sem
+    dependências; regex/linhas) roda no job `workflows` do gate, com o script da main e os workflows do PR. Regras R1 (autor
+    `juliobalsini` no `if` de job em `issues`/`issue_comment`), R2 (nada de título/corpo/comentário/head_ref em `run:`/`script:`),
+    R3 (sem `pull_request_target`, `write-all` ou `cancel-in-progress` em fluxo que espera aprovação). Exceção deliberada em R3:
+    workflow só de `pull_request` (o próprio `gate.yml`), pois novo commit invalida a aprovação anterior. `aprovacao`,
+    `avisar-travas`, `gate-ok` e `merge` dependem do job: a trava só é pedida depois que ele passa. Bootstrap: se a main ainda não
+    tem o script, o job usa o do PR (aviso); some após o merge. Falha por dúvida de parsing é preferível a passar em falso.
+86. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
     falhar se algum vier vazio (antes gravava vazio em silêncio e o Worker respondia 503). Arquivo protegido (`.github/**`): PR próprio, trava.

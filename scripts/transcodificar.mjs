@@ -6,7 +6,8 @@
 // - Não apaga nada. 3 falhas → 'failed' (vai ao relatório).
 // - Respeita a cota do B2: cada download do original é 1 Classe B; por execução há teto de
 //   faixas e de bytes (LOTE_MAX, LOTE_MAX_MB), pensado para rodar a cada 30 min.
-// Env: SUPABASE_URL, SUPABASE_SECRET_KEY, S3_ENDPOINT, S3_REGION, S3_BUCKET e a chave S3 de ESCRITA
+// Banco: usa SUPABASE_DB_URL (a mesma conexão do workflow migracao), sem secret novo; só toca em `tracks`.
+// Env: SUPABASE_DB_URL, S3_ENDPOINT, S3_REGION, S3_BUCKET e a chave S3 de ESCRITA
 // restrita a audio/stream/ (S3_WRITE_KEY_ID/S3_WRITE_KEY; leitura pode usar B2_READ_KEY_ID/B2_READ_KEY).
 // Nunca imprime valores de chaves.
 
@@ -17,12 +18,13 @@ import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 
+import pg from "pg";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { FILTRO_PENDENTES, TENTATIVAS_MAX, chaveStream, lerLufs, planejar } from "../lib/audio/transcode.ts";
+import { TENTATIVAS_MAX, chaveStream, lerLufs, planejar } from "../lib/audio/transcode.ts";
 
 const e = process.env;
-const faltam = ["SUPABASE_URL", "SUPABASE_SECRET_KEY", "S3_ENDPOINT", "S3_REGION", "S3_BUCKET"].filter((k) => !e[k]);
+const faltam = ["SUPABASE_DB_URL", "S3_ENDPOINT", "S3_REGION", "S3_BUCKET"].filter((k) => !e[k]);
 const leitura = { accessKeyId: e.B2_READ_KEY_ID || e.S3_ACCESS_KEY_ID, secretAccessKey: e.B2_READ_KEY || e.S3_SECRET_ACCESS_KEY };
 const escrita = { accessKeyId: e.S3_WRITE_KEY_ID, secretAccessKey: e.S3_WRITE_KEY };
 if (faltam.length || !leitura.accessKeyId || !escrita.accessKeyId) {
@@ -37,11 +39,14 @@ const cliente = (credentials) =>
 const s3Leitura = cliente(leitura);
 const s3Escrita = cliente(escrita);
 
-const base = `${e.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/tracks`;
-const h = { apikey: e.SUPABASE_SECRET_KEY, Authorization: `Bearer ${e.SUPABASE_SECRET_KEY}`, "Content-Type": "application/json" };
-const patch = (id, corpo) => fetch(`${base}?id=eq.${id}`, { method: "PATCH", headers: h, body: JSON.stringify(corpo) }).then((r) => {
-  if (!r.ok) throw new Error(`supabase ${r.status}`);
-});
+const db = new pg.Client({ connectionString: e.SUPABASE_DB_URL, ssl: { rejectUnauthorized: false } });
+await db.connect();
+const COLUNAS = new Set(["stream_path", "stream_bytes", "loudness_lufs", "transcode_status", "transcode_error", "transcode_attempts"]);
+const patch = async (id, corpo) => {
+  const chaves = Object.keys(corpo);
+  if (!chaves.every((k) => COLUNAS.has(k))) throw new Error("coluna não permitida");
+  await db.query(`update public.tracks set ${chaves.map((k, i) => `${k} = $${i + 2}`).join(", ")} where id = $1`, [id, ...chaves.map((k) => corpo[k])]);
+};
 
 const rodar = (cmd, args) => {
   const r = spawnSync(cmd, args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
@@ -84,9 +89,10 @@ async function processar(t, dir) {
 }
 
 execFileSync("ffmpeg", ["-version"], { stdio: "ignore" });
-const lista = await fetch(`${base}?select=id,r2_key,transcode_attempts&status=neq.removed&${FILTRO_PENDENTES}&order=created_at.asc&limit=${LOTE_MAX}`, { headers: h });
-if (!lista.ok) throw new Error(`supabase ${lista.status}`);
-const faixas = await lista.json();
+const { rows: faixas } = await db.query(
+  `select id, r2_key, transcode_attempts from public.tracks where status <> 'removed' and (transcode_status is null or transcode_status = 'pending') order by created_at asc limit $1`,
+  [LOTE_MAX],
+);
 console.log(`${faixas.length} faixa(s) pendente(s) neste lote.`);
 let usados = 0;
 const resultados = [];
@@ -108,3 +114,4 @@ for (const t of faixas) {
   }
 }
 if (e.GITHUB_STEP_SUMMARY) writeFileSync(e.GITHUB_STEP_SUMMARY, `Transcodificadas: ${resultados.length}\n`, { flag: "a" });
+await db.end();

@@ -16,6 +16,12 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 
 ## Fila
 
+- [~] **Fila por issues (PR #100, protegido, aguarda trava do Julio):** `autonomo.yml` dispara em label `fila` e comentário
+  "aprovado/recusado" (só `juliobalsini`), sem cancelamento (guarda de execução única). Labels `fila` e `urgente` criados.
+  Pendência aprovada do PLANO.md virou a issue #101 (label `fila`); depende do PR #97 mergeado.
+- [~] **Gate: verificação de segurança dos workflows (issue #102, PR protegido, aguarda trava do Julio):** job `workflows`
+  + `scripts/ci/verificar-workflows.mjs` + testes; `autonomo.yml` já mergeado passa (R1–R3). Decisão 85.
+
 Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
 
 - [x] **a) Suíte E2E mínima (Playwright)** — concluído em 2026-11-07 (PR #10:
@@ -287,8 +293,11 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-12 (6ª) — ciclo "reduzir ações manuais": #83 atualizado sobre a main e ampliado (regras permanentes, E2E do Dependabot no app compilado, override minimatch, correções de `worker-deploy`/`transcodificar`, regras do #27, que foi fechado). Aguarda `travas`. Pendentes após o merge: redeploy do Worker (registra `workers.dev`), gravar a URL como padrão de `NEXT_PUBLIC_AUDIO_BASE_URL`, transcodificar lote=5 e medições do #78 (itens 4–5); precisa do secret `SUPABASE_SECRET_KEY` no ambiente `producao-db`. Relatório `2026-11-12-ciclo-reduzir-acoes-manuais.md`.
 
-- 2026-11-12 (7ª) — #81 e #83 mergeados. `worker-deploy` rodou na main: Worker em https://radioon-audio.radioon.workers.dev; URL gravada como padrão de
-  `NEXT_PUBLIC_AUDIO_BASE_URL` (PR audio-url-padrao, DECISIONS 82). `transcodificar` (lote=5) **pulou**: `SUPABASE_SECRET_KEY` vazio no ambiente
-  `producao-db` (único bloqueio real). Itens 4–5 do #78 (CPU/memória, 206, KV, ganho) seguem pendentes desse secret e da transcodificação;
-  PRs de Dependabot menores seguem com o E2E sem secrets. Major (#88–90, #92–93) = proposta.
+- 2026-11-12 (7ª) — `worker-deploy` rodou: Worker em https://radioon-audio.radioon.workers.dev. #95 ligou o proxy por padrão, mas o Worker dava 503
+  (endpoint B2 vazio) → rollback no #96 (`PROXY_LIGADO_POR_PADRAO=false`, DECISIONS 82–83). #97 (protegido, aguarda `travas`) corrige o `worker-deploy`;
+  depois: redeploy, validar 200/206, religar o proxy, medir (itens 4–5 do #78). `transcodificar` pulou: falta `SUPABASE_SECRET_KEY` em `producao-db`
+  (só o Julio). Relatório `2026-11-12-worker-e-bloqueios.md`.
 
+- 2026-11-12 (8ª) — issue #101 (aprovada): proxy restrito a `audio/stream/`, `covers/`, `stories/`; `transcodificar.mjs` via `SUPABASE_DB_URL`; regra no CLAUDE.md (DECISIONS 84).
+  **Bloqueado:** #97 ainda aguarda `travas` (redeploy do Worker, 200/206, religar proxy, medições); `transcodificar.yml` precisa passar `SUPABASE_DB_URL` ao passo
+  do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.

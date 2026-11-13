@@ -70,6 +70,42 @@ jobs:
           path: ${{ runner.temp }}/motivos.md
           retention-days: 7
 
+  # Verificação de segurança dos workflows (R1–R3 em scripts/ci/verificar-workflows.mjs).
+  # O script é SEMPRE o da main (base); os workflows analisados são os do PR.
+  # Só depois que ela passa o PR protegido pede a trava do Julio (aprovacao/avisar-travas).
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          path: base
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          path: pr
+          sparse-checkout: |
+            .github/workflows
+            scripts/ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verificar workflows do PR
+        run: |
+          script=base/scripts/ci/verificar-workflows.mjs
+          if [ ! -f "$script" ]; then
+            # Bootstrap: só enquanto a main não tem o script (o PR que o introduz é protegido).
+            echo "::warning::Script ausente na main; usando o do PR (bootstrap)."
+            script=pr/scripts/ci/verificar-workflows.mjs
+          fi
+          node "$script" pr/.github/workflows
+
   validar:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -204,7 +240,7 @@ jobs:
 
   # PR com arquivos protegidos: espera aprovação manual do Julio.
   aprovacao:
-    needs: travas
+    needs: [travas, workflows]
     if: needs.travas.outputs.protegido == 'true'
     runs-on: ubuntu-latest
     environment: travas
@@ -226,7 +262,7 @@ jobs:
           echo "Aprovado por revisor do ambiente travas."
 
   avisar-travas:
-    needs: travas
+    needs: [travas, workflows]
     if: needs.travas.outputs.protegido == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -262,20 +298,21 @@ jobs:
 
   # Check obrigatório da main (ruleset). Resume o resultado de tudo.
   gate-ok:
-    needs: [travas, validar, e2e, aprovacao]
+    needs: [travas, workflows, validar, e2e, aprovacao]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Resultado
         env:
           TRAVAS: ${{ needs.travas.result }}
+          WORKFLOWS: ${{ needs.workflows.result }}
           VALIDAR: ${{ needs.validar.result }}
           E2E: ${{ needs.e2e.result }}
           APROVACAO: ${{ needs.aprovacao.result }}
           PROTEGIDO: ${{ needs.travas.outputs.protegido }}
         run: |
-          echo "travas=$TRAVAS validar=$VALIDAR e2e=$E2E aprovacao=$APROVACAO protegido=$PROTEGIDO"
-          [ "$TRAVAS" = success ] && [ "$VALIDAR" = success ] && [ "$E2E" = success ] || exit 1
+          echo "travas=$TRAVAS workflows=$WORKFLOWS validar=$VALIDAR e2e=$E2E aprovacao=$APROVACAO protegido=$PROTEGIDO"
+          [ "$TRAVAS" = success ] && [ "$WORKFLOWS" = success ] && [ "$VALIDAR" = success ] && [ "$E2E" = success ] || exit 1
           if [ "$PROTEGIDO" = true ]; then
             [ "$APROVACAO" = success ] || exit 1
           elif [ "$PROTEGIDO" != false ]; then
@@ -283,7 +320,7 @@ jobs:
           fi
 
   merge:
-    needs: [travas, gate-ok]
+    needs: [travas, workflows, gate-ok]
     # Só PRs do próprio repositório, abertos pelo agente, fora de rascunho.
     # `!cancelled()` é necessário: sem função de status, o GitHub aplica
     # `success()` implícito sobre TODA a cadeia de needs, e `aprovacao` (pulado
@@ -292,6 +329,7 @@ jobs:
     if: >-
       !cancelled() &&
       needs.travas.result == 'success' &&
+      needs.workflows.result == 'success' &&
       needs.gate-ok.result == 'success' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.login == (vars.AGENT_LOGIN || 'juliobalsini') &&
