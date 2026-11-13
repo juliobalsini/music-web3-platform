@@ -10,6 +10,8 @@ via @supabase/ssr · Backblaze B2 (S3-compatível) via @aws-sdk/client-s3 · Ver
 laranja #ff6b35/#f7931e, logo "radio" branco + "On" laranja; flat, pouco texto, foco no play.
 **UI:** toda tarefa de UI usa a skill `impeccable` (.claude/skills/impeccable), sem rodar
 o launcher dela (bloqueado; usar o caminho "Launcher unavailable"). Ver UPSTREAM.md.
+**Design system:** toda tela nova ou alterada usa os componentes de `components/ds/` (docs/design-system.md); textos
+explicativos longos viram ajuda que abre ao tocar (`Ajuda`).
 ## Regras invioláveis
 1. Pontos, permissões e validação de escuta só no servidor.
 2. RLS habilitado em todas as tabelas, com policies.

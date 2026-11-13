@@ -21,14 +21,14 @@ async function icone(arquivo, lado, fracao) {
   return arquivo;
 }
 
-// "any": logo inteiro (~84% da largura). "maskable": logo em ~60% do centro.
+// "any": logo inteiro, dentro do círculo central de 80% (64% da largura). "maskable": logo em ~60% do centro.
 const saidas = [];
 for (const s of [192, 512]) {
-  saidas.push([await icone(`public/icons/icon-any-${s}.png`, s, 0.84), s, false]);
+  saidas.push([await icone(`public/icons/icon-any-${s}.png`, s, 0.64), s, false]);
   saidas.push([await icone(`public/icons/icon-maskable-${s}.png`, s, 0.6), s, true]);
 }
-await icone("app/icon.png", 512, 0.84);
-await icone("app/apple-icon.png", 180, 0.84);
+await icone("app/icon.png", 512, 0.64);
+await icone("app/apple-icon.png", 180, 0.64);
 
 // Validação: todo pixel que difere do marinho precisa estar dentro do círculo de raio 40% (zona segura).
 let ok = true;
@@ -47,7 +47,7 @@ for (const [arq, s, maskable] of saidas) {
   }
   const pct = ((maxR / s) * 100).toFixed(1);
   const dentro = maxR <= 0.4 * s;
-  if (maskable && !dentro) ok = false;
-  console.log(`${arq}: raio do conteúdo ${pct}% (limite 40%) caixa ${x0},${y0}–${x1},${y1} ${maskable ? (dentro ? "ZONA SEGURA OK" : "FORA DA ZONA SEGURA") : ""}`);
+  if (!dentro) ok = false;
+  console.log(`${arq}: raio do conteúdo ${pct}% (limite 40%) caixa ${x0},${y0}–${x1},${y1} ${dentro ? "ZONA SEGURA OK" : "FORA DA ZONA SEGURA"}`);
 }
 if (!ok) process.exit(1);

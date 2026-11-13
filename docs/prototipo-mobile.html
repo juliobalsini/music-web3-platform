@@ -366,5 +366,15 @@ function svOpen(p){sp=p;si=0;$('sv').classList.add('open');svRender()}
 $('main').insertAdjacentHTML('afterbegin','<div class="stc" id="stc">'+SV.map((g,k)=>`<button onclick="svOpen(${k});this.classList.add('seen')"><span class="ring"><span class="av2">${g.n[0]}</span></span>${g.n}</button>`).join('')+'</div>');
 render();
 </script>
+
+<section id="ds-demo" style="max-width:420px;margin:24px auto;padding:16px;color:#fff;font:14px system-ui">
+  <h2 style="font-size:18px">Design system (docs/design-system.md)</h2>
+  <p style="opacity:.75">Componentes base: card com capa, chip de status, abas, anel, gráfico circular, barras, estatística, vazio, esqueleto, painel inferior, menu ⋯.</p>
+  <div style="display:flex;gap:8px;align-items:center;margin:8px 0"><span style="border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:2px 10px;color:#6ee7a8;font-weight:600">Publicada</span><span style="border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:2px 10px;color:#f4b562;font-weight:600">Em processamento</span><span style="border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:2px 10px;color:#ff8a80;font-weight:600">Falhou</span></div>
+  <svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg)"><circle cx="32" cy="32" r="29" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle cx="32" cy="32" r="29" fill="none" stroke="#e89a3c" stroke-width="6" stroke-linecap="round" stroke-dasharray="182.2" stroke-dashoffset="68"/></svg>
+  <div style="height:8px;background:rgba(255,255,255,.14);border-radius:9px;margin:10px 0"><div style="width:62%;height:100%;background:#e89a3c;border-radius:9px"></div></div>
+  <div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.16);padding:10px 0"><span>Escutas válidas</span><b>128</b></div>
+  <p style="opacity:.75;margin-top:10px">Tema claro e cor de destaque: variáveis <code>--ds-*</code> em <code>app/globals.css</code>.</p>
+</section>
 </body>
 </html>

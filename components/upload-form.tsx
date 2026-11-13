@@ -41,6 +41,11 @@ async function prepararCapa(arquivo: File): Promise<File> {
   throw new Error("capa");
 }
 
+function chaveDoEnvio(ref: { current: { assinatura: string; chave: string } | null }, assinatura: string): string {
+  if (ref.current?.assinatura !== assinatura) ref.current = { assinatura, chave: crypto.randomUUID().replace(/-/g, "") };
+  return ref.current.chave;
+}
+
 /** PUT com progresso (fetch não expõe o progresso do envio). */
 function enviarComProgresso(url: string, tipo: string, corpo: Blob, aoProgredir: (frac: number) => void): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -68,6 +73,9 @@ export function UploadForm() {
   const [modo, setModo] = useState<"single" | "album">("single");
   const [faixasAlbum, setFaixasAlbum] = useState<{ arquivo: File; titulo: string }[]>([]);
 
+  // Trava síncrona contra toque repetido (o estado `enviando` só atualiza no próximo render) e chave de idempotência por envio.
+  const emCurso = useRef(false);
+  const chaveEnvio = useRef<{ assinatura: string; chave: string } | null>(null);
   const arquivoRef = useRef<HTMLInputElement>(null);
   const tituloRef = useRef<HTMLInputElement>(null);
 
@@ -176,7 +184,16 @@ export function UploadForm() {
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
+    if (emCurso.current) return;
+    emCurso.current = true;
+    try {
+      await processar(e.currentTarget);
+    } finally {
+      emCurso.current = false;
+    }
+  }
+
+  async function processar(form: HTMLFormElement) {
     const dados = new FormData(form);
     if (modo === "album") return enviarAlbum(dados);
     const arquivo = dados.get("arquivo") as File | null;
@@ -213,12 +230,17 @@ export function UploadForm() {
           cover: capa ? { contentType: capa.type, size: capa.size } : null,
           genre: String(dados.get("genero") ?? ""),
           mood: String(dados.get("clima") ?? ""),
+          uploadKey: chaveDoEnvio(chaveEnvio, `${arquivo.name}|${arquivo.size}|${arquivo.lastModified}|${String(dados.get("titulo") ?? "")}`),
           credits: Object.fromEntries(ficha.map((f) => [f.name, String(dados.get(f.name) ?? "")])),
         }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) return falha(erroDaRotaDeUpload(r.status, j.error));
       setProgresso({ rotulo: "Enviando o áudio…", frac: 0 });
+      if (j.jaPublicada) {
+        chaveEnvio.current = null;
+        return setMsg({ texto: "Essa faixa já está publicada.", erro: false });
+      }
       const putStatus = await enviarComProgresso(j.uploadUrl, j.contentType, arquivo, (frac) => setProgresso({ rotulo: "Enviando o áudio…", frac }));
       if (putStatus < 200 || putStatus >= 300) return falha(erroDoBucket(putStatus));
       // Capa é opcional: se falhar, a faixa sai sem capa (arte gerada do título).
@@ -234,6 +256,7 @@ export function UploadForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ coverOk }),
       });
+      if (pub.ok) chaveEnvio.current = null;
       if (pub.ok) setMsg({ texto: coverOk ? "Faixa publicada." : "Faixa publicada, mas sem a capa. Use uma imagem menor depois.", erro: false });
       else falha("Enviada, mas não publicada. Tente enviar de novo.");
     } catch {

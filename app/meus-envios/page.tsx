@@ -5,6 +5,8 @@ import Link from "next/link";
 import { linha, Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
+import { reconciliarEnvios } from "@/lib/tracks/reconciliar";
+import { rotuloStatus } from "@/lib/tracks/envios";
 
 export const metadata = { title: "Meus envios · radioOn" };
 
@@ -36,8 +38,10 @@ async function Conteudo() {
   const sessao = await getSessionRole();
   if (!sessao) redirect(loginPath("/meus-envios"));
   const { supabase, userId } = sessao;
+  // Toda faixa em processamento termina: publicada (arquivo no bucket) ou falhou (com motivo).
+  await reconciliarEnvios(userId).catch(() => {});
   const [faixas, albuns, playlists, stories] = await Promise.all([
-    supabase.from("tracks").select("id,title,status").eq("artist_id", userId).neq("status", "removed").order("created_at", { ascending: false }).limit(100),
+    supabase.from("tracks").select("id,title,status,failure_reason").eq("artist_id", userId).neq("status", "removed").order("created_at", { ascending: false }).limit(100),
     supabase.from("albums").select("id,title,kind").eq("artist_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("playlists").select("id,title").eq("curator_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("stories").select("id,body").eq("author_id", userId).order("created_at", { ascending: false }).limit(50),
@@ -45,7 +49,7 @@ async function Conteudo() {
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Meus envios</h1>
-      <Secao titulo="Faixas" vazio="Nenhuma faixa enviada." itens={(faixas.data ?? []).map((t) => ({ id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: t.status === "published" ? undefined : "Em processamento" }))} />
+      <Secao titulo="Faixas" vazio="Nenhuma faixa enviada." itens={(faixas.data ?? []).map((t) => ({ id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: rotuloStatus(t.status, t.failure_reason) }))} />
       <Secao titulo="Álbuns e EPs" vazio="Nenhum álbum ou EP." itens={(albuns.data ?? []).map((a) => ({ id: a.id, titulo: a.title, href: `/album/${a.id}`, info: a.kind === "ep" ? "EP" : "Álbum" }))} />
       <Secao titulo="Playlists" vazio="Nenhuma playlist." itens={(playlists.data ?? []).map((p) => ({ id: p.id, titulo: p.title, href: `/playlist/${p.id}` }))} />
       <Secao titulo="Stories" vazio="Nenhum story." itens={(stories.data ?? []).map((s) => ({ id: s.id, titulo: s.body || "Story sem texto", href: `/story/${s.id}` }))} />

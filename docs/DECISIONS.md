@@ -390,3 +390,8 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     `/curador` virou só "Programação" (curadores); lista/criação de playlists saiu e as do usuário ficam na Biblioteca (rascunhos marcados). Barra inferior: Rádio, Explorar, Biblioteca, Criar
     (painel: Playlist, Story, Enviar música). Painel de compartilhar virou genérico (`PainelCompartilharAlvo`), usado também por playlists (cartão 9:16 em `/api/playlists/[id]/cartao`).
     Não apagamos dados existentes (as 3 "Jazz independente" seguem; o dono remove pelo menu ⋯).
+92. **Base visual e envios (issue #124):** (a) ícones `any`/`maskable` separados, ambos dentro do círculo de 80% (o script de ícones falha se sair) e abertura interna com o mesmo marinho e proporção do ícone;
+    (b) envio idempotente: `tracks.upload_key` (índice único por artista) + trava síncrona no formulário; causa dos duplicados e travados = linha `processing` criada antes do PUT, e cada nova tentativa/toque criava outra;
+    (c) estado terminal `failed` + `failure_reason` (migration aditiva `20261113030000`); `/meus-envios` reconcilia as `processing` com > 15 min (1 HEAD por faixa, máx. 10): arquivo no bucket → publica, ausente → `failed` com motivo.
+    Nada é apagado; o usuário remove duplicatas pelo menu. Álbum/EP segue sem chave (só a trava de toque repetido). (d) Design system em `components/ds/` com tokens `--ds-*` (tema claro e destaque prontos para Configurações).
+
