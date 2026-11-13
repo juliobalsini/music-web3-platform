@@ -301,3 +301,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-12 (8ª) — issue #101 (aprovada): proxy restrito a `audio/stream/`, `covers/`, `stories/`; `transcodificar.mjs` via `SUPABASE_DB_URL`; regra no CLAUDE.md (DECISIONS 84).
   **Bloqueado:** #97 ainda aguarda `travas` (redeploy do Worker, 200/206, religar proxy, medições); `transcodificar.yml` precisa passar `SUPABASE_DB_URL` ao passo
   do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.
+
+- 2026-11-13 (9ª) — issue #101: #97 aprovado na trava, mas o merge falhou por conflito em DECISIONS.md; atualizado sobre a main (decisão renumerada 86) e a trava foi pedida de novo (novo commit invalida a aprovação). **Aguarda `travas` do #97.** Depois: dispare `worker-deploy`, validar 200/206, religar o proxy restrito, `transcodificar` lote=5, medições do #78. #107 (Dependabot) com E2E falho: investigar na próxima execução.
