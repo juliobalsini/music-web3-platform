@@ -122,7 +122,7 @@ export function RadioCliente({
           <EstadoVazio />
         ) : (
           <>
-            <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
+            <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} ouvindo={radio.ouvindo} />
             <CarrosselFaixas
               titulo={`Agora combina com ${rotuloClima(clima.clima)}`}
               dica={clima.recentes ? "Ainda sem faixas deste clima: as mais recentes" : undefined}

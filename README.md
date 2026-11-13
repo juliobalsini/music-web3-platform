@@ -4,7 +4,7 @@
 
 # radioOn
 
-**Resumo (pt-BR):** o radioOn é um streaming mobile-first de música independente global. O público entra e dá play já;
+**Resumo (pt-BR):** a radioOn é um streaming mobile-first de música independente global. O público entra e dá play já;
 artistas enviam faixas em `/enviar`; curadores montam playlists; ouvintes ganham pontos por escutas válidas (validadas no
 servidor). Produção: <https://radioon-ten.vercel.app>. Stack 100% gratuita e desenvolvimento autônomo com Claude Code.
 Código público só para consulta (ver [License](#license)).

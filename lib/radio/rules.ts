@@ -202,7 +202,7 @@ export function menosOuvidas<T extends { id: string; plays: number; createdAt: s
 }
 
 /**
- * Fluxo contínuo da "Rádio radioOn": intercala novidades, pouco ouvidas e curtidas, sem repetir faixa
+ * Fluxo contínuo da "Player On": intercala novidades, pouco ouvidas e curtidas, sem repetir faixa
  * (logo, nunca a mesma em sequência; a volta ao início é tratada pelo player). `giro` muda a partida.
  */
 export function fluxoRadio<T extends { id: string; plays: number; likes: number; createdAt: string }>(faixas: T[], giro = 0, porGrupo = 6): T[] {

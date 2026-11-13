@@ -8,6 +8,9 @@ import { Equalizador } from "@/components/equalizador";
 import { usePlayer } from "@/components/player-provider";
 import { capaGerada, formatDuracao, type FaixaListada, type Programa } from "@/lib/radio/rules";
 
+/** O selo "Ao vivo" só aparece com público de verdade (evita "1 ouvindo"). */
+export const LIMITE_AO_VIVO = 10;
+
 const hora = (h: number) => `${String(h % 24).padStart(2, "0")}h`;
 
 /** Fundo ambiente: a própria capa desfocada ou, sem capa, o par de cores da arte gerada. */
@@ -28,12 +31,14 @@ export function CartaoNoAr({
   continuo,
   atual,
   proximo,
+  ouvindo = 0,
 }: {
   faixa: FaixaListada;
   fila: FaixaListada[];
   continuo: boolean;
   atual: Programa | null;
   proximo: Programa | null;
+  ouvindo?: number;
 }) {
   const p = usePlayer();
   const aqui = p.atual?.id === faixa.id;
@@ -43,7 +48,14 @@ export function CartaoNoAr({
   return (
     <section aria-label="No ar" className="relative isolate flex flex-col gap-4 overflow-hidden rounded-3xl p-4 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)]">
       <Ambiente faixa={faixa} />
-      <p className="truncate text-sm font-semibold text-white/80">{atual ? `${atual.title} · ${hora(atual.startHour)}–${hora(atual.endHour)}` : "Rádio radioOn"}</p>
+      <div className="flex items-center justify-between gap-3 text-sm font-semibold text-white/80">
+        <p className="truncate">{atual ? `${atual.title} · ${hora(atual.startHour)}–${hora(atual.endHour)}` : "Player On"}</p>
+        {ouvindo >= LIMITE_AO_VIVO && (
+          <p data-testid="ao-vivo" className="shrink-0 whitespace-nowrap text-brand">
+            Ao vivo · {ouvindo} ouvindo
+          </p>
+        )}
+      </div>
       <div className="flex items-end gap-4">
         <Capa id={faixa.id} title={faixa.title} hasCover={faixa.hasCover} className="size-36 !rounded-2xl shadow-[0_12px_24px_-10px_rgba(0,0,0,0.7)]" />
         <div className="min-w-0 flex-1 pb-1">

@@ -24,7 +24,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/onboarding">, "search
   return (
     <>
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-balance">Como você vai usar o radioOn?</h1>
+        <h1 className="text-2xl font-semibold text-balance">Como você vai usar a radioOn?</h1>
         <Frase />
       </div>
       {erro && <Mensagem tipo="erro">Não deu certo. Tente de novo.</Mensagem>}

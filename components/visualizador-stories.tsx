@@ -34,7 +34,7 @@ export function VisualizadorStories({
   agora: number;
   inicio: Posicao;
   onFechar: () => void;
-  /** Link compartilhado: ao fim, em vez de só fechar, convida a entrar no radioOn. */
+  /** Link compartilhado: ao fim, em vez de só fechar, convida a entrar na radioOn. */
   convite?: boolean;
 }) {
   const player = usePlayer();
@@ -424,7 +424,7 @@ export function VisualizadorStories({
           <div role="region" aria-label="Convite" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-night-900/90 px-8 text-center">
             <Logo className="h-16 w-auto" alt="radioOn" />
             <p className="text-lg font-bold text-pretty">Música independente, sem cadastro para ouvir.</p>
-            <Link href="/" className="flex min-h-12 items-center rounded-full bg-gradient-to-br from-brand to-brand-2 px-6 font-bold text-night-900">Entrar no radioOn</Link>
+            <Link href="/" className="flex min-h-12 items-center rounded-full bg-gradient-to-br from-brand to-brand-2 px-6 font-bold text-night-900">Entrar na radioOn</Link>
             <button type="button" onClick={fechar} className="min-h-11 text-sm text-white/80 underline underline-offset-2">Fechar</button>
           </div>
         )}

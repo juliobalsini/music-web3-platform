@@ -57,7 +57,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
           )}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
-          <div style={{ fontSize: 36, color: "rgba(255,255,255,0.75)" }}>Ouça no radioOn</div>
+          <div style={{ fontSize: 36, color: "rgba(255,255,255,0.75)" }}>Ouça na radioOn</div>
           <div style={{ fontSize: 30, fontWeight: 700, wordBreak: "break-all", maxWidth: 920 }}>{link}</div>
         </div>
       </div>

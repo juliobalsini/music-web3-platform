@@ -17,7 +17,7 @@ type Acoes = {
   atual: FaixaTocavel | null;
   estado: EstadoPlayer;
   fila: FaixaTocavel[];
-  /** `continuo`: ao fim da fila volta ao começo (Rádio radioOn), sem repetir a mesma faixa em sequência. */
+  /** `continuo`: ao fim da fila volta ao começo (Player On), sem repetir a mesma faixa em sequência. */
   tocar: (faixa: FaixaTocavel, fila?: FaixaTocavel[], continuo?: boolean, inicio?: number) => void;
   /** Id do usuário (conta ou visitante anônimo) quando há sessão; serve para saber se a faixa é dele. */
   usuarioId: string | null;

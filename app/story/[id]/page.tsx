@@ -14,12 +14,12 @@ export async function generateMetadata({ params }: Pick<PageProps<"/story/[id]">
   if (!isUuid(id)) return {};
   const story = (await carregarStories()).find((s) => s.id === id);
   if (!story) return {};
-  const titulo = `${story.authorName} no radioOn`;
+  const titulo = `${story.authorName} na radioOn`;
   const imagem = { url: `/api/stories/${id}/cartao`, width: 1080, height: 1920, alt: titulo };
   return {
     title: `${titulo} · story`,
-    description: story.body ?? "Ouça no radioOn.",
-    openGraph: { title: titulo, description: story.body ?? "Ouça no radioOn", images: [imagem] },
+    description: story.body ?? "Ouça na radioOn.",
+    openGraph: { title: titulo, description: story.body ?? "Ouça na radioOn", images: [imagem] },
     twitter: { card: "summary_large_image", title: titulo, images: [imagem.url] },
   };
 }
