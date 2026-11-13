@@ -50,9 +50,14 @@ test("story de boas-vindas abre e a Seleção radioOn tem página", async ({ pag
   await page.getByRole("button", { name: "Ver stories de radioOn" }).click();
   // O boas-vindas fixo é o mais novo do grupo (vem por último; a demonstração tem outro antes).
   const visor = page.getByRole("dialog", { name: /Stories de radioOn/ });
-  while (!(await visor.getByText("Ouvir: é só dar play").isVisible())) await visor.getByRole("button", { name: "Próximo story" }).click();
+  await expect(visor).toBeVisible();
+  for (let k = 0; k < 3 && !(await visor.getByText("Ouvir: é só dar play").isVisible()); k++) await page.keyboard.press("ArrowRight");
   await expect(visor.getByText("Ouvir: é só dar play")).toBeVisible();
+  // Perfil oficial: o menu ⋯ não oferece denunciar.
+  await visor.getByRole("button", { name: "Mais opções" }).click();
+  await expect(visor.getByText("Carregando…")).toBeHidden({ timeout: 15_000 });
   await expect(visor.getByRole("button", { name: "Denunciar" })).toHaveCount(0);
+  await visor.getByRole("button", { name: "Fechar painel" }).click();
   await page.keyboard.press("Escape");
   await page.getByRole("region", { name: "Seleção radioOn" }).getByRole("link").first().click();
   await expect(page).toHaveURL(/\/playlist\/radioon-/);
@@ -259,7 +264,7 @@ test("rotas de álbum e envio exigem login", async ({ request }) => {
 const STORY_DEMO = "00000000-0000-4000-8000-000000000501";
 const STORY_ARQUIVADO = "00000000-0000-4000-8000-000000000503";
 
-test("Stories: faixa na home, visor com trecho, compartilhar e denunciar", async ({ page }) => {
+test("Stories: faixa na home, visor em tela cheia com música, compartilhar e denunciar", async ({ page }) => {
   await radioCarregada(page);
   const faixa = page.getByRole("region", { name: "Stories", exact: true });
   await expect(faixa).toBeVisible();
@@ -267,31 +272,38 @@ test("Stories: faixa na home, visor com trecho, compartilhar e denunciar", async
   const visor = page.getByRole("dialog", { name: /Stories de Lia Norte/ });
   await expect(visor).toBeVisible();
   await expect(visor.getByText("Ensaio aberto hoje à noite")).toBeVisible();
-  await expect(visor.getByTestId("trecho")).toBeVisible();
-  const compartilhar = visor.getByRole("region", { name: "Compartilhar story" });
-  for (const n of ["Compartilhar", "Baixar cartão", "WhatsApp", "Facebook", "LinkedIn", "Instagram: abrir cartão"]) {
-    await expect(compartilhar.getByText(n, { exact: true })).toBeVisible();
-  }
-  await expect(compartilhar.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me/);
-  // Denunciar exige conta: visitante é convidado a entrar.
-  await visor.getByRole("button", { name: "Denunciar" }).click();
+  await expect(visor.getByTestId("story-faixa")).toContainText("Madrugada no Convés");
+  await expect(visor.getByRole("link", { name: "Ouvir a faixa" })).toHaveAttribute("href", /\/faixa\//);
+  await expect(visor.getByText(/No ar por mais/)).toHaveCount(0);
+  // Compartilhar: linha de ícones, sem a grade antiga nem o texto explicativo.
+  await visor.getByRole("button", { name: "Compartilhar" }).click();
+  const painel = visor.getByRole("region", { name: "Compartilhar" });
+  for (const n of ["WhatsApp", "Instagram", "Facebook", "LinkedIn", "Copiar link", "Mais"]) await expect(painel.getByLabel(n, { exact: true })).toBeVisible();
+  await expect(painel.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me/);
+  await expect(painel.getByRole("button", { name: "Baixar cartão" })).toBeVisible();
+  await expect(visor.getByText(/Instagram não tem link/)).toHaveCount(0);
+  await painel.getByRole("button", { name: "Fechar painel" }).click();
+  // Denunciar (menu ⋯) exige conta: visitante é convidado a entrar.
+  await visor.getByRole("button", { name: "Mais opções" }).click();
+  await visor.getByRole("button", { name: "Denunciar" }).click({ timeout: 15_000 });
   await expect(visor.getByText(/Entre com uma conta para denunciar/)).toBeVisible({ timeout: 15_000 });
+  await visor.getByRole("button", { name: "Fechar painel" }).click();
   await visor.getByRole("button", { name: "Fechar stories" }).click();
   await expect(visor).toBeHidden();
 });
 
-test("Story: página com Open Graph, cartão 9:16 e arquivo no perfil", async ({ page, request }) => {
+test("Story: página abre o visualizador, com Open Graph, cartão 9:16 e arquivo no perfil", async ({ page, request }) => {
   await page.goto(`/story/${STORY_DEMO}`);
-  await expect(page.getByText("Ensaio aberto hoje à noite")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("dialog", { name: /Stories de Lia Norte/ }).getByText("Ensaio aberto hoje à noite")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", new RegExp(`/api/stories/${STORY_DEMO}/cartao$`));
   await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "1920");
   const img = await request.get(`/api/stories/${STORY_DEMO}/cartao`);
   expect(img.status()).toBe(200);
   expect(img.headers()["content-type"]).toContain("image/png");
   expect((await request.get("/api/stories/00000000-0000-4000-8000-0000000005ff/cartao")).status()).toBe(404);
-  // Story com mais de 7 dias já saiu da home, mas segue na página e no perfil do autor.
+  // Story com mais de 7 dias já saiu da home, mas segue no link e no perfil do autor.
   await page.goto(`/story/${STORY_ARQUIVADO}`);
-  await expect(page.getByText("Arquivado no perfil")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("dialog").getByText("há 9 dias")).toBeVisible({ timeout: 20_000 });
   await page.goto("/perfil/00000000-0000-4000-8000-000000000201");
   await expect(page.getByRole("region", { name: "Stories do perfil" }).getByText("Arquivado")).toBeVisible({ timeout: 20_000 });
 });
@@ -299,6 +311,13 @@ test("Story: página com Open Graph, cartão 9:16 e arquivo no perfil", async ({
 test("Stories: publicar e denunciar exigem conta; novo story redireciona ao login", async ({ page, request }) => {
   expect([401, 503]).toContain((await request.post("/api/stories", { data: { body: "oi" } })).status());
   expect([401, 503]).toContain((await request.post(`/api/stories/${STORY_DEMO}/denunciar`, { data: {} })).status());
+  // Fase 2: comentar, apagar e denunciar comentário exigem conta; visualizar nunca falha o visualizador.
+  expect([401, 503]).toContain((await request.post(`/api/stories/${STORY_DEMO}/comentarios`, { data: { kind: "texto", body: "Hino!" } })).status());
+  expect([401, 503]).toContain((await request.delete(`/api/stories/${STORY_DEMO}`)).status());
+  expect([401, 503]).toContain((await request.delete(`/api/stories/comentarios/${STORY_DEMO}`)).status());
+  expect([401, 503]).toContain((await request.post(`/api/stories/comentarios/${STORY_DEMO}/denunciar`)).status());
+  expect([200, 202]).toContain((await request.post(`/api/stories/${STORY_DEMO}/visualizar`)).status());
+  expect([401, 503]).toContain((await request.get(`/api/stories/${STORY_DEMO}/estatisticas`)).status());
   await page.goto("/stories/novo");
   await expect(page).toHaveURL(/\/login\?next=%2Fstories%2Fnovo/);
 });

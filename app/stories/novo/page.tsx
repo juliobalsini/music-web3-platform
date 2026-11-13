@@ -15,7 +15,7 @@ async function Conteudo() {
   if (!sessao) redirect(loginPath("/stories/novo"));
   if (!podePublicarStory(sessao.role, sessao.userId, idsDaPlataforma(process.env.PLATFORM_STORY_IDS)).pode) redirect("/onboarding");
   const radio = await carregarRadio();
-  const faixas = radio.faixas.map((f) => ({ id: f.id, title: f.title, artistName: f.artistName, durationSec: f.durationSec }));
+  const faixas = radio.faixas.map((f) => ({ id: f.id, title: f.title, artistName: f.artistName, durationSec: f.durationSec, hasCover: f.hasCover }));
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Novo story</h1>

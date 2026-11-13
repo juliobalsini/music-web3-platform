@@ -8,7 +8,7 @@ import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
 import { carregarRadio, continuarOuvindo } from "@/lib/radio/queries";
 import { getSessaoAny } from "@/lib/session";
 import { carregarStories } from "@/lib/stories/queries";
-import { storiesAtivos } from "@/lib/stories/rules";
+import { idsDaPlataforma, podePublicarStory, storiesAtivos } from "@/lib/stories/rules";
 
 async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const sp = await searchParams;
@@ -16,13 +16,15 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
   const agora = new Date().getTime();
   const stories = storiesAtivos(todosStories, agora);
   const faixasDosStories = Object.fromEntries(
-    radio.faixas.filter((f) => stories.some((s) => s.trackId === f.id)).map((f) => [f.id, { id: f.id, title: f.title, artistName: f.artistName, durationSec: f.durationSec }]),
+    radio.faixas.filter((f) => stories.some((s) => s.trackId === f.id)).map((f) => [f.id, { id: f.id, title: f.title, artistName: f.artistName, durationSec: f.durationSec, hasCover: f.hasCover }]),
   );
 
   // "Continue ouvindo" só existe para quem tem histórico (conta ou visitante com sessão).
   let continuar: Awaited<ReturnType<typeof continuarOuvindo>> = [];
+  let podePublicar = false;
   try {
     const sessao = await getSessaoAny();
+    if (sessao && !sessao.anonimo) podePublicar = podePublicarStory(sessao.role, sessao.userId, idsDaPlataforma(process.env.PLATFORM_STORY_IDS)).pode;
     if (sessao) continuar = await continuarOuvindo(sessao.userId, radio.faixas);
   } catch {
     /* sem sessão */
@@ -41,7 +43,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
   return (
     <>
       <CabecalhoHome ouvindo={radio.ouvindo} />
-      <RadioCliente radio={radio} continuarServidor={continuar} validos={validos} stories={stories} faixasDosStories={faixasDosStories} agora={agora} filtroInicial={lerFiltro(sp.f)} abaInicial={lerAba(sp.aba)} />
+      <RadioCliente radio={radio} continuarServidor={continuar} validos={validos} podePublicar={podePublicar} stories={stories} faixasDosStories={faixasDosStories} agora={agora} filtroInicial={lerFiltro(sp.f)} abaInicial={lerAba(sp.aba)} />
     </>
   );
 }

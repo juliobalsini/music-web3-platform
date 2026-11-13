@@ -120,3 +120,18 @@ input[type="file"]::file-selector-button {
     opacity: 0;
   }
 }
+
+/* Stories em tela cheia: barra de progresso e painéis deslizantes. */
+@keyframes story-barra {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes story-folha {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.story-folha { animation: story-folha 0.22s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .story-barra-ativa { animation: none !important; transform: scaleX(1) !important; }
+  .story-folha { animation: none; }
+}

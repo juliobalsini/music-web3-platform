@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { Busca } from "@/components/busca";
+import { FaixaStories } from "@/components/faixa-stories";
 import { Artistas, CartoesColoridos } from "@/components/cartoes-explorar";
 import { CarrosselFaixas } from "@/components/carrossel-faixas";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -9,6 +10,8 @@ import { EstadoVazio, PlaylistersEmAlta, PlaylistsDaSemana } from "@/components/
 import { Tela } from "@/components/ui";
 import { carregarRadio, reacoesDoUsuario } from "@/lib/radio/queries";
 import { lerClima, lerGenero, rotuloClima, rotuloGenero } from "@/lib/radio/generos";
+import { carregarStories } from "@/lib/stories/queries";
+import { storiesAtivos } from "@/lib/stories/rules";
 import { buscar, contarCampo, lerBusca, recomendar } from "@/lib/radio/rules";
 
 export const metadata = { title: "Explorar · radioOn" };
@@ -47,6 +50,11 @@ async function Conteudo({ q, genero, clima }: { q: string; genero: string | null
       </>
     );
   }
+  const agora = new Date().getTime();
+  const stories = storiesAtivos(await carregarStories().catch(() => []), agora);
+  const faixasDosStories = Object.fromEntries(
+    radio.faixas.filter((f) => stories.some((s) => s.trackId === f.id)).map((f) => [f.id, { id: f.id, title: f.title, artistName: f.artistName, durationSec: f.durationSec, hasCover: f.hasCover }]),
+  );
   const curtidas = (await reacoesDoUsuario()).like;
   const paraVoce = recomendar(radio.faixas, curtidas);
   const artistas = contarCampo(radio.faixas, (f) => f.artistId).map(({ id, total }) => ({ id, nome: radio.faixas.find((f) => f.artistId === id)?.artistName ?? "Artista", faixas: total }));
@@ -54,6 +62,7 @@ async function Conteudo({ q, genero, clima }: { q: string; genero: string | null
   const climas = contarCampo(radio.faixas, (f) => f.mood).flatMap(({ id, total }) => (rotuloClima(id) ? [{ id, rotulo: rotuloClima(id)!, href: `/explorar?clima=${id}`, detalhe: `${total} ${total === 1 ? "faixa" : "faixas"}` }] : []));
   return (
     <>
+      <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} modo="linha" />
       <CarrosselFaixas titulo="Para você" dica={curtidas.size > 0 ? "Com base nas faixas e gêneros que você curtiu" : "As mais curtidas e ouvidas, para começar"} faixas={paraVoce} />
       <CarrosselFaixas titulo="Descobertas" dica={radio.descobertasCuradas ? "Pouco ouvidas, escolhidas por playlisters" : "As faixas menos ouvidas"} faixas={radio.descobertas} />
       <CarrosselFaixas
