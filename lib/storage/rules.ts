@@ -28,7 +28,17 @@ export type UploadInput = {
   /** Gênero (lista fixa) e clima (seis valores), opcionais. */
   genre: GeneroId | null;
   mood: ClimaId | null;
+  /** Chave de idempotência do envio (gerada no cliente, por tentativa de envio). */
+  uploadKey: string | null;
 };
+
+export const UPLOAD_KEY_RE = /^[A-Za-z0-9_-]{8,64}$/;
+export function lerUploadKey(v: unknown): string | null | undefined {
+  if (v == null || v === "") return null;
+  return typeof v === "string" && UPLOAD_KEY_RE.test(v) ? v : undefined;
+}
+/** Minutos sem publicar para uma faixa "processing" ser considerada travada (a URL de upload vale 10 min). */
+export const TRAVADA_APOS_MIN = 15;
 
 const LIMITES_FICHA = { composer: 120, performers: 200, album: 120, label: 120 } as const;
 
@@ -97,9 +107,12 @@ export function parseUploadInput(
   if (genre === undefined) return { ok: false, error: "gênero inválido" };
   const mood = lerClima(b.mood);
   if (mood === undefined) return { ok: false, error: "clima inválido" };
+  const uploadKey = lerUploadKey(b.uploadKey);
+  if (uploadKey === undefined) return { ok: false, error: "chave de envio inválida" };
   return {
     ok: true,
     value: {
+      uploadKey,
       title,
       contentType: b.contentType,
       size: b.size,

@@ -66,6 +66,7 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/api/stories/comentarios/[cid]/route.ts",
       "app/api/stories/comentarios/[cid]/denunciar/route.ts",
       "app/api/tracks/[id]/publish/route.ts",
+      "lib/tracks/reconciliar.ts", // só chamada de /meus-envios, depois de getSessionRole (anônimo = null), e só nas faixas do próprio usuário
       "app/api/tracks/[id]/reacao/route.ts",
       "app/api/listen/start/route.ts",
       "app/api/listen/beat/route.ts",

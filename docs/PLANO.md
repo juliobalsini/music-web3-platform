@@ -110,3 +110,17 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
   (vídeo depende de armazenamento maior que a cota grátis do B2).
 
 - **Pós-beta (issue #122):** playlists colaborativas e notificações — registrado, não implementar agora.
+
+## Base visual e correções (issue #124, 2026-11-13)
+Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara de painel administrativo** e ordem de migração para os componentes novos:
+1. **Enviar música** (`components/upload-form.tsx`): formulário cru com muitos campos e textos explicativos → `Abas` (avulsa/álbum), `Ajuda` para a ficha e a capa, `AnelProgresso` no envio.
+2. **Meus envios** (`app/meus-envios`): listas de texto sem capa → `CartaoCapa` horizontal + `ChipStatus` (Publicada/Em processamento/Falhou) + `MenuMais`.
+3. **Métricas** (`/metricas`, `app/minha-radio`): números em lista → `LinhaEstatistica`, `GraficoCircular`, `BarrasLeves`.
+4. **Pontos** (`/pontos`): lista de eventos → `AnelProgresso` (meta diária) + `LinhaEstatistica`.
+5. **Onboarding** (escolha de perfil): cartões com texto longo → `CartaoCapa` + `Ajuda`.
+6. **Login** (`components/login-form.tsx`): campos crus e textos → fica para a issue Login v2.
+7. **Curador/Programação** (`app/curador`) e **editor de playlist**: listas sem capa e textos longos → `CartaoCapa`, `Ajuda`, `EstadoVazio`.
+8. **Biblioteca** e **Explorar** (grades): já têm capa; trocar listas restantes por `CartaoCapa` e vazios por `EstadoVazio`.
+9. **Stories** (`story-form`, `story-paineis`): painéis próprios → `PainelInferior`.
+10. **Privacidade/Termos**: texto jurídico longo → aceitável; só `Ajuda` nos resumos.
+Telas novas (Stories v2, Navegação v2, Login v2, Playlists v2, Configurações) já nascem com estes componentes.
