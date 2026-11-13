@@ -11,7 +11,8 @@ body{background:#07060f;font-family:Inter,system-ui,-apple-system,sans-serif;col
 .amb{position:absolute;left:-20%;right:-20%;top:-10%;height:55%;transition:background 1.2s ease;filter:blur(50px);opacity:.5}
 .grain{position:absolute;inset:0;pointer-events:none;opacity:.08;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 header{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:16px 18px 4px}
-.logo{font-weight:800;font-size:22px;letter-spacing:-.5px}.logo b{color:#ff6b35}
+.logo{font-weight:800;font-size:29px;letter-spacing:-.5px}.logo b{color:#ff6b35}
+.menu{background:none;border:0;color:#fff;font-size:28px;width:44px;height:44px}.gav{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.6);display:none;justify-content:flex-end}.gav.on{display:flex}.gav .painel{width:80%;background:#001a3d;padding:18px;display:flex;flex-direction:column;gap:12px}.gav .g{background:#fff;color:#00112a;border:0;border-radius:10px;min-height:44px;font-weight:700}.gav a{color:#e89a3c}
 .live{display:flex;align-items:center;gap:6px;font:600 10px ui-monospace,monospace;letter-spacing:1px;color:#ffb38f;background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.35);padding:5px 9px;border-radius:99px}
 .dot{width:6px;height:6px;border-radius:50%;background:#ff6b35;animation:pulse 1.4s infinite}
 @keyframes pulse{50%{opacity:.25}}
@@ -156,7 +157,8 @@ nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
 <body>
 <div class="app">
   <div class="amb" id="amb"></div><div class="grain"></div>
-  <header><div class="logo">radio<b>On</b></div><div class="live"><span class="dot"></span>NO AR · <span id="lis">128</span> OUVINDO</div></header>
+  <header><div class="logo">radio<b>On</b></div><button class="menu" aria-label="Abrir menu" onclick="document.getElementById('gav').classList.add('on')">☰</button></header>
+  <aside id="gav" class="gav" onclick="if(event.target===this)this.classList.remove('on')"><div class="painel"><b>Crie sua conta</b><button class="g">Continuar com Google</button><a href="#">Entrar com link por e-mail</a><hr><a href="#">Privacidade</a><a href="#">Termos</a></div></aside>
   <main id="main">
     <section class="scr on" id="s-radio">
       <div class="filters" id="filters">
@@ -222,7 +224,7 @@ nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
   <nav>
     <button class="on" data-s="radio" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9M4.6 4.6a10.5 10.5 0 0 0 0 14.8M19.4 4.6a10.5 10.5 0 0 1 0 14.8"/></svg>Rádio</button>
     <button data-s="explorar" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explorar</button>
-    <button data-s="minha" onclick="tab(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Minha rádio</button>
+    <button data-s="minha" onclick="tab(this)"><svg viewBox="0 0 24 24"><path d="M5 4v16M10 4v16M15 5l4 15"/></svg>Biblioteca</button>
   </nav>
   <div class="full" id="full">
     <div class="amb" id="famb"></div><div class="grain"></div>
@@ -349,7 +351,7 @@ $('pls').innerHTML=CU.map(c=>`<div class="pl" onclick="toast('Abre o perfil do p
 $('plw').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
 $('grid').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
 $('mine').innerHTML=`<div class="row2" style="border:none">${cv(T[0].c,'B')}<div class="tx"><p>Brisa Blues</p><small>0 escutas de ouvintes · enviada hoje</small></div></div><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Suas próprias escutas não contam pontos nem métricas.</p>`;
-setInterval(()=>{$('lis').textContent=120+Math.floor(Math.random()*20)},4000);
+// selo "No ar" removido do topo; "Ao vivo · N ouvindo" fica no card Player On (só com N >= 10).
 
 // Stories v2: demonstração do visualizador (5 s por story de texto; avanço automático).
 const SV=[{n:'radioOn',t:['Ouvir: é só dar play, sem cadastro.','Pontos: 30 s seguidos valem pontos.']},{n:'Lia Norte',t:['Ensaio aberto hoje à noite.']}];

@@ -14,7 +14,7 @@ const beneficios = [
 /** Convite do Perfil para visitante: benefícios em cartões e botão Entrar com Google. */
 export function ConviteVisitante({ compacto = false }: { compacto?: boolean }) {
   return (
-    <section aria-label="Entre no radioOn" className="flex flex-col items-center gap-5 text-center">
+    <section aria-label="Entre na radioOn" className="flex flex-col items-center gap-5 text-center">
       {!compacto && <Logo className="h-28 w-auto" />}
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-bold text-balance">{compacto ? "Seus pontos estão só neste aparelho" : "Entre para fazer parte"}</h2>

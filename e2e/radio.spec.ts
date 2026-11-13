@@ -12,7 +12,7 @@ async function radioCarregada(page: Page) {
 test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
   await radioCarregada(page);
   const nav = page.getByRole("navigation", { name: "Principal" });
-  await expect(nav.getByRole("link")).toHaveText(["Rádio", "Explorar", "Perfil"]);
+  await expect(nav.getByRole("link")).toHaveText(["Rádio", "Explorar", "Biblioteca"]);
   await expect(nav.getByRole("link", { name: "Rádio", exact: true })).toHaveAttribute("aria-current", "page");
   await nav.getByRole("link", { name: "Explorar" }).click();
   await expect(page).toHaveURL(/\/explorar/);
@@ -23,11 +23,11 @@ test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
 
 test("Home segue a ordem: stories, No ar, Agora combina, Seleção radioOn, Artistas", async ({ page }) => {
   await radioCarregada(page);
-  // Cabeçalho: logo e selo na mesma linha; o selo nunca aparece só "No ar".
-  const selo = page.getByTestId("selo-no-ar");
-  await expect(selo).toContainText(/No ar\s*· \d+ ouvindo/);
-  const [l, s] = await Promise.all([page.getByRole("link", { name: "radioOn, início" }).boundingBox(), selo.boundingBox()]);
-  expect(Math.abs((l!.y + l!.height / 2) - (s!.y + s!.height / 2))).toBeLessThan(20);
+  // Cabeçalho: logo à esquerda e menu à direita, na mesma linha; sem selo "No ar".
+  await expect(page.getByTestId("selo-no-ar")).toHaveCount(0);
+  const [l, m] = await Promise.all([page.getByRole("link", { name: "radioOn, início" }).boundingBox(), page.getByRole("button", { name: "Abrir menu" }).boundingBox()]);
+  expect(Math.abs((l!.y + l!.height / 2) - (m!.y + m!.height / 2))).toBeLessThan(20);
+  expect(l!.x).toBeLessThan(m!.x);
   // Sempre há o story da plataforma, primeiro.
   await expect(page.getByRole("region", { name: "Stories" }).getByRole("button").first()).toHaveAccessibleName("Ver stories de radioOn");
   const nomes = ["Stories", "No ar", /Agora combina com/, "Seleção radioOn", "Faixas", "Artistas para conhecer"] as const;
@@ -73,7 +73,6 @@ test("Rádio cheia: cartão No ar, grade, abas e Seleção radioOn", async ({ pa
   const noAr = page.getByRole("region", { name: "No ar" });
   await expect(noAr).toBeVisible();
   await expect(noAr.getByText("Ouça 30s e ganhe pontos")).toBeVisible();
-  await expect(page.getByTestId("selo-no-ar")).toContainText("No ar");
   // Sem histórico, "Continue ouvindo" fica oculto; Playlisters saiu da Rádio.
   await expect(page.getByRole("region", { name: "Continue ouvindo" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Playlisters em alta" })).toHaveCount(0);
@@ -139,7 +138,7 @@ test("PWA: manifesto com share target de áudio e service worker", async ({ requ
 test("Perfil de visitante mostra o convite; Métricas/Pontos levam a ele", async ({ page }) => {
   await page.goto("/minha-radio");
   await expect(page.getByRole("heading", { name: "Perfil" })).toBeVisible({ timeout: 20_000 });
-  const convite = page.getByRole("region", { name: "Entre no radioOn" });
+  const convite = page.getByRole("region", { name: "Entre na radioOn" });
   await expect(convite.getByText("Salvar seus pontos")).toBeVisible();
   await expect(convite.getByText("Criar playlists")).toBeVisible();
   await expect(convite.getByText("Enviar música")).toBeVisible();
@@ -367,4 +366,33 @@ test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
   await filtros.getByRole("button", { name: "Stories" }).click();
   await expect(page.getByTestId("stories-grade").getByRole("button").first()).toBeVisible();
+});
+
+test("gaveta lateral: abre pelo menu, fecha por toque fora e pelo Esc; logo rola ao topo", async ({ page }) => {
+  await radioCarregada(page);
+  const abrir = page.getByRole("button", { name: "Abrir menu" });
+  await abrir.click();
+  const gaveta = page.getByRole("dialog", { name: "Menu" });
+  await expect(gaveta.getByRole("link", { name: "Termos" })).toBeVisible();
+  await expect(gaveta.getByRole("link", { name: "Privacidade" })).toBeVisible();
+  await page.getByRole("button", { name: "Fechar menu" }).click({ position: { x: 5, y: 300 } });
+  await expect(gaveta).toBeHidden();
+  await abrir.click();
+  await expect(gaveta).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(gaveta).toBeHidden();
+  // Logo na Home: rola ao topo sem recarregar.
+  await page.evaluate(() => window.scrollTo(0, 800));
+  await page.getByRole("link", { name: "radioOn, início" }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
+});
+
+test("Biblioteca: visitante vê o convite para criar conta", async ({ page }) => {
+  await radioCarregada(page);
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Biblioteca" }).click();
+  await expect(page).toHaveURL(/\/biblioteca/);
+  await expect(page.getByRole("heading", { name: "Biblioteca" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Entre na radioOn" })).toBeVisible({ timeout: 20_000 });
+  await page.goto("/meus-envios");
+  await expect(page).toHaveURL(/\/login\?next=%2Fmeus-envios/);
 });

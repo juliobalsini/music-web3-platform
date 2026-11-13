@@ -32,7 +32,7 @@ const iconeRede = "flex size-14 items-center justify-center rounded-full bg-whit
 export function PainelCompartilhar({ story, onFechar }: { story: Story; onFechar: () => void }) {
   const [aviso, setAviso] = useState<string | null>(null);
   const url = typeof window === "undefined" ? "" : `${location.origin}/story/${story.id}`;
-  const texto = `${story.authorName} no radioOn`;
+  const texto = `${story.authorName} na radioOn`;
   const redes = linksRedes(url, texto);
 
   async function cartao(): Promise<File | null> {

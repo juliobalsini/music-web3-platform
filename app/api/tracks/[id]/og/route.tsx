@@ -43,7 +43,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
         <img src={capa} width={430} height={430} alt="" style={{ borderRadius: 28, objectFit: "cover" }} />
         <div style={{ display: "flex", flexDirection: "column", flex: 1, height: 430, justifyContent: "space-between" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ fontSize: 28, color: "#e89a3c", fontWeight: 700 }}>Ouça no radioOn</div>
+            <div style={{ fontSize: 28, color: "#e89a3c", fontWeight: 700 }}>Ouça na radioOn</div>
             <div style={{ fontSize: faixa.title.length > 32 ? 56 : 72, fontWeight: 800, lineHeight: 1.05 }}>{recorte(faixa.title, 70)}</div>
             <div style={{ fontSize: 38, color: "rgba(255,255,255,0.75)" }}>{recorte(faixa.artistName, 40)}</div>
           </div>

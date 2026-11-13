@@ -374,3 +374,10 @@ Formato: data · decisão · motivo. Mais recente no fim.
     pode ler a própria tabela: recursão), denúncia de comentário só de contas e 3 denunciantes distintos ocultam (`hidden`, reversão só pelo Julio),
     dono apaga comentários do próprio story (`deleted_at`). Visualizações/curtidas/comentários aparecem ao dono no menu ⋯ (`/estatisticas`, via RLS).
     Mensagem direta e story com foto/vídeo ficam como pós-beta no PLANO.md (não implementados).
+
+## 89. Navegação e conta v2 — fatia 1 (issue #116)
+Topo só com logo (+30%) e ☰; "Entrar", selo "No ar" e rodapé saíram (links legais na gaveta; login mantém só o aceite).
+Gaveta lateral (visitante: Crie sua conta, Google primeiro; logado: perfil, pontos, Meus envios, Enviar, Configurações, Privacidade, Termos, Sair).
+Barra inferior: Rádio, Explorar, Biblioteca (`/biblioteca`); `/meus-envios` lista faixas, álbuns, playlists e stories (somente leitura nesta fatia).
+"Player On" substitui "Rádio radioOn"; "Ao vivo · N ouvindo" só com N ≥ 10. Marca no feminino ("na radioOn"). Logo: client-side com prefetch; na Home rola ao topo.
+Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configurações/conta, login contextual, compartilhar com Simple Icons, RLS.

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 
-import { CabecalhoHome } from "@/components/cabecalho-home";
 import { RadioCliente } from "@/components/radio-cliente";
 import { PlayVazio } from "@/components/secoes-radio";
 import { lerAba, lerFiltro } from "@/lib/menu";
@@ -42,7 +41,6 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/">, "searchParams">) 
 
   return (
     <>
-      <CabecalhoHome ouvindo={radio.ouvindo} />
       <RadioCliente radio={radio} continuarServidor={continuar} validos={validos} podePublicar={podePublicar} stories={stories} faixasDosStories={faixasDosStories} agora={agora} filtroInicial={lerFiltro(sp.f)} abaInicial={lerAba(sp.aba)} />
     </>
   );
@@ -54,12 +52,9 @@ export default function Radio({ searchParams }: PageProps<"/">) {
       <h1 className="sr-only">radioOn · Rádio</h1>
       <Suspense
         fallback={
-          <>
-            <CabecalhoHome ouvindo={1} />
-            <div className="flex justify-center py-16">
-              <PlayVazio />
-            </div>
-          </>
+          <div className="flex justify-center py-16">
+            <PlayVazio />
+          </div>
         }
       >
         <Conteudo searchParams={searchParams} />

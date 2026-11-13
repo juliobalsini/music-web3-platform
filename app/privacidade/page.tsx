@@ -2,7 +2,7 @@ import { Tela } from "@/components/ui";
 
 export const metadata = {
   title: "Privacidade · radioOn",
-  description: "Quais dados o radioOn coleta, para quê, por quanto tempo e como pedir a exclusão.",
+  description: "Quais dados a radioOn coleta, para quê, por quanto tempo e como pedir a exclusão.",
 };
 
 const h2 = "mt-4 text-lg font-bold";
@@ -15,7 +15,7 @@ export default function PrivacidadePage() {
       <p className="text-sm text-white/70">Atualizada em 11/11/2026 · Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018)</p>
 
       <h2 className={h2}>Quem somos</h2>
-      <p className={p}>O radioOn é uma plataforma independente de streaming de música. O controlador dos dados é o responsável pelo projeto, contato: <a className="underline underline-offset-4" href="mailto:juliobalsini@gmail.com">juliobalsini@gmail.com</a>.</p>
+      <p className={p}>A radioOn é uma plataforma independente de streaming de música. O controlador dos dados é o responsável pelo projeto, contato: <a className="underline underline-offset-4" href="mailto:juliobalsini@gmail.com">juliobalsini@gmail.com</a>.</p>
 
       <h2 className={h2}>Dados que coletamos</h2>
       <ul className="list-disc space-y-1 pl-5 text-white/80">

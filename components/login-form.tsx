@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, MailCheck } from "lucide-react";
+import { LogIn, Mail, MailCheck } from "lucide-react";
 import { useActionState } from "react";
 
 import { entrarComGoogle, enviarLink, type LoginState } from "@/app/login/actions";
@@ -30,6 +30,10 @@ export function LoginForm({ next = "" }: { next?: string }) {
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next} />
+      <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
+        <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
+      </button>
+      <p aria-hidden="true" className="text-center text-sm text-white/60">ou</p>
       <input
         name="email"
         type="email"
@@ -46,11 +50,6 @@ export function LoginForm({ next = "" }: { next?: string }) {
         <Mail className="size-5" aria-hidden="true" /> {pendente ? "Enviando…" : "Receber link"}
       </button>
       {state.erro && <Mensagem tipo="erro">{state.erro}</Mensagem>}
-      {process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1" && (
-        <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
-          Entrar com Google
-        </button>
-      )}
     </form>
   );
 }

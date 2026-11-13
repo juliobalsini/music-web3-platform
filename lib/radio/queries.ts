@@ -48,7 +48,7 @@ export type Radio = {
   /** Todas as playlists públicas com faixas (perfis públicos). */
   todasPlaylists: PlaylistSemana[];
   programa: { atual: Programa | null; proximo: Programa | null };
-  /** Faixa "No ar" e a fila que segue (playlist do programa no horário; senão, o fluxo da Rádio radioOn). */
+  /** Faixa "No ar" e a fila que segue (playlist do programa no horário; senão, o fluxo do Player On). */
   noAr: { faixa: FaixaListada; fila: FaixaListada[]; continuo: boolean } | null;
   /** Ouvintes agora, contando você: nunca menos de 1 (sem service_role, só você). */
   ouvindo: number;
@@ -306,7 +306,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       const i = Math.floor(agora / 600_000) % doPrograma.length;
       noAr = { faixa: doPrograma[i], fila: [...doPrograma.slice(i), ...doPrograma.slice(0, i)], continuo: false };
     } else if (faixas.length > 0) {
-      // Rádio radioOn: fluxo contínuo (novidades + pouco ouvidas + curtidas), mesmo giro para todos (10 min).
+      // Player On: fluxo contínuo (novidades + pouco ouvidas + curtidas), mesmo giro para todos (10 min).
       const fluxo = fluxoRadio(faixas, Math.floor(agora / 600_000));
       noAr = { faixa: fluxo[0], fila: fluxo, continuo: true };
     }

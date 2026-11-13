@@ -1,13 +1,13 @@
 "use client";
 
-import { Compass, Radio, UserRound } from "lucide-react";
+import { Compass, Library, Radio } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const abas = [
   { href: "/", label: "Rádio", Icone: Radio },
   { href: "/explorar", label: "Explorar", Icone: Compass },
-  { href: "/minha-radio", label: "Perfil", Icone: UserRound },
+  { href: "/biblioteca", label: "Biblioteca", Icone: Library },
 ] as const;
 
 /** Navegação inferior de 3 abas, fixa; respeita a área segura do celular. */

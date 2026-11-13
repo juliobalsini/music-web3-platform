@@ -1,42 +1,43 @@
-import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { Logo } from "@/components/logo";
 import { LogoCabecalho } from "@/components/logo-cabecalho";
-import { OcultarNaHome } from "@/components/ocultar-na-home";
-import { getSessionRole } from "@/lib/session";
+import { MenuGaveta } from "@/components/menu-gaveta";
+import { getResumoConta, type ResumoConta } from "@/lib/session";
 
-export async function Entrar() {
-  let sessao: Awaited<ReturnType<typeof getSessionRole>> = null;
+const VISITANTE: ResumoConta = { logado: false, nome: null, foto: null };
+
+async function Menu() {
+  let conta = VISITANTE;
   try {
-    sessao = await getSessionRole();
+    conta = await getResumoConta();
   } catch {
-    // Sem Supabase (testes/prévias): trata como deslogado.
+    // Sem Supabase (testes/prévias): trata como visitante.
   }
-  if (sessao) return null;
-  return (
-    <Link
-      href="/login"
-      className="foco-claro inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-night-900 hover:bg-brand-2"
-    >
-      <LogIn className="size-4" aria-hidden="true" />
-      Entrar
-    </Link>
-  );
+  return <MenuGaveta conta={conta} />;
 }
 
+/** Topo de todas as telas: só a logo à esquerda e o menu ☰ à direita (a gaveta traz conta e links legais). */
 export function Cabecalho() {
-  const cabecalho = (
-    <header className="mx-auto flex min-h-14 w-full max-w-md items-center justify-between gap-4 px-4 py-2">
-      <LogoCabecalho />
-      <Suspense>
-        <Entrar />
-      </Suspense>
-    </header>
-  );
+  const classe = "mx-auto flex min-h-14 w-full max-w-md items-center justify-between gap-4 px-4 pt-1";
+  // Os hooks de rota (pathname) exigem fronteira de Suspense; o fallback é só a logo estática.
   return (
-    <Suspense fallback={cabecalho}>
-      <OcultarNaHome>{cabecalho}</OcultarNaHome>
+    <Suspense
+      fallback={
+        <header className={classe}>
+          <Link href="/" aria-label="radioOn, início" className="inline-flex min-h-11 items-center">
+            <Logo className="h-[62px] w-auto" />
+          </Link>
+        </header>
+      }
+    >
+      <header role="banner" className={classe}>
+        <LogoCabecalho />
+        <Suspense fallback={<MenuGaveta conta={VISITANTE} />}>
+          <Menu />
+        </Suspense>
+      </header>
     </Suspense>
   );
 }
