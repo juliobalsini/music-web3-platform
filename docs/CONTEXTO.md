@@ -277,6 +277,12 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
 
+- [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
+  Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
+  seguir/Seguindo (item 4), login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
+  medição antes/depois ainda não feitos. Issue #116 segue aberta com `fila`.
+
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
@@ -309,3 +315,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-13 (11ª) — issue #101: #97 mergeado; `worker-deploy` falhou (exit 127, caminho do `derivar-env.sh` com working-directory do job). Correção no PR #110 (protegido, **aguarda `travas`**). Depois: redeploy, 200/206, religar proxy, transcodificar lote=5, medições do #78, #103.
 
 - 2026-11-13 (12ª) — issue #113 (Stories v2) concluída: PR #114 mergeado, deploy e migrations ok. Fila restante: #103 e #101 (dependem de #110, que aguarda `travas`).
+
+- 2026-11-13 (13ª) — issue #116: fatia 1 (PR #117) concluída; restante registrado na fila acima.
