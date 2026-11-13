@@ -381,3 +381,5 @@ Gaveta lateral (visitante: Crie sua conta, Google primeiro; logado: perfil, pont
 Barra inferior: Rádio, Explorar, Biblioteca (`/biblioteca`); `/meus-envios` lista faixas, álbuns, playlists e stories (somente leitura nesta fatia).
 "Player On" substitui "Rádio radioOn"; "Ao vivo · N ouvindo" só com N ≥ 10. Marca no feminino ("na radioOn"). Logo: client-side com prefetch; na Home rola ao topo.
 Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configurações/conta, login contextual, compartilhar com Simple Icons, RLS.
+
+90. **Ícones de compartilhar (issue #116, item 9):** caminhos SVG do Simple Icons (CC0) copiados para `lib/stories/icones-redes.ts`, sem nova dependência. LinkedIn vem da v13 (removido das versões novas por marca). Painel de stories trocou as siglas pelos ícones.

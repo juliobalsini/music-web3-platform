@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, Download, Flag, Eye, Heart, MessageCircle, MoreHorizontal, Share2, Trash2, X } from "lucide-react";
+import { ICONES_REDES, type Rede } from "@/lib/stories/icones-redes";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -23,6 +24,14 @@ export function Folha({ titulo, onFechar, children }: { titulo: string; onFechar
         {children}
       </section>
     </div>
+  );
+}
+
+function IconeRede({ rede }: { rede: Rede }) {
+  return (
+    <svg viewBox="0 0 24 24" className="size-6 fill-current" aria-hidden="true">
+      <path d={ICONES_REDES[rede]} />
+    </svg>
   );
 }
 
@@ -89,10 +98,10 @@ export function PainelCompartilhar({ story, onFechar }: { story: Story; onFechar
   return (
     <Folha titulo="Compartilhar" onFechar={onFechar}>
       <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-        <li className={item}><a href={redes.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={iconeRede}>Wa</a>WhatsApp</li>
-        <li className={item}><button type="button" onClick={() => void instagram()} aria-label="Instagram" className={iconeRede}>Ig</button>Instagram</li>
-        <li className={item}><a href={redes.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={iconeRede}>Fb</a>Facebook</li>
-        <li className={item}><a href={redes.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={iconeRede}>In</a>LinkedIn</li>
+        <li className={item}><a href={redes.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={iconeRede}><IconeRede rede="whatsapp" /></a>WhatsApp</li>
+        <li className={item}><button type="button" onClick={() => void instagram()} aria-label="Instagram" className={iconeRede}><IconeRede rede="instagram" /></button>Instagram</li>
+        <li className={item}><a href={redes.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={iconeRede}><IconeRede rede="facebook" /></a>Facebook</li>
+        <li className={item}><a href={redes.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className={iconeRede}><IconeRede rede="linkedin" /></a>LinkedIn</li>
         <li className={item}><button type="button" onClick={() => void copiar()} aria-label="Copiar link" className={iconeRede}><Copy className="size-5" aria-hidden="true" /></button>Copiar link</li>
         <li className={item}><button type="button" onClick={() => void mais()} aria-label="Mais" className={iconeRede}><Share2 className="size-5" aria-hidden="true" /></button>Mais</li>
       </ul>

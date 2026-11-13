@@ -281,7 +281,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
   seguir/Seguindo (item 4), login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
   Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
-  medição antes/depois ainda não feitos. Issue #116 segue aberta com `fila`.
+  medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Issue #116 segue aberta com `fila`.
 
 ## Correções avulsas
 
@@ -317,3 +317,4 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-13 (12ª) — issue #113 (Stories v2) concluída: PR #114 mergeado, deploy e migrations ok. Fila restante: #103 e #101 (dependem de #110, que aguarda `travas`).
 
 - 2026-11-13 (13ª) — issue #116: fatia 1 (PR #117) concluída; restante registrado na fila acima.
+- 2026-11-13 (14ª) — issue #119 era duplicata da #113 (já entregue): fechada. #116 item 9 (ícones das redes) em PR.
