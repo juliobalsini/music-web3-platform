@@ -358,3 +358,5 @@ Formato: data · decisão · motivo. Mais recente no fim.
     workflow só de `pull_request` (o próprio `gate.yml`), pois novo commit invalida a aprovação anterior. `aprovacao`,
     `avisar-travas`, `gate-ok` e `merge` dependem do job: a trava só é pedida depois que ele passa. Bootstrap: se a main ainda não
     tem o script, o job usa o do PR (aviso); some após o merge. Falha por dúvida de parsing é preferível a passar em falso.
+86. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
+    falhar se algum vier vazio (antes gravava vazio em silêncio e o Worker respondia 503). Arquivo protegido (`.github/**`): PR próprio, trava.
