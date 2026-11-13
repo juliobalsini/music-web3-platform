@@ -360,3 +360,17 @@ Formato: data · decisão · motivo. Mais recente no fim.
     tem o script, o job usa o do PR (aviso); some após o merge. Falha por dúvida de parsing é preferível a passar em falso.
 86. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
     falhar se algum vier vazio (antes gravava vazio em silêncio e o Worker respondia 503). Arquivo protegido (`.github/**`): PR próprio, trava.
+87. **Stories v2 (issue #113, 2026-11-13):** visualizador em tela cheia único (`components/visualizador-stories.tsx`, `<dialog>` modal que cobre
+    cabeçalho, player e navegação) usado por círculos da home, grade Rádio > Stories, linha do Explorar e `/story/[id]`. Regras puras em
+    `lib/stories/viewer.ts` (duração 5 s texto / trecho ≤ 15 s com música, gestos, ordem radioOn → não vistos → vistos, "há N h"). "Visto" fica em
+    `localStorage` (anel cinza) e, no servidor, em `story_views` por usuário ou sessão anônima (sessão anônima criada sob demanda, como na escuta).
+    Setas visíveis removidas; controles "Story anterior/Próximo story" ficam só para teclado e leitor de tela (`sr-only`) e setas ←/→.
+    "Apagar" do dono é `deleted_at` (sem DELETE; policy restritiva esconde de todos). Duas migrations aditivas (`20261113000000`, `20261113010000`),
+    ambas dentro da allowlist (`validar-sql.mjs`). Os dois commits (fase 1 e fase 2) seguem no mesmo PR porque a barra inferior da fase 1 já tem os
+    controles de curtir/comentar.
+88. **Interação nos stories (fase 2):** curtir = 1 por usuário ou sessão anônima (PK + RLS "só como si mesmo"); comentar = só contas, ≤ 140
+    caracteres, reações (🔥 😍 👏 🎶 🎧 😮) e figurinhas próprias (No repeat, Que solo, Hino, Arrepiou) validadas no servidor, sem GIFs nem serviços
+    externos. Moderação: filtro básico de palavras ofensivas (`lib/stories/moderacao.ts`), limite de 5 comentários/min por **trigger** (a policy não
+    pode ler a própria tabela: recursão), denúncia de comentário só de contas e 3 denunciantes distintos ocultam (`hidden`, reversão só pelo Julio),
+    dono apaga comentários do próprio story (`deleted_at`). Visualizações/curtidas/comentários aparecem ao dono no menu ⋯ (`/estatisticas`, via RLS).
+    Mensagem direta e story com foto/vídeo ficam como pós-beta no PLANO.md (não implementados).

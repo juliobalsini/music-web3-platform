@@ -57,6 +57,12 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/api/stories/route.ts",
       "app/api/stories/[id]/imagem/route.ts",
       "app/api/stories/[id]/denunciar/route.ts",
+      "app/api/stories/[id]/route.ts",
+      "app/api/stories/[id]/visualizar/route.ts",
+      "app/api/stories/[id]/curtir/route.ts",
+      "app/api/stories/[id]/comentarios/route.ts",
+      "app/api/stories/comentarios/[cid]/route.ts",
+      "app/api/stories/comentarios/[cid]/denunciar/route.ts",
       "app/api/tracks/[id]/publish/route.ts",
       "app/api/tracks/[id]/reacao/route.ts",
       "app/api/listen/start/route.ts",
@@ -73,6 +79,17 @@ describe("rotas de servidor recusam anônimos", () => {
         return usaBanco && /\.(insert|update|upsert|delete|rpc)\(/.test(src.replace(/cookies\.delete\(/g, ""));
       });
     for (const f of achados) assert.ok(permitidos.has(f), `escrita não auditada para anônimos: ${f}`);
+  });
+
+  it("stories v2: comentar, apagar e denunciar exigem conta; visualizar/curtir usam o cliente do usuário (RLS)", () => {
+    for (const f of ["app/api/stories/[id]/comentarios/route.ts", "app/api/stories/[id]/route.ts", "app/api/stories/comentarios/[cid]/route.ts", "app/api/stories/comentarios/[cid]/denunciar/route.ts"]) {
+      assert.match(ler(f), /getSessionRole\(\)/, f);
+    }
+    for (const f of ["app/api/stories/[id]/visualizar/route.ts", "app/api/stories/[id]/curtir/route.ts"]) {
+      const src = ler(f);
+      assert.doesNotMatch(src, /createAdminClient/, f);
+      assert.match(src, /s\.userId/, f);
+    }
   });
 
   it("reação 'apoiar' exige conta; curtir/salvar valem para anônimo", () => {

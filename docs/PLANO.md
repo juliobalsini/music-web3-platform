@@ -100,3 +100,11 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
 - **Propostas de segurança em aberto:** CSP completa com nonces (médio, 2–3 execuções); `story_reports` sem policy (intencional?);
   PAT sem leitura de alertas de segurança (precisa do Julio).
 - **Aprovado (Julio, 2026-11-12), continuar na próxima execução:** pós-#97: redeploy do Worker, validar 200/206, religar o proxy, `transcodificar` lote=5 (precisa de `SUPABASE_SECRET_KEY`), medir CPU/memória (<10 ms) e ganho; avaliar restringir o proxy a `audio/stream/`. *Virou a issue #101 (label `fila`).*
+
+## Stories v2 (issue #113, Julio, 2026-11-13)
+
+- **Fase 1 — experiência** (visualizador em tela cheia, gestos, visto/não visto, compartilhar em linha, grade por perfil, linha no Explorar, link
+  compartilhado, pré-carga) e **Fase 2 — interação** (curtir, comentários ≤ 140, reações e figurinhas, moderação, estatísticas do dono, RLS). *Em PR
+  (item-113-stories-v2); DECISIONS 87–88.*
+- **Pós-beta (registrado, não implementar agora):** mensagem direta (resposta privada ao dono do story) e story com foto/vídeo capturado na hora
+  (vídeo depende de armazenamento maior que a cota grátis do B2).

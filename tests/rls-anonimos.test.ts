@@ -334,3 +334,86 @@ describe("RLS — stories e denúncias (migration 20261111040000)", () => {
     assert.match(clip.error ?? "", /check/);
   });
 });
+
+describe("RLS — Stories v2: visualizações, apagar, curtidas e comentários (migrations 20261113*)", () => {
+  const s1 = "00000000-0000-4000-8000-0000000000c8";
+  const s2 = "00000000-0000-4000-8000-0000000000c9";
+  before(async () => {
+    await db.exec(`
+      insert into public.stories (id, author_id, body) values ('${s1}', '${ids.artista}', 'v2'), ('${s2}', '${ids.curador}', 'outro');
+    `);
+  });
+
+  it("anônimo e conta registram só a PRÓPRIA visualização, uma vez", async () => {
+    for (const quem of ["anon", "conta"] as const) {
+      const ok = await como(quem, `insert into public.story_views (story_id, viewer_id) values ('${s1}', '${ids[quem]}')`);
+      assert.equal(ok.error, null, quem);
+      const dup = await como(quem, `insert into public.story_views (story_id, viewer_id) values ('${s1}', '${ids[quem]}')`);
+      assert.match(dup.error ?? "", /duplicate key/);
+    }
+    const falso = await como("anon", `insert into public.story_views (story_id, viewer_id) values ('${s2}', '${ids.conta}')`);
+    assert.match(falso.error ?? "", /row-level security/);
+  });
+
+  it("visualizações: cada um vê as próprias; o dono vê as do seu story; ninguém altera", async () => {
+    assert.equal((await como("anon", `select * from public.story_views`)).rows.length, 1);
+    assert.equal((await como("conta", `select * from public.story_views`)).rows.length, 1);
+    assert.equal((await como("artista", `select * from public.story_views`)).rows.length, 2);
+    assert.equal((await como("curador", `select * from public.story_views`)).rows.length, 0);
+    const upd = await como("anon", `update public.story_views set created_at = now()`);
+    assert.ok(upd.error || upd.affected === 0);
+    const del = await como("anon", `delete from public.story_views`);
+    assert.ok(del.error || del.affected === 0);
+  });
+
+  it("curtidas: anônimo curta como si mesmo, uma vez; não curte por outro; descurte só a própria", async () => {
+    assert.equal((await como("anon", `insert into public.story_likes (story_id, user_id) values ('${s1}', '${ids.anon}')`)).error, null);
+    assert.match((await como("anon", `insert into public.story_likes (story_id, user_id) values ('${s1}', '${ids.anon}')`)).error ?? "", /duplicate key/);
+    assert.match((await como("anon", `insert into public.story_likes (story_id, user_id) values ('${s1}', '${ids.conta}')`)).error ?? "", /row-level security/);
+    await como("conta", `insert into public.story_likes (story_id, user_id) values ('${s1}', '${ids.conta}')`);
+    assert.equal((await como("artista", `select * from public.story_likes`)).rows.length, 2);
+    assert.equal((await como("anon", `select * from public.story_likes`)).rows.length, 1);
+    assert.equal((await como("conta", `delete from public.story_likes where user_id = '${ids.anon}'`)).affected, 0);
+    assert.equal((await como("anon", `delete from public.story_likes where user_id = '${ids.anon}'`)).affected, 1);
+  });
+
+  it("comentários: anônimo NUNCA comenta; conta comenta como si mesma, até 140 caracteres", async () => {
+    const ins = (quem: keyof typeof ids, autor: string, corpo: string) =>
+      como(quem as "anon", `insert into public.story_comments (story_id, author_id, kind, body) values ('${s1}', '${autor}', 'texto', '${corpo}')`);
+    assert.match((await ins("anon", ids.anon, "oi")).error ?? "", /row-level security/);
+    assert.match((await ins("conta", ids.artista, "como outro")).error ?? "", /row-level security/);
+    assert.equal((await ins("conta", ids.conta, "Hino!")).error, null);
+    assert.match((await ins("conta", ids.conta, "x".repeat(141))).error ?? "", /check/);
+    assert.match((await como("conta", `insert into public.story_comments (story_id, author_id, kind, body) values ('${s1}', '${ids.conta}', 'gif', 'x')`)).error ?? "", /check/);
+  });
+
+  it("comentários: limite de 5 por minuto e leitura pública só dos não ocultos nem apagados", async () => {
+    for (let k = 0; k < 4; k++) await como("conta", `insert into public.story_comments (story_id, author_id, body) values ('${s1}', '${ids.conta}', 'c${k}')`);
+    const sexto = await como("conta", `insert into public.story_comments (story_id, author_id, body) values ('${s1}', '${ids.conta}', 'demais')`);
+    assert.match(sexto.error ?? "", /limite de comentários/);
+    await db.exec(`update public.story_comments set hidden = true where body = 'c0'; update public.story_comments set deleted_at = now() where body = 'c1'`);
+    const pub = await como("anon", `select body from public.story_comments order by body`);
+    assert.deepEqual(pub.rows.map((r) => r.body), ["Hino!", "c2", "c3"]);
+  });
+
+  it("comentários: cliente não edita nem apaga; denúncias de comentário só pelo servidor", async () => {
+    const upd = await como("conta", `update public.story_comments set hidden = true`);
+    assert.ok(upd.error || upd.affected === 0);
+    const del = await como("conta", `delete from public.story_comments`);
+    assert.ok(del.error || del.affected === 0);
+    const c = (await como("service", `select id from public.story_comments limit 1`)).rows[0].id;
+    for (const quem of ["anon", "conta", "artista"] as const) {
+      assert.match((await como(quem, `insert into public.story_comment_reports (comment_id, reporter_id) values ('${c}', '${ids[quem]}')`)).error ?? "", /row-level security|permission denied/, quem);
+      assert.equal((await como(quem, `select * from public.story_comment_reports`)).rows.length, 0);
+    }
+  });
+
+  it("story apagado (deleted_at) some para todos, inclusive o dono; só o servidor marca", async () => {
+    const dono = await como("artista", `update public.stories set deleted_at = now() where id = '${s1}'`);
+    assert.equal(dono.affected, 0);
+    assert.equal((await como("service", `update public.stories set deleted_at = now() where id = '${s2}'`)).affected, 1);
+    const vis = await como("anon", `select id from public.stories where id in ('${s1}', '${s2}')`);
+    assert.deepEqual(vis.rows.map((r) => r.id), [s1]);
+    assert.equal((await como("curador", `select id from public.stories where id = '${s2}'`)).rows.length, 0);
+  });
+});

@@ -4,7 +4,7 @@ import { Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import type { FaixaDoStory } from "@/components/conteudo-story";
+import type { FaixaDoStory } from "@/lib/stories/viewer";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { dimensoesCapa, MAX_CAPA_ORIGINAL } from "@/lib/storage/formatos";
 import { erroDoBucket } from "@/lib/storage/messages";

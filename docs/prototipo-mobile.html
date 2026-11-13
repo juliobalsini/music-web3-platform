@@ -124,6 +124,33 @@ nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
 .toast{position:absolute;left:50%;top:64px;z-index:20;transform:translate(-50%,-20px);opacity:0;background:#ff6b35;color:#1a0d05;font-weight:700;font-size:13px;padding:10px 16px;border-radius:99px;transition:.35s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .hide{display:none!important}
+
+/* Stories v2 (issue #113): visualizador em tela cheia. Identidade: marinho #00112A, âmbar #E89A3C. */
+.stc{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;margin:12px -18px 0;padding:0 18px}
+.stc::-webkit-scrollbar{display:none}
+.stc button{flex:none;width:68px;background:none;border:none;color:#fff;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}
+.stc .ring{padding:3px;border-radius:50%;background:linear-gradient(135deg,#E89A3C,#f7c36b)}.stc .seen .ring{background:rgba(255,255,255,.3)}
+.stc .av2{width:58px;height:58px;border-radius:50%;border:3px solid #00112A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;background:#16213e}
+.sv{position:absolute;inset:0;z-index:50;background:#00112A;display:none;overflow:hidden;touch-action:none}.sv.open{display:block}
+.sv .bg{position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,#E89A3C88,#00112A 70%);filter:blur(30px)}
+.sv .bars{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:4px;z-index:3}
+.sv .bars i{flex:1;height:3px;border-radius:9px;background:rgba(255,255,255,.3);overflow:hidden}.sv .bars i b{display:block;height:100%;width:0;background:#fff}
+.sv .bars i.done b{width:100%}.sv .bars i.cur b{animation:fill 5s linear forwards}.sv.hold .bars i.cur b{animation-play-state:paused}
+@keyframes fill{to{width:100%}}
+@media (prefers-reduced-motion:reduce){.sv .bars i.cur b{animation:none;width:100%}}
+.sv .top{position:absolute;top:22px;left:10px;right:10px;display:flex;align-items:center;gap:8px;z-index:3;font-size:13px}
+.sv .top .ph{width:32px;height:32px;border-radius:50%;background:#16213e;display:flex;align-items:center;justify-content:center;font-weight:800}
+.sv .top small{color:rgba(255,255,255,.75);flex:1}.sv .top button{width:40px;height:40px;border:none;border-radius:50%;background:rgba(0,17,42,.4);color:#fff;font-size:18px}
+.sv .body{position:absolute;inset:90px 24px 90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;font-size:24px;font-weight:800;z-index:2}
+.sv .card{width:100%;display:flex;gap:10px;align-items:center;padding:10px;border-radius:16px;background:rgba(0,17,42,.7);font-size:14px;text-align:left}
+.sv .card u{margin-left:auto;text-decoration:none;background:#E89A3C;color:#00112A;font-weight:800;padding:10px 14px;border-radius:99px}
+.sv .bar{position:absolute;left:10px;right:10px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:3}
+.sv .bar span{flex:1;border:1px solid rgba(255,255,255,.5);border-radius:99px;padding:11px 16px;font-size:14px;color:rgba(255,255,255,.8)}
+.sv .bar button{width:42px;height:42px;border:none;border-radius:50%;background:rgba(0,17,42,.4);color:#fff;font-size:18px}
+.sv .sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:#16213e;border-radius:18px 18px 0 0;padding:16px;display:none}.sv.share .sheet{display:block}
+.sv .sheet .row{display:flex;gap:12px;overflow-x:auto;margin-top:12px}.sv .sheet .row div{flex:none;width:56px;text-align:center;font-size:11px}
+.sv .sheet .row i{display:flex;width:52px;height:52px;margin-bottom:4px;border-radius:50%;background:rgba(255,255,255,.1);align-items:center;justify-content:center;font-style:normal;font-weight:800}
+.sv .zones{position:absolute;inset:0;display:flex;z-index:1}.sv .zones div{flex:1}.sv .zones div:nth-child(2){flex:1}
 </style>
 </head>
 <body>
@@ -219,6 +246,21 @@ nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
     </div>
   </div>
   <div class="toast" id="toast"></div>
+
+  <!-- Stories v2: círculos (anel âmbar = não visto, cinza = visto) e visualizador em tela cheia. Toque no terço direito avança,
+       no esquerdo volta, segurar pausa, deslizar para baixo fecha. Sem setas; barra inferior fina: comentar, curtir, compartilhar. -->
+  <div class="sv" id="sv" role="dialog" aria-label="Stories de radioOn">
+    <div class="bg"></div>
+    <div class="bars" id="svbars"></div>
+    <div class="top"><span class="ph">R</span><b>radioOn</b><small id="svt">há 4 h</small><button aria-label="Silenciar">♪</button><button aria-label="Mais opções">⋯</button><button aria-label="Fechar stories" onclick="svClose()">✕</button></div>
+    <div class="body" id="svbody"></div>
+    <div class="zones"><div onclick="svStep(-1)"></div><div onmousedown="svHold(1)" onmouseup="svHold(0)"></div><div onclick="svStep(1)"></div></div>
+    <div class="bar"><span>Comentar…</span><button aria-label="Curtir" onclick="this.textContent=this.textContent==='♥'?'♡':'♥'">♡</button><button aria-label="Compartilhar" onclick="$('sv').classList.add('share')">➤</button></div>
+    <div class="sheet"><b>Compartilhar</b>
+      <div class="row"><div><i>Wa</i>WhatsApp</div><div><i>Ig</i>Instagram</div><div><i>Fb</i>Facebook</div><div><i>In</i>LinkedIn</div><div><i>⧉</i>Copiar link</div><div><i>⋯</i>Mais</div></div>
+      <p style="font-size:12px;margin-top:12px;color:rgba(255,255,255,.7)">Baixar cartão</p>
+      <button style="margin-top:8px;border:none;background:none;color:#E89A3C;font-weight:700" onclick="$('sv').classList.remove('share')">Fechar</button></div>
+  </div>
 </div>
 <script>
 const T=[
@@ -308,6 +350,18 @@ $('plw').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist'
 $('grid').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
 $('mine').innerHTML=`<div class="row2" style="border:none">${cv(T[0].c,'B')}<div class="tx"><p>Brisa Blues</p><small>0 escutas de ouvintes · enviada hoje</small></div></div><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Suas próprias escutas não contam pontos nem métricas.</p>`;
 setInterval(()=>{$('lis').textContent=120+Math.floor(Math.random()*20)},4000);
+
+// Stories v2: demonstração do visualizador (5 s por story de texto; avanço automático).
+const SV=[{n:'radioOn',t:['Ouvir: é só dar play, sem cadastro.','Pontos: 30 s seguidos valem pontos.']},{n:'Lia Norte',t:['Ensaio aberto hoje à noite.']}];
+let sp=0,si=0,stm;
+function svRender(){const g=SV[sp];$('svbars').innerHTML=g.t.map((_,k)=>`<i class="${k<si?'done':k===si?'cur':''}"><b></b></i>`).join('');
+ $('svbody').innerHTML=g.t[si]+(sp===1?'<div class="card"><div class="cv" style="width:44px;height:44px;border-radius:8px;background:#E89A3C"></div><span>Madrugada no Convés<br><small>Lia Norte</small></span><u>Ouvir a faixa</u></div>':'');
+ $('svt').textContent='há 4 h';clearTimeout(stm);stm=setTimeout(()=>svStep(1),5000)}
+function svStep(d){const g=SV[sp];si+=d;if(si>=g.t.length){sp++;si=0;if(sp>=SV.length)return svClose()}if(si<0){sp=Math.max(0,sp-1);si=0}svRender()}
+function svHold(h){$('sv').classList.toggle('hold',!!h);if(h)clearTimeout(stm);else svRender()}
+function svClose(){clearTimeout(stm);$('sv').classList.remove('open','share')}
+function svOpen(p){sp=p;si=0;$('sv').classList.add('open');svRender()}
+$('main').insertAdjacentHTML('afterbegin','<div class="stc" id="stc">'+SV.map((g,k)=>`<button onclick="svOpen(${k});this.classList.add('seen')"><span class="ring"><span class="av2">${g.n[0]}</span></span>${g.n}</button>`).join('')+'</div>');
 render();
 </script>
 </body>
