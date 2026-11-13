@@ -303,3 +303,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.
 
 - 2026-11-13 (9ª) — issue #101: #97 aprovado na trava, mas o merge falhou por conflito em DECISIONS.md; atualizado sobre a main (decisão renumerada 86) e a trava foi pedida de novo (novo commit invalida a aprovação). **Aguarda `travas` do #97.** Depois: dispare `worker-deploy`, validar 200/206, religar o proxy restrito, `transcodificar` lote=5, medições do #78. #107 (Dependabot) com E2E falho: investigar na próxima execução.
+
+- 2026-11-13 (11ª) — issue #101: #97 mergeado; `worker-deploy` falhou (exit 127, caminho do `derivar-env.sh` com working-directory do job). Correção no PR #110 (protegido, **aguarda `travas`**). Depois: redeploy, 200/206, religar proxy, transcodificar lote=5, medições do #78, #103.
