@@ -275,6 +275,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - [ ] **Fase B — E2E na prévia (206 do Worker, KV, ganho) e medição de CPU/memória** — depende do deploy do Worker.
 - [ ] **Fase C — verificação após 48 h em produção** — depende de A e B no ar.
 
+- [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
+
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
@@ -305,3 +307,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-13 (9ª) — issue #101: #97 aprovado na trava, mas o merge falhou por conflito em DECISIONS.md; atualizado sobre a main (decisão renumerada 86) e a trava foi pedida de novo (novo commit invalida a aprovação). **Aguarda `travas` do #97.** Depois: dispare `worker-deploy`, validar 200/206, religar o proxy restrito, `transcodificar` lote=5, medições do #78. #107 (Dependabot) com E2E falho: investigar na próxima execução.
 
 - 2026-11-13 (11ª) — issue #101: #97 mergeado; `worker-deploy` falhou (exit 127, caminho do `derivar-env.sh` com working-directory do job). Correção no PR #110 (protegido, **aguarda `travas`**). Depois: redeploy, 200/206, religar proxy, transcodificar lote=5, medições do #78, #103.
+
+- 2026-11-13 (12ª) — issue #113 (Stories v2) concluída: PR #114 mergeado, deploy e migrations ok. Fila restante: #103 e #101 (dependem de #110, que aguarda `travas`).
