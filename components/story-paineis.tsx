@@ -39,16 +39,29 @@ const iconeRede = "flex size-14 items-center justify-center rounded-full bg-whit
 
 /** Compartilhar: linha de ícones; Instagram usa a folha nativa com o cartão 9:16 como arquivo. */
 export function PainelCompartilhar({ story, onFechar }: { story: Story; onFechar: () => void }) {
+  return (
+    <PainelCompartilharAlvo
+      caminho={`/story/${story.id}`}
+      texto={`${story.authorName} na radioOn`}
+      resumo={story.body}
+      cartaoUrl={`/api/stories/${story.id}/cartao`}
+      arquivo={`story-radioon-${story.id}.png`}
+      onFechar={onFechar}
+    />
+  );
+}
+
+/** Painel de compartilhar genérico (stories e playlists): mesmos ícones oficiais e mesmo cartão 9:16. */
+export function PainelCompartilharAlvo({ caminho, texto, resumo, cartaoUrl, arquivo: nomeArquivo, onFechar }: { caminho: string; texto: string; resumo?: string | null; cartaoUrl: string; arquivo: string; onFechar: () => void }) {
   const [aviso, setAviso] = useState<string | null>(null);
-  const url = typeof window === "undefined" ? "" : `${location.origin}/story/${story.id}`;
-  const texto = `${story.authorName} na radioOn`;
+  const url = typeof window === "undefined" ? "" : `${location.origin}${caminho}`;
   const redes = linksRedes(url, texto);
 
   async function cartao(): Promise<File | null> {
     try {
-      const r = await fetch(`/api/stories/${story.id}/cartao`);
+      const r = await fetch(cartaoUrl);
       if (!r.ok) return null;
-      return new File([await r.blob()], "story-radioon.png", { type: "image/png" });
+      return new File([await r.blob()], "radioon.png", { type: "image/png" });
     } catch {
       return null;
     }
@@ -56,7 +69,7 @@ export function PainelCompartilhar({ story, onFechar }: { story: Story; onFechar
   function baixar(arquivo: File) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(arquivo);
-    a.download = `story-radioon-${story.id}.png`;
+    a.download = nomeArquivo;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
@@ -88,7 +101,7 @@ export function PainelCompartilhar({ story, onFechar }: { story: Story; onFechar
   async function mais() {
     if (!navigator.share) return void (await copiar());
     try {
-      await navigator.share({ title: texto, text: story.body ?? texto, url });
+      await navigator.share({ title: texto, text: resumo ?? texto, url });
     } catch {
       /* cancelado */
     }

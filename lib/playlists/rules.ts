@@ -36,3 +36,38 @@ export function trocarPosicao(itens: ItemOrdem[], trackId: string, dir: "up" | "
     { trackId: ord[j].trackId, position: ord[i].position },
   ];
 }
+
+/** Publicar exige pelo menos 5 faixas. */
+export const MIN_FAIXAS_PUBLICAR = 5;
+
+export function podePublicar(qtdFaixas: number): boolean {
+  return qtdFaixas >= MIN_FAIXAS_PUBLICAR;
+}
+
+/** Título padrão do rascunho: "Minha playlist N" (N = quantas o usuário já tem + 1). */
+export function tituloPadrao(jaTem: number): string {
+  return `Minha playlist ${Math.max(0, jaTem) + 1}`;
+}
+
+/** Chave de criação idempotente: curta, só [A-Za-z0-9-]. */
+export function parseCreateKey(value: unknown): string | null {
+  return typeof value === "string" && /^[A-Za-z0-9-]{8,64}$/.test(value) ? value : null;
+}
+
+/** Descrição opcional: até 500 caracteres; vazio vira null; inválido vira undefined. */
+export function parseDescricao(value: unknown): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return undefined;
+  const v = value.trim();
+  if (v.length > 500) return undefined;
+  return v === "" ? null : v;
+}
+
+/** Move um item de `de` para `para` numa lista de ids (devolve cópia; índices inválidos não alteram). */
+export function reordenar<T>(lista: T[], de: number, para: number): T[] {
+  if (de < 0 || de >= lista.length || para < 0 || para >= lista.length || de === para) return [...lista];
+  const c = [...lista];
+  const [x] = c.splice(de, 1);
+  c.splice(para, 0, x);
+  return c;
+}

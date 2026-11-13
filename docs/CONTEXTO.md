@@ -283,6 +283,13 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
   medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Issue #116 segue aberta com `fila`.
 
+- [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
+  busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
+  **Faltam:** prévia de 15 s, arrastar/deslizar, sugestões (clima/gênero/recentes/curtidas), capa em mosaico no editor e foto própria com recorte (`covers/`),
+  perfil "Playlister" com seguidores, notas/destaque/ocultar no editor (as ações em `app/curador/actions.ts` seguem, sem tela), E2E mobile e prints.
+  **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
+  Artista ativado no 1º envio (sem escolha de perfil): não feito; `/enviar` ainda exige papel artist.
+
 ## Correções avulsas
 
 - [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
