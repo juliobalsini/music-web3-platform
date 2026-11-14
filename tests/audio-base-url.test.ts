@@ -4,7 +4,11 @@ import { describe, it } from "node:test";
 import { AUDIO_BASE_URL_PADRAO, PROXY_LIGADO_POR_PADRAO, resolverAudioBaseUrl } from "../lib/audio/base-url.ts";
 
 describe("resolverAudioBaseUrl", () => {
-  it("segue o interruptor do padrão (desligado até o Worker ficar saudável)", () => {
+  it("proxy ligado por padrão no Worker radioon-audio", () => {
+    assert.equal(PROXY_LIGADO_POR_PADRAO, true);
+    assert.equal(resolverAudioBaseUrl(undefined), AUDIO_BASE_URL_PADRAO);
+  });
+  it("segue o interruptor do padrão (ligado desde 2026-11-14)", () => {
     const esperado = PROXY_LIGADO_POR_PADRAO ? AUDIO_BASE_URL_PADRAO : undefined;
     assert.equal(resolverAudioBaseUrl(undefined), esperado);
     assert.equal(resolverAudioBaseUrl("  "), esperado);
