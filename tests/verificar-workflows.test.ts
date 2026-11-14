@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import { verificarDiretorio, verificarWorkflow } from "../scripts/ci/verificar-workflows.mjs";
+import { verificarDiretorio, verificarTravas, verificarWorkflow } from "../scripts/ci/verificar-workflows.mjs";
 
 const regras = (y: string) => verificarWorkflow("x.yml", y).map((e: string) => e.slice(0, 2));
 
@@ -47,5 +48,24 @@ describe("scripts/ci/verificar-workflows", () => {
       regras("on:\n  pull_request:\nconcurrency:\n  group: g\n  cancel-in-progress: true\njobs:\n  a:\n    environment: travas\n    runs-on: x\n"),
       [],
     );
+  });
+
+  it("R4: bloco TRAVAS igual passa; alterado, com linha a mais ou removido reprova", () => {
+    const md = (t: string) => `# x\nregras livres\n<!-- TRAVAS:INICIO (protegida) -->\n${t}\n<!-- TRAVAS:FIM -->\nfim\n`;
+    const base = md("- Nunca: DROP.\n- Protegidos: gate.");
+    assert.deepEqual(verificarTravas(base, base.replace("regras livres", "outras regras")), []);
+    assert.deepEqual(verificarTravas(base, md("- Nunca: DROP.\n\n- Protegidos: gate.   ")), []);
+    const r = (pr: string) => verificarTravas(base, pr).map((e: string) => e.slice(0, 2));
+    assert.deepEqual(r(md("- Nunca: DROP.\n- Protegidos: nada.")), ["R4"]);
+    assert.deepEqual(r(md("- Nunca: DROP.")), ["R4"]);
+    assert.deepEqual(r(md("- Nunca: DROP.\n- Protegidos: gate.\n- Nova regra.")), ["R4"]);
+    assert.deepEqual(r("# sem bloco\n"), ["R4"]);
+    assert.deepEqual(verificarTravas("# main sem bloco\n", "# x\n"), []);
+  });
+
+  it("R4: o CLAUDE.md atual tem o bloco TRAVAS", () => {
+    const atual = readFileSync("CLAUDE.md", "utf8");
+    assert.deepEqual(verificarTravas(atual, atual), []);
+    assert.match(atual, /<!-- TRAVAS:INICIO[^>]*-->[\s\S]+<!-- TRAVAS:FIM -->/);
   });
 });

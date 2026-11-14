@@ -333,4 +333,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-14 (17ª) — #130 e #126 fechadas (PRs #131 e #129 em produção; #132 fechada). Issue #101: `worker-deploy` ok, Worker validado (200/206/HIT),
   proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.
-  #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95).
+  #103 (modelo operacional v2): PR protegido único (R4 TRAVAS, escopo menor da trava, encadeamento, `feedback`, resumo diário,
+  CLAUDE.md/README/PLANO.md; DECISIONS 94) — **aguarda `travas`**. Issue "Sessão manual" criada. Primeiro Sprint na segunda 2026-11-16.
+  #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95) — em produção (PR #137).
+  Dependabot #107: o pedido de rebase não foi atendido; branch atualizado pela API, mas o gate escolhe o E2E pelo `github.actor` (virou
+  o Julio) e caiu na prévia (branch longo demais). Correção no #134 (gate usa o autor do PR); depois, rodar o gate do #107 de novo.

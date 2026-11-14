@@ -62,10 +62,20 @@ radioOn is built largely by an autonomous agent: **Claude Code running on GitHub
 - **Gate:** a PR is merged automatically only after checks pass **and** E2E tests pass against the Vercel preview. Production
   deploys are verified afterwards; a broken deploy is rolled back.
 - **Locks (travas):** the agent never runs destructive database writes, never commits secrets, and cannot change its own
-  guardrails. Protected paths (`.github/**`, `.claude/**`, existing migrations, CI scripts) need the owner's approval.
-  Migrations go through an allowlist validator.
-- **Reports:** decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md) and reports land in
+  guardrails. Protected (owner approval required): the TRAVAS block of `CLAUDE.md`, the `gate`, `autonomo` and `migracao`
+  workflows, `scripts/ci/**`, `.claude/settings*.json`, existing migrations, and any permissions/secrets/environment/token
+  change in other workflows. The gate also verifies every workflow automatically (owner-only triggers, no untrusted text in
+  shell, no `pull_request_target`/`write-all`, no risky cancellation) and **rejects any edit to the TRAVAS block** — only the
+  owner edits it, directly on `main`. Migrations go through an allowlist validator.
+- **Reports:** decisions are logged in [`docs/DECISIONS.md`](docs/DECISIONS.md); big deliveries get a report in
   [`docs/reports/`](docs/reports/). New features stay "proposed" until the owner approves them.
+
+- **Operating model v2 (weekly sprints):** every Monday the agent opens a "Sprint YYYY-WW" issue planned from
+  [`docs/PLANO.md`](docs/PLANO.md); one owner comment "aprovado" (or "aprovado exceto X") approves the whole week. Runs chain
+  themselves while approved work remains (up to 6 chained runs a day), protected changes accumulate in one weekly PR,
+  failures get up to 3 self-fix attempts, and a single daily summary is posted on the Sprint issue. Everything only the
+  owner can do (accounts, keys, secrets, rotation) lives in one open "Sessão manual" issue. Owner issues labelled
+  `feedback` (free text, phone screenshots) are triaged: small fixes run right away, scope changes go to the next sprint.
 
 - **Issue queue:** the owner queues work by opening an issue labelled `fila` (add `urgente` to jump the line). Applying the
   label, or commenting "aprovado…"/"recusado…", also triggers a run. Only issues and comments by the owner's account are

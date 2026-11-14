@@ -15,7 +15,7 @@ on:
         required: true
         type: string
       label:
-        description: Label (acao-necessaria | relatorio)
+        description: Label (acao-necessaria | relatorio | resumo)
         required: true
         type: string
 
@@ -44,6 +44,7 @@ jobs:
           case "$LABEL" in
             acao-necessaria) color="d93f0b"; desc="Claude Code precisa de ação humana" ;;
             relatorio)       color="0e8a16"; desc="Relatório do Claude Code" ;;
+            resumo)          color="0e8a16"; desc="Resumo diário do Claude Code" ;;
             *)               color="ededed"; desc="Alerta do Claude Code" ;;
           esac
           gh label create "$LABEL" --color "$color" --description "$desc" 2>/dev/null || true
@@ -52,6 +53,17 @@ jobs:
 
           # "Ação necessária": no máximo uma issue aberta por dia (mesmo título).
           existing=""
+          # Resumo diário: comentário na issue "Sprint" aberta mais recente (o Julio recebe o e-mail).
+          if [ "$LABEL" = "resumo" ]; then
+            existing="$(gh issue list --state open --label sprint --limit 5 --json number --jq 'first | .number // empty')"
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --body "$(printf '%s\n\n## %s\n\n%s' "$MENTION" "$TITLE" "$BODY")"
+              echo "Resumo comentado na issue #$existing" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            LABEL="relatorio"
+            gh label create "$LABEL" --color 0e8a16 --description "Relatório do Claude Code" 2>/dev/null || true
+          fi
           if [ "$LABEL" = "acao-necessaria" ]; then
             existing="$(gh issue list --state open --label "$LABEL" --limit 50 \
               --json number,title \

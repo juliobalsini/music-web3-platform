@@ -70,7 +70,7 @@ jobs:
           path: ${{ runner.temp }}/motivos.md
           retention-days: 7
 
-  # Verificação de segurança dos workflows (R1–R3 em scripts/ci/verificar-workflows.mjs).
+  # Verificação de segurança dos workflows e do bloco TRAVAS (R1–R4 em scripts/ci/verificar-workflows.mjs).
   # O script é SEMPRE o da main (base); os workflows analisados são os do PR.
   # Só depois que ela passa o PR protegido pede a trava do Julio (aprovacao/avisar-travas).
   workflows:
@@ -97,6 +97,10 @@ jobs:
           node-version: 24
           package-manager-cache: false
       - name: Verificar workflows do PR
+        env:
+          # R4: o bloco TRAVAS do CLAUDE.md do PR tem de ser igual ao da main (o sparse-checkout em cone traz os arquivos da raiz).
+          CLAUDE_BASE: base/CLAUDE.md
+          CLAUDE_PR: pr/CLAUDE.md
         run: |
           script=base/scripts/ci/verificar-workflows.mjs
           if [ ! -f "$script" ]; then
@@ -157,13 +161,14 @@ jobs:
           fi
         env:
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
+          DEPENDABOT: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
 
-      # PR do Dependabot não recebe secrets de Actions: o E2E roda contra o app compilado aqui
+      # PR do Dependabot (pelo AUTOR do PR, não por quem disparou: atualizar o branch pela conta do Julio
+      # não pode mudar o caminho) roda o E2E contra o app compilado aqui
       # (next build + start, via webServer do playwright.config.ts), sem prévia da Vercel.
       - name: Aguardar prévia da Vercel
         id: previa
-        if: github.actor != 'dependabot[bot]'
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ github.token }}
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -214,7 +219,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E no app compilado (Dependabot)
-        if: github.actor == 'dependabot[bot]'
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
         env:
           # Valores fictícios: as páginas públicas e os redirects não falam com o banco real.
           NEXT_PUBLIC_SUPABASE_URL: https://e2e.invalid
@@ -222,7 +227,7 @@ jobs:
         run: pnpm e2e
 
       - name: E2E na prévia
-        if: github.actor != 'dependabot[bot]'
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         env:
           E2E_BASE_URL: ${{ steps.previa.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}

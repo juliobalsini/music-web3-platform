@@ -4,7 +4,8 @@
 #
 # Uso:
 #   bash scripts/notify.sh hook               (lê JSON do stdin, campo "message")
-#   bash scripts/notify.sh report <arquivo>
+#   bash scripts/notify.sh report <arquivo>   (entrega grande ou fim de fase)
+#   bash scripts/notify.sh resumo <arquivo>   (resumo diário: comentário na issue do Sprint aberta)
 #   bash scripts/notify.sh pause <mensagem>
 #
 # Nunca inclui valores de variáveis de ambiente/chaves no corpo.
@@ -15,6 +16,7 @@ cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 WORKFLOW="notify.yml"
 LABEL_ACTION="acao-necessaria"
 LABEL_REPORT="relatorio"
+LABEL_RESUMO="resumo"
 TZ_LOCAL="America/Sao_Paulo"
 MAX_BODY=60000  # limite de payload do workflow_dispatch é 65535
 
@@ -114,6 +116,14 @@ case "$mode" in
     fi
     dispatch "Relatório radioOn — $(today)" "$(redact < "$file")" "$LABEL_REPORT"
     ;;
+  resumo)
+    file="${2:-}"
+    if [ -z "$file" ] || [ ! -f "$file" ]; then
+      echo "uso: $0 resumo <arquivo>" >&2; exit 1
+    fi
+    # O workflow comenta na issue "Sprint" aberta (label sprint); sem Sprint, cria uma issue de relatório.
+    dispatch "Resumo radioOn — $(today)" "$(redact < "$file")" "$LABEL_RESUMO"
+    ;;
   pause)
     shift
     msg="$*"
@@ -123,7 +133,7 @@ case "$mode" in
     action "$msg"
     ;;
   *)
-    echo "uso: $0 {hook|report <arquivo>|pause <mensagem>}" >&2
+    echo "uso: $0 {hook|report <arquivo>|resumo <arquivo>|pause <mensagem>}" >&2
     exit 1
     ;;
 esac
