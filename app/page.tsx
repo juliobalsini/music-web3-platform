@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
+import { EsqueletoRadio } from "@/components/esqueleto-radio";
 import { RadioCliente } from "@/components/radio-cliente";
-import { PlayVazio } from "@/components/secoes-radio";
 import { lerAba, lerFiltro } from "@/lib/menu";
 import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
 import { carregarRadio, continuarOuvindo } from "@/lib/radio/queries";
@@ -50,13 +50,7 @@ export default function Radio({ searchParams }: PageProps<"/">) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4">
       <h1 className="sr-only">radioOn · Rádio</h1>
-      <Suspense
-        fallback={
-          <div className="flex justify-center py-16">
-            <PlayVazio />
-          </div>
-        }
-      >
+      <Suspense fallback={<EsqueletoRadio />}>
         <Conteudo searchParams={searchParams} />
       </Suspense>
     </main>

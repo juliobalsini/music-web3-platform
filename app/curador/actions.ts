@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isUuid, parseTitle, trocarPosicao } from "@/lib/playlists/rules";
+import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { parseNota, parsePrograma } from "@/lib/radio/programa";
 import { getSessionRole } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,6 +30,7 @@ export async function criarPlaylist(form: FormData) {
   if (!title) redirect("/curador?erro=1");
   const { error } = await supabase.from("playlists").insert({ curator_id: userId, title, is_public: true });
   if (error) redirect("/curador?erro=1");
+  catalogoMudou();
   revalidatePath("/curador");
   revalidatePath("/");
   redirect("/curador");
@@ -50,6 +52,7 @@ export async function adicionarFaixa(form: FormData) {
     .from("playlist_tracks")
     .insert({ playlist_id: playlistId, track_id: trackId, position: (ultima?.position ?? -1) + 1 });
   if (error) redirect("/curador?erro=1");
+  catalogoMudou();
   revalidatePath("/curador");
   revalidatePath("/");
   revalidatePath(`/playlist/${playlistId}`);
@@ -67,6 +70,7 @@ export async function removerFaixa(form: FormData) {
     .eq("playlist_id", playlistId)
     .eq("track_id", trackId);
   if (error) redirect("/curador?erro=1");
+  catalogoMudou();
   revalidatePath("/curador");
   revalidatePath("/");
   revalidatePath(`/playlist/${playlistId}`);
@@ -86,6 +90,7 @@ async function playlistDoCurador(playlistId: string) {
 }
 
 function revalidarPlaylist(playlistId: string) {
+  catalogoMudou();
   revalidatePath("/curador");
   revalidatePath("/");
   revalidatePath("/explorar");
@@ -159,6 +164,7 @@ export async function criarPrograma(form: FormData) {
     end_hour: p.endHour,
   });
   if (error) redirect("/curador?erro=1");
+  catalogoMudou();
   revalidatePath("/");
   redirect("/curador");
 }
@@ -169,6 +175,7 @@ export async function removerPrograma(form: FormData) {
   if (!isUuid(id)) redirect("/curador?erro=1");
   const { error } = await supabase.from("programs").delete().eq("id", id).eq("curator_id", userId);
   if (error) redirect("/curador?erro=1");
+  catalogoMudou();
   revalidatePath("/");
   redirect("/curador");
 }

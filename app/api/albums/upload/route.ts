@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 import { isStorageConfigured, signUpload } from "@/lib/storage/client";
 import { parseAlbumInput } from "@/lib/storage/albuns";
@@ -50,5 +51,6 @@ export async function POST(request: Request) {
     }),
   );
   const coverUploadUrl = cover && capaKey ? await signUpload(capaKey, cover.contentType, cover.size) : null;
+  catalogoMudou();
   return Response.json({ albumId: album.id, faixas: saida, coverUploadUrl, coverContentType: cover?.contentType ?? null }, { headers: noStore });
 }

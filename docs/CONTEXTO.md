@@ -282,8 +282,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
   login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
-  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
-  medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Issue #116 segue aberta com `fila`.
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Issue #116 segue aberta com `fila`.
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
@@ -338,3 +337,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95) — em produção (PR #137).
   Dependabot #107: o pedido de rebase não foi atendido; branch atualizado pela API, mas o gate escolhe o E2E pelo `github.actor` (virou
   o Julio) e caiu na prévia (branch longo demais). Correção no #134 (gate usa o autor do PR); depois, rodar o gate do #107 de novo.
+
+- 2026-11-14 (18ª) — Caixa de entrada: issue #140 (Versão desktop, `fila`+`complexa`) criada. #103 fechada (PR #134 mergeado) e alerta #136 fechado.
+  Dependabot #107: branch atualizado sobre a `main` para o gate novo rodar. #116 item 2 (logo rápida) em PR (DECISIONS 96).
