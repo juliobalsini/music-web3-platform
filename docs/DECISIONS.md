@@ -403,3 +403,9 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     da Cloudflare, sem token local), total 57–104 ms do runner. Transcodificação: 2 faixas ok (aac192, −19,3 LUFS, 6,8 → 4,2 MB, −39%);
     3 faixas falham com "Key not found" (original ausente no bucket, 3/3 tentativas, não voltam a ser tentadas). Reversão: `false` aqui ou
     `NEXT_PUBLIC_AUDIO_BASE_URL=off`.
+95. **Seguir perfis (issue #116, item 4 e parte do 11, 2026-11-14):** tabela `follows` (migration aditiva `20261114000000`), chave
+    (seguidor, seguido), sem seguir a si mesmo. RLS: só conta segue (restritiva barra a sessão anônima), como si mesma; cada um
+    vê quem segue e quem o segue (terceiros e visitantes não veem; contagem pública, se vier, pelo servidor); deixar de seguir só
+    o próprio; sem update. Botão Seguir/Seguindo no perfil (exceto o próprio e o oficial; resposta imediata com `useFormStatus`);
+    visitante é levado ao login e volta ao perfil (base do login contextual, item 5). `/seguindo` na gaveta, com `CartaoCapa`,
+    `EstadoVazio` e `Esqueleto`. Testes de RLS no PGlite e E2E do visitante.

@@ -417,3 +417,34 @@ describe("RLS — Stories v2: visualizações, apagar, curtidas e comentários (
     assert.equal((await como("curador", `select id from public.stories where id = '${s2}'`)).rows.length, 0);
   });
 });
+
+describe("RLS — seguir perfis (migration 20261114000000)", () => {
+  const segue = (quem: Quem, quemSegue: string, seguido: string) =>
+    como(quem, `insert into public.follows (follower_id, followed_id) values ('${quemSegue}', '${seguido}')`);
+
+  it("conta segue como si mesma, uma vez; não segue por outro nem a si mesma", async () => {
+    assert.equal((await segue("conta", ids.conta, ids.artista)).error, null);
+    assert.match((await segue("conta", ids.conta, ids.artista)).error ?? "", /duplicate key/);
+    assert.match((await segue("conta", ids.curador, ids.artista)).error ?? "", /row-level security/);
+    assert.match((await segue("conta", ids.conta, ids.conta)).error ?? "", /check constraint/);
+  });
+
+  it("sessão anônima não segue ninguém", async () => {
+    assert.match((await segue("anon", ids.anon, ids.artista)).error ?? "", /row-level security/);
+  });
+
+  it("cada um vê só quem segue e quem o segue; terceiros não veem", async () => {
+    await segue("curador", ids.curador, ids.artista);
+    assert.equal((await como("conta", `select * from public.follows`)).rows.length, 1);
+    assert.equal((await como("artista", `select * from public.follows`)).rows.length, 2);
+    assert.equal((await como("anon", `select * from public.follows`)).rows.length, 0);
+  });
+
+  it("deixa de seguir só o próprio; ninguém altera pelo cliente", async () => {
+    assert.equal((await como("artista", `delete from public.follows where follower_id = '${ids.conta}'`)).affected, 0);
+    const upd = await como("conta", `update public.follows set followed_id = '${ids.curador}'`);
+    assert.ok(upd.error || upd.affected === 0);
+    assert.equal((await como("conta", `delete from public.follows where follower_id = '${ids.conta}'`)).affected, 1);
+    assert.equal((await como("service", `select * from public.follows`)).rows.length, 1);
+  });
+});
