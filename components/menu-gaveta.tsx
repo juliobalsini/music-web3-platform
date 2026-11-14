@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- avatar externo (Google), sem otimizador (cota). */
 
-import { Cog, FileText, FolderOpen, LogIn, LogOut, Menu, ShieldCheck, Star, Upload, UserRound, X } from "lucide-react";
+import { Cog, FileText, FolderOpen, LogIn, LogOut, Menu, ShieldCheck, Star, Upload, UserRound, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -90,6 +90,7 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
                 <Link href="/minha-radio" className={item}><Star className="size-5 text-brand" aria-hidden="true" />Seus pontos</Link>
                 <Link href="/meus-envios" className={item}><FolderOpen className="size-5 text-brand" aria-hidden="true" />Meus envios</Link>
                 <Link href="/enviar" className={item}><Upload className="size-5 text-brand" aria-hidden="true" />Enviar música</Link>
+                <Link href="/seguindo" className={item}><Users className="size-5 text-brand" aria-hidden="true" />Seguindo</Link>
                 <Link href="/ajustes" className={item}><Cog className="size-5 text-brand" aria-hidden="true" />Configurações</Link>
               </nav>
             </>
