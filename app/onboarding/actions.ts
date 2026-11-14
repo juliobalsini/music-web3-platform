@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { parseRole } from "@/lib/auth/roles";
+import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,5 +22,6 @@ export async function escolherPerfil(form: FormData) {
     .update({ role, ...(display_name ? { display_name } : {}) })
     .eq("id", data.user.id);
   if (error) redirect("/onboarding?erro=1");
+  catalogoMudou();
   redirect(role === "artist" ? "/enviar" : "/");
 }

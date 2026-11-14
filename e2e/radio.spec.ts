@@ -387,6 +387,29 @@ test("gaveta lateral: abre pelo menu, fecha por toque fora e pelo Esc; logo rola
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
 });
 
+test("logo em outra tela volta à Rádio sem recarregar a página e mede o tempo", async ({ page }, info) => {
+  await radioCarregada(page);
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Explorar" }).click();
+  await expect(page.getByRole("heading", { name: "Explorar" })).toBeVisible();
+  // Marca na janela: some se a navegação recarregar a página inteira.
+  await page.evaluate(() => ((window as unknown as { __semRecarga: boolean }).__semRecarga = true));
+  const inicio = Date.now();
+  await page.getByRole("link", { name: "radioOn, início" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 });
+  const ms = Date.now() - inicio;
+  info.annotations.push({ type: "logo-ms", description: String(ms) });
+  console.log(`[medida] logo → Rádio pronta em ${ms} ms`);
+  expect(await page.evaluate(() => (window as unknown as { __semRecarga?: boolean }).__semRecarga)).toBe(true);
+  // Segundo toque logo em seguida: a Rádio já está no cache do cliente (staleTimes), sem esqueleto.
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Explorar" }).click();
+  await expect(page.getByRole("heading", { name: "Explorar" })).toBeVisible();
+  const inicio2 = Date.now();
+  await page.getByRole("link", { name: "radioOn, início" }).click();
+  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible();
+  console.log(`[medida] logo → Rádio (cache do cliente) em ${Date.now() - inicio2} ms`);
+});
+
 test("Biblioteca: visitante vê o convite para criar conta", async ({ page }) => {
   await radioCarregada(page);
   await page.getByRole("navigation", { name: "Principal" }).getByRole("link", { name: "Biblioteca" }).click();

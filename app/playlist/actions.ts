@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseDescricao, parseTitle, podePublicar, tituloPadrao } from "@/lib/playlists/rules";
 import { loginPath } from "@/lib/auth/roles";
+import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 
 async function conta() {
@@ -48,6 +49,7 @@ export async function salvarDetalhes(id: string, titulo: string, descricao: stri
   if (!isUuid(id) || !title || description === undefined) return { ok: false, erro: "Confira o título e a descrição." };
   const { error } = await supabase.from("playlists").update({ title, description }).eq("id", id).eq("curator_id", userId);
   if (error) return { ok: false, erro: "Não foi possível salvar agora." };
+  catalogoMudou();
   revalidatePath(`/playlist/${id}`);
   return { ok: true };
 }
@@ -66,6 +68,7 @@ export async function adicionarFaixaA(id: string, trackId: string): Promise<Resu
   const { error } = await d.supabase.from("playlist_tracks").insert({ playlist_id: id, track_id: trackId, position: (ultima?.position ?? -1) + 1 });
   // 23505 = já está na playlist: tratar como sucesso (toque repetido).
   if (error && error.code !== "23505") return { ok: false, erro: "Não foi possível adicionar." };
+  catalogoMudou();
   revalidatePath(`/playlist/${id}`);
   return { ok: true };
 }
@@ -75,6 +78,7 @@ export async function removerFaixaDe(id: string, trackId: string): Promise<Resul
   if (!d || !isUuid(trackId)) return { ok: false, erro: "Playlist não encontrada." };
   const { error } = await d.supabase.from("playlist_tracks").delete().eq("playlist_id", id).eq("track_id", trackId);
   if (error) return { ok: false, erro: "Não foi possível remover." };
+  catalogoMudou();
   revalidatePath(`/playlist/${id}`);
   return { ok: true };
 }
@@ -97,6 +101,7 @@ export async function reordenarFaixas(id: string, ordem: string[]): Promise<Resu
     const { error } = await d.supabase.from("playlist_tracks").update({ position: i }).eq("playlist_id", id).eq("track_id", ordem[i]);
     if (error) return { ok: false, erro: "Não foi possível reordenar." };
   }
+  catalogoMudou();
   revalidatePath(`/playlist/${id}`);
   return { ok: true };
 }
@@ -108,6 +113,7 @@ export async function publicar(id: string): Promise<Resultado> {
   if (!podePublicar(count ?? 0)) return { ok: false, erro: `Adicione pelo menos ${MIN_FAIXAS_PUBLICAR} faixas para publicar.` };
   const { error } = await d.supabase.from("playlists").update({ is_public: true, published_at: new Date().toISOString() }).eq("id", id).eq("curator_id", d.userId);
   if (error) return { ok: false, erro: "Não foi possível publicar." };
+  catalogoMudou();
   revalidatePath(`/playlist/${id}`);
   revalidatePath("/");
   revalidatePath("/explorar");
@@ -119,6 +125,7 @@ export async function apagarPlaylist(id: string) {
   const d = await donoDe(id);
   if (!d) redirect("/biblioteca");
   await d.supabase.from("playlists").delete().eq("id", id).eq("curator_id", d.userId);
+  catalogoMudou();
   revalidatePath("/");
   revalidatePath("/biblioteca");
   redirect("/biblioteca");

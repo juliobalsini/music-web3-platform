@@ -3,7 +3,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import { getSupabasePublicKey, getSupabaseUrl } from "./env";
+import { getSupabasePublicKey, getSupabaseUrl, retentarConsultas } from "./env";
 
 /**
  * Cliente Supabase para Server Components, Server Actions e Route Handlers.
@@ -12,7 +12,9 @@ import { getSupabasePublicKey, getSupabaseUrl } from "./env";
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(getSupabaseUrl(), getSupabasePublicKey(), {
+  const url = getSupabaseUrl();
+  return createServerClient(url, getSupabasePublicKey(), {
+    db: { retry: retentarConsultas(url) },
     cookies: {
       getAll() {
         return cookieStore.getAll();

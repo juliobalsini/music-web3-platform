@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Voltar à Home (toque na logo, aba Rádio) em até 30 s reaproveita a página já carregada no
+    // cliente, sem nova ida ao servidor. Ações (curtir, publicar) limpam esse cache na hora.
+    staleTimes: { dynamic: 30 },
+  },
   // "Minha rádio" substitui Métricas e Pontos.
   async redirects() {
     return [
