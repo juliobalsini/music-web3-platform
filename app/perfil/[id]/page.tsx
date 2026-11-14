@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { BotaoSeguir } from "@/components/botao-seguir";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { PlaylistsDaSemana } from "@/components/secoes-radio";
 import { RegistrarVisita } from "@/components/registrar-visita";
@@ -12,6 +13,17 @@ import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
 import { carregarRadio } from "@/lib/radio/queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
+import { podeSeguir } from "@/lib/seguir/rules";
+import { getSessionRole } from "@/lib/session";
+
+/** O usuário (com conta) segue este perfil? Visitante/anônimo: false (o botão leva ao login). */
+async function seguindoPerfil(id: string): Promise<{ mostrar: boolean; seguindo: boolean }> {
+  const sessao = await getSessionRole().catch(() => null);
+  if (!podeSeguir(sessao?.userId ?? null, id, PLATAFORMA_ID)) return { mostrar: false, seguindo: false };
+  if (!sessao) return { mostrar: true, seguindo: false };
+  const { data } = await sessao.supabase.from("follows").select("followed_id").eq("follower_id", sessao.userId).eq("followed_id", id).maybeSingle();
+  return { mostrar: true, seguindo: !!data };
+}
 
 export const metadata = { title: "Perfil · radioOn" };
 
@@ -19,7 +31,7 @@ export const metadata = { title: "Perfil · radioOn" };
 async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const [radio, todosStories] = await Promise.all([carregarRadio(), carregarStories().catch(() => [])]);
+  const [radio, todosStories, seguir] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id)]);
   const stories = todosStories.filter((s) => s.authorId === id);
   const agora = new Date().getTime();
   const faixas = radio.faixas.filter((f) => f.artistId === id);
@@ -43,6 +55,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
           </p>
         </div>
       </div>
+      {seguir.mostrar && <BotaoSeguir id={id} seguindo={seguir.seguindo} />}
       {faixas.length > 0 && (
         <section aria-label="Faixas do artista" className="flex flex-col gap-1">
           <h2 className="text-lg font-bold">Faixas</h2>

@@ -417,3 +417,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     comenta na issue `sprint` aberta como github-actions[bot] (gera e-mail ao Julio, autor da issue); sem Sprint, abre issue de
     relatório. (e) Label `feedback` dispara o agente (mesma checagem de autor). (f) Issue "Sessão manual" única (label
     `sessao-manual`).
+    (g) Autocorreção do Dependabot: o gate decide o caminho do E2E pelo autor do PR (`pull_request.user.login`), não por
+    `github.actor` — atualizar o branch pela conta do Julio levava o PR do Dependabot à prévia da Vercel (branch longo demais).
+95. **Seguir perfis (issue #116, item 4 e parte do 11, 2026-11-14):** tabela `follows` (migration aditiva `20261114000000`), chave
+    (seguidor, seguido), sem seguir a si mesmo. RLS: só conta segue (restritiva barra a sessão anônima), como si mesma; cada um
+    vê quem segue e quem o segue (terceiros e visitantes não veem; contagem pública, se vier, pelo servidor); deixar de seguir só
+    o próprio; sem update. Botão Seguir/Seguindo no perfil (exceto o próprio e o oficial; resposta imediata com `useFormStatus`);
+    visitante é levado ao login e volta ao perfil (base do login contextual, item 5). `/seguindo` na gaveta, com `CartaoCapa`,
+    `EstadoVazio` e `Esqueleto`. Testes de RLS no PGlite e E2E do visitante.

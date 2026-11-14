@@ -161,13 +161,14 @@ jobs:
           fi
         env:
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          DEPENDABOT: ${{ github.actor == 'dependabot[bot]' }}
+          DEPENDABOT: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
 
-      # PR do Dependabot não recebe secrets de Actions: o E2E roda contra o app compilado aqui
+      # PR do Dependabot (pelo AUTOR do PR, não por quem disparou: atualizar o branch pela conta do Julio
+      # não pode mudar o caminho) roda o E2E contra o app compilado aqui
       # (next build + start, via webServer do playwright.config.ts), sem prévia da Vercel.
       - name: Aguardar prévia da Vercel
         id: previa
-        if: github.actor != 'dependabot[bot]'
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ github.token }}
           BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -218,7 +219,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: E2E no app compilado (Dependabot)
-        if: github.actor == 'dependabot[bot]'
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
         env:
           # Valores fictícios: as páginas públicas e os redirects não falam com o banco real.
           NEXT_PUBLIC_SUPABASE_URL: https://e2e.invalid
@@ -226,7 +227,7 @@ jobs:
         run: pnpm e2e
 
       - name: E2E na prévia
-        if: github.actor != 'dependabot[bot]'
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         env:
           E2E_BASE_URL: ${{ steps.previa.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}

@@ -396,3 +396,15 @@ test("Biblioteca: visitante vê o convite para criar conta", async ({ page }) =>
   await page.goto("/meus-envios");
   await expect(page).toHaveURL(/\/login\?next=%2Fmeus-envios/);
 });
+
+test("Seguir: visitante toca Seguir no perfil e vai ao login voltando ao perfil; /seguindo exige conta", async ({ page }) => {
+  const perfil = "/perfil/00000000-0000-4000-8000-000000000201";
+  await page.goto(perfil);
+  const seguir = page.getByTestId("botao-seguir");
+  await expect(seguir).toHaveText(/Seguir/, { timeout: 20_000 });
+  await expect(seguir).toHaveAttribute("aria-pressed", "false");
+  await seguir.click();
+  await expect(page).toHaveURL(/\/login\?next=%2Fperfil%2F00000000-0000-4000-8000-000000000201/, { timeout: 20_000 });
+  await page.goto("/seguindo");
+  await expect(page).toHaveURL(/\/login\?next=%2Fseguindo/);
+});

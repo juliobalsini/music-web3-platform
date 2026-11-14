@@ -281,9 +281,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
-  seguir/Seguindo (item 4), login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
+  login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
   Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
-  medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Issue #116 segue aberta com `fila`.
+  medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Issue #116 segue aberta com `fila`.
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
@@ -335,4 +335,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.
   #103 (modelo operacional v2): PR protegido único (R4 TRAVAS, escopo menor da trava, encadeamento, `feedback`, resumo diário,
   CLAUDE.md/README/PLANO.md; DECISIONS 94) — **aguarda `travas`**. Issue "Sessão manual" criada. Primeiro Sprint na segunda 2026-11-16.
-
+  #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95) — em produção (PR #137).
+  Dependabot #107: o pedido de rebase não foi atendido; branch atualizado pela API, mas o gate escolhe o E2E pelo `github.actor` (virou
+  o Julio) e caiu na prévia (branch longo demais). Correção no #134 (gate usa o autor do PR); depois, rodar o gate do #107 de novo.
