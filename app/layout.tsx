@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { Abertura } from "@/components/abertura";
 import { Cabecalho } from "@/components/cabecalho";
+import { LoginContextualProvider } from "@/components/login-contextual";
 import { MiniPlayer } from "@/components/mini-player";
 import { NavInferior } from "@/components/nav-inferior";
 import { PlayerProvider } from "@/components/player-provider";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <RegistrarSW />
         <PlayerProvider>
+          <LoginContextualProvider>
           <Abertura />
           <Cabecalho />
           <div className="flex flex-1 flex-col pb-[calc(9.5rem+env(safe-area-inset-bottom))]">{children}</div>
@@ -50,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Suspense>
             <NavInferior />
           </Suspense>
+          </LoginContextualProvider>
         </PlayerProvider>
       </body>
     </html>

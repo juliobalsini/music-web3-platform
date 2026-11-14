@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Capa } from "@/components/capa";
 import { CapaArte } from "@/components/capa";
+import { LinkConta } from "@/components/login-contextual";
 import { PLATAFORMA_NOME, type Selecao } from "@/lib/radio/home";
 import type { PlaylistSemana } from "@/lib/radio/queries";
 import type { AlbumResumo } from "@/lib/radio/rules";
@@ -24,9 +25,9 @@ const faixasTxt = (n: number) => `${n} ${n === 1 ? "faixa" : "faixas"}`;
 export function GradePlaylists({ selecao, playlists }: { selecao: Selecao[]; playlists: PlaylistSemana[] }) {
   return (
     <div className="flex flex-col gap-5">
-      <Link href="/playlist/nova" data-testid="criar-playlist" className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 font-semibold text-night-900">
+      <LinkConta href="/playlist/nova" motivo="Entre para criar e publicar suas playlists." data-testid="criar-playlist" className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 font-semibold text-night-900">
         <Plus className="size-5" aria-hidden="true" /> Criar playlist
-      </Link>
+      </LinkConta>
       {selecao.length > 0 && (
         <section aria-label="Seleção radioOn" className="flex flex-col gap-2">
           <h2 className="text-lg font-bold">Seleção radioOn</h2>

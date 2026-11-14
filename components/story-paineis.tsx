@@ -2,12 +2,12 @@
 
 import { Copy, Download, Flag, Eye, Heart, MessageCircle, MoreHorizontal, Share2, Trash2, X } from "lucide-react";
 import { ICONES_REDES, type Rede } from "@/lib/stories/icones-redes";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { FIGURINHAS, MAX_COMENTARIO, REACOES } from "@/lib/stories/moderacao";
 import { linksRedes } from "@/lib/stories/viewer";
 import type { Story } from "@/lib/stories/rules";
+import { BotaoEntrar, useLoginContextual } from "@/components/login-contextual";
 
 /** Painel deslizante de baixo para cima; toque fora ou X fecham. */
 export function Folha({ titulo, onFechar, children }: { titulo: string; onFechar: () => void; children: ReactNode }) {
@@ -142,6 +142,7 @@ export function PainelComentarios({ story, dono, onFechar, onMudou }: { story: S
   const [texto, setTexto] = useState("");
   const [msg, setMsg] = useState<{ tipo: "erro" | "login" | "ok"; texto: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const { pedirLogin } = useLoginContextual();
 
   const carregar = useCallback(async () => {
     try {
@@ -163,7 +164,10 @@ export function PainelComentarios({ story, dono, onFechar, onMudou }: { story: S
     setMsg(null);
     try {
       const r = await fetch(`/api/stories/${story.id}/comentarios`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind, body }) });
-      if (r.status === 401) setMsg({ tipo: "login", texto: "Entre com uma conta para comentar." });
+      if (r.status === 401) {
+        setMsg({ tipo: "login", texto: "Entre com uma conta para comentar." });
+        pedirLogin("Entre para comentar e reagir aos stories.", `/story/${story.id}`);
+      }
       else if (!r.ok) setMsg({ tipo: "erro", texto: ((await r.json().catch(() => ({}))) as { error?: string }).error ?? "Não foi possível comentar agora." });
       else {
         if (kind === "texto") setTexto("");
@@ -179,7 +183,10 @@ export function PainelComentarios({ story, dono, onFechar, onMudou }: { story: S
   }
   async function acao(c: Comentario, tipo: "apagar" | "denunciar") {
     const r = await fetch(tipo === "apagar" ? `/api/stories/comentarios/${c.id}` : `/api/stories/comentarios/${c.id}/denunciar`, { method: tipo === "apagar" ? "DELETE" : "POST" });
-    if (r.status === 401) setMsg({ tipo: "login", texto: "Entre com uma conta para denunciar." });
+    if (r.status === 401) {
+      setMsg({ tipo: "login", texto: "Entre com uma conta para denunciar." });
+      pedirLogin("Só contas denunciam: assim a moderação fica justa.", `/story/${story.id}`);
+    }
     else if (r.ok) {
       setMsg({ tipo: "ok", texto: tipo === "apagar" ? "Comentário apagado." : "Denúncia enviada. Obrigado." });
       if (tipo === "apagar") setLista((l) => (l ?? []).filter((x) => x.id !== c.id));
@@ -213,7 +220,7 @@ export function PainelComentarios({ story, dono, onFechar, onMudou }: { story: S
       <p className="text-xs text-white/70">{texto.length}/{MAX_COMENTARIO} · só contas comentam</p>
       {msg && (
         <p role="status" className={`text-sm ${msg.tipo === "ok" ? "text-white/80" : "text-brand-2"}`}>
-          {msg.texto} {msg.tipo === "login" && <Link href={`/login?next=${encodeURIComponent(`/story/${story.id}`)}`} className="font-semibold underline underline-offset-2">Entrar</Link>}
+          {msg.texto} {msg.tipo === "login" && <BotaoEntrar motivo="Entre para comentar e reagir aos stories." destino={`/story/${story.id}`} />}
         </p>
       )}
       <ul aria-label="Lista de comentários" className="flex flex-col gap-2">
@@ -249,6 +256,7 @@ export function PainelMenu({ story, onFechar, onApagado, onDono }: { story: Stor
   const [stats, setStats] = useState<Stats | null | "carregando">("carregando");
   const [estado, setEstado] = useState<"" | "ok" | "login" | "erro" | "confirmar">("");
   const dono = useRef(false);
+  const { pedirLogin } = useLoginContextual();
 
   useEffect(() => {
     let vivo = true;
@@ -270,6 +278,7 @@ export function PainelMenu({ story, onFechar, onApagado, onDono }: { story: Stor
     try {
       const r = await fetch(`/api/stories/${story.id}/denunciar`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       setEstado(r.ok ? "ok" : r.status === 401 ? "login" : "erro");
+      if (r.status === 401) pedirLogin("Só contas denunciam: assim a moderação fica justa.", `/story/${story.id}`);
     } catch {
       setEstado("erro");
     }
@@ -314,7 +323,7 @@ export function PainelMenu({ story, onFechar, onApagado, onDono }: { story: Stor
       {estado === "ok" && <p role="status" className="px-2 text-sm text-white/70">Obrigado. Stories muito denunciados saem do ar até serem revisados.</p>}
       {estado === "login" && (
         <p role="status" className="px-2 text-sm text-brand-2">
-          Entre com uma conta para denunciar. <Link href={`/login?next=${encodeURIComponent(`/story/${story.id}`)}`} className="font-semibold underline underline-offset-2">Entrar</Link>
+          Entre com uma conta para denunciar. <BotaoEntrar motivo="Só contas denunciam: assim a moderação fica justa." destino={`/story/${story.id}`} />
         </p>
       )}
       {estado === "erro" && <p role="status" className="px-2 text-sm text-brand-2">Não foi possível agora.</p>}

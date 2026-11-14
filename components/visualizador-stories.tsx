@@ -13,6 +13,7 @@ import { usePlayer } from "@/components/player-provider";
 import { capaGerada } from "@/lib/radio/rules";
 import { CLIP_SEGUNDOS, inicioDoTrecho, type GrupoStories } from "@/lib/stories/rules";
 import { anterior, classificarGesto, duracaoDoStory, proxima, tempoRelativo, trocarPerfil, zonaDoToque, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
+import { BotaoEntrar, useLoginContextual } from "@/components/login-contextual";
 
 type Painel = null | "compartilhar" | "comentarios" | "menu";
 
@@ -52,6 +53,7 @@ export function VisualizadorStories({
   const [imagemFalhou, setImagemFalhou] = useState(false);
   const [texto, setTexto] = useState("");
   const [loginPara, setLoginPara] = useState(false);
+  const { pedirLogin } = useLoginContextual();
 
   const grupo = grupos[pos.g];
   const story = grupo?.stories[pos.i];
@@ -247,7 +249,10 @@ export function VisualizadorStories({
     if (!story || !texto.trim()) return;
     try {
       const r = await fetch(`/api/stories/${story.id}/comentarios`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "texto", body: texto }) });
-      if (r.status === 401) setLoginPara(true);
+      if (r.status === 401) {
+        setLoginPara(true);
+        pedirLogin("Entre para comentar e reagir aos stories.", `/story/${story.id}`);
+      }
       else if (!r.ok) setAviso(((await r.json().catch(() => ({}))) as { error?: string }).error ?? "Não foi possível comentar agora.");
       else {
         setTexto("");
@@ -374,7 +379,7 @@ export function VisualizadorStories({
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {loginPara && (
             <p role="status" className="rounded-lg bg-night-900/80 px-3 py-2 text-sm text-brand-2">
-              Entre com uma conta para comentar. <Link href={`/login?next=${encodeURIComponent(`/story/${story.id}`)}`} className="font-semibold underline underline-offset-2">Entrar</Link>
+              Entre com uma conta para comentar. <BotaoEntrar motivo="Entre para comentar e reagir aos stories." destino={`/story/${story.id}`} />
             </p>
           )}
           {aviso && !loginPara && <p role="status" className="rounded-lg bg-night-900/80 px-3 py-2 text-sm">{aviso}</p>}

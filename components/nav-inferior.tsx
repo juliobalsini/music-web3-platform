@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { LinkConta } from "@/components/login-contextual";
+
 const abas = [
   { href: "/", label: "Rádio", Icone: Radio },
   { href: "/explorar", label: "Explorar", Icone: Compass },
@@ -12,9 +14,9 @@ const abas = [
 ] as const;
 
 const criar = [
-  { href: "/playlist/nova", label: "Playlist", Icone: ListMusic },
-  { href: "/stories/novo", label: "Story", Icone: MessageCircle },
-  { href: "/enviar", label: "Enviar música", Icone: Upload },
+  { href: "/playlist/nova", label: "Playlist", Icone: ListMusic, motivo: "Entre para criar e publicar suas playlists." },
+  { href: "/stories/novo", label: "Story", Icone: MessageCircle, motivo: "Entre para publicar stories." },
+  { href: "/enviar", label: "Enviar música", Icone: Upload, motivo: "Entre para enviar sua música." },
 ] as const;
 
 const aba = "flex h-full w-full flex-col items-center justify-center gap-1 text-xs font-semibold";
@@ -34,11 +36,11 @@ export function NavInferior() {
                 <X className="size-5" aria-hidden="true" />
               </button>
             </div>
-            {criar.map(({ href, label, Icone }) => (
-              <Link key={href} href={href} onClick={() => setAberto(false)} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-semibold hover:bg-white/10">
+            {criar.map(({ href, label, Icone, motivo }) => (
+              <LinkConta key={href} href={href} motivo={motivo} onClick={() => setAberto(false)} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-semibold hover:bg-white/10">
                 <Icone className="size-5 text-brand" aria-hidden="true" />
                 {label}
-              </Link>
+              </LinkConta>
             ))}
           </div>
         </div>

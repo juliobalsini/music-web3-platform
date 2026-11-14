@@ -435,3 +435,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     (c) `experimental.staleTimes.dynamic = 30`: voltar à Home em até 30 s reaproveita a página no cliente; (d) `EsqueletoRadio`
     com a silhueta da Home no lugar do círculo. Medição: produção antes (runner do GitHub, EUA) TTFB ~100 ms e total 320–400 ms
     quente, 2,8 s frio; depois: ver o relatório do dia. "Ao vivo · N ouvindo" passa a ter até 60 s de atraso (aceitável).
+97. **Login contextual (issue #116, item 5, 2026-11-14):** `LoginContextualProvider` (montado no layout) abre um `PainelInferior`
+    "Entre para continuar" com o `LoginForm` (Google primeiro) e o aceite legal, em vez de trocar de tela. O destino pós-login vai no
+    mesmo cookie httpOnly de antes (`next` validado por `safeNext`), então a pessoa volta ao ponto de origem (tela atual, perfil ou
+    story; para Criar playlist/Story/Enviar música, direto à tela pedida). Abre sozinho em: curtir/salvar/apoiar no player (401),
+    comentar e denunciar story (401), Seguir no perfil, Criar → Playlist/Story/Enviar música, "Criar playlist" e "Enviar primeira
+    faixa". O cliente sabe se há conta lendo a sessão do cookie local (`getSession`, sem ida à rede; sessão anônima conta como
+    visitante); isso só decide **abrir o painel** — o acesso continua decidido no servidor (as páginas e ações seguem redirecionando
+    ao `/login` como reserva, por exemplo antes da hidratação). A tela `/login` continua existindo para links diretos e erros.
