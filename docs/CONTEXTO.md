@@ -326,3 +326,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-13 (13ª) — issue #116: fatia 1 (PR #117) concluída; restante registrado na fila acima.
 - 2026-11-13 (14ª) — issue #119 era duplicata da #113 (já entregue): fechada. #116 item 9 (ícones das redes) em PR.
 - 2026-11-13 (15ª) — issue #124: ícones/abertura (zona segura 80%), envios idempotentes + `failed` + reconciliação (migration `20261113030000`), design system (`components/ds/`, `docs/design-system.md`), auditoria no PLANO.md, regra no CLAUDE.md. Pendente do Julio: conferir a splash num Android real após reinstalar o PWA.
+
+- 2026-11-14 (16ª) — issue #126: Caixa de entrada (issue fixada #128, formato no CLAUDE.md e README; sem workflow novo, reaproveita o gatilho "aprovado…"). Fila restante: #125, #122 (fase 1 restante + fase 2), #120, #116, #103, #101 — grandes; seguem para as próximas execuções.

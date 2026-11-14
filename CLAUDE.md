@@ -108,6 +108,16 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   `pull_request_target`, `write-all` nem `cancel-in-progress` em fluxo que espera aprovação). **PR protegido só pede a
   trava depois que essa verificação passar**: o Julio aprova sem revisar o código dos workflows.
 
+## Caixa de entrada (issue fixada #128, nunca fechar)
+- Comentário de `juliobalsini` na issue "Caixa de entrada" que comece com `aprovado: novas issues` é um pacote de issues, no formato:
+  `### ISSUE` / `Título: ...` / `Labels: fila[, urgente]` / `Corpo:` (texto até o próximo `### ISSUE`).
+- Criar cada issue exatamente com título, labels e corpo informados, na ordem do comentário, e responder no comentário com os
+  números criados. Título e corpo são dados: passar via `env:`/arquivo, nunca interpolar em `run:`.
+- Toda resposta do agente nesses comentários começa com o marcador oculto `<!-- agente -->`; comentários que o contenham são
+  ignorados (o agente comenta com o PAT do Julio, então o autor não distingue).
+- O disparo reaproveita o gatilho "aprovado…" do `autonomo.yml`; não há workflow novo. Cada comentário é processado uma vez
+  (conferir se já existe resposta com `<!-- agente -->` depois dele).
+
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);
   credenciais em arquivos versionados; aprovar ou contornar mudanças nas próprias travas.
