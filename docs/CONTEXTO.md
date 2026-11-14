@@ -339,4 +339,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   o Julio) e caiu na prévia (branch longo demais). Correção no #134 (gate usa o autor do PR); depois, rodar o gate do #107 de novo.
 
 - 2026-11-14 (18ª) — Caixa de entrada: issue #140 (Versão desktop, `fila`+`complexa`) criada. #103 fechada (PR #134 mergeado) e alerta #136 fechado.
-  Dependabot #107: branch atualizado sobre a `main` para o gate novo rodar. #116 item 2 (logo rápida) em PR (DECISIONS 96).
+  #116 item 2 (logo rápida) em produção (PR #141, DECISIONS 96): prévia logo → Rádio em 83 ms; servidor de produção sem ganho
+  (cache em memória da Vercel por instância), ganho percebido via cache do cliente e esqueleto. E2E do Dependabot corrigido
+  (PR #142: sem retry do supabase-js para `.invalid`; páginas de 14–28 s para 20–60 ms) e #107 mergeado com gate verde.
+  Fila restante: #116 (itens 5, 7, 8, 11), #120, #122, #125, #140.
