@@ -3,7 +3,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 import { limpar } from "../env";
-import { getSupabaseUrl } from "./env";
+import { getSupabaseUrl, retentarConsultas } from "./env";
 
 /**
  * Cliente administrativo (ignora RLS). SOMENTE no servidor.
@@ -17,7 +17,9 @@ export function createAdminClient() {
     );
   }
 
-  return createClient(getSupabaseUrl(), key, {
+  const url = getSupabaseUrl();
+  return createClient(url, key, {
+    db: { retry: retentarConsultas(url) },
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

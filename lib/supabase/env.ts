@@ -27,3 +27,16 @@ export function getSupabasePublicKey(): string {
       limpar(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
   );
 }
+
+/**
+ * Retentar consultas só quando o host pode existir. O supabase-js repete cada GET com falha de rede
+ * (1 s + 2 s + 4 s); com o host reservado `.invalid` (RFC 2606, usado no E2E do Dependabot) nada
+ * nunca responde, e as repetições só deixavam cada página ~7 s mais lenta (timeouts no E2E).
+ */
+export function retentarConsultas(url: string): boolean {
+  try {
+    return !/\.invalid$/i.test(new URL(url).hostname);
+  } catch {
+    return true;
+  }
+}

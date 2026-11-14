@@ -1,8 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-import { getSupabasePublicKey, getSupabaseUrl } from "./env";
+import { getSupabasePublicKey, getSupabaseUrl, retentarConsultas } from "./env";
 
 /** Cliente Supabase para Client Components (usa apenas a chave pública). */
 export function createClient() {
-  return createBrowserClient(getSupabaseUrl(), getSupabasePublicKey());
+  const url = getSupabaseUrl();
+  return createBrowserClient(url, getSupabasePublicKey(), { db: { retry: retentarConsultas(url) } });
 }

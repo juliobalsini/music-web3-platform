@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { getSupabasePublicKey, getSupabaseUrl } from "../lib/supabase/env.ts";
+import { getSupabasePublicKey, getSupabaseUrl, retentarConsultas } from "../lib/supabase/env.ts";
 
 const KEYS = [
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -56,4 +56,11 @@ describe("lib/env limpar", () => {
     assert.equal(getSupabaseUrl(), "https://x.supabase.co");
     assert.equal(getSupabasePublicKey(), "sb_publishable_x");
   });
+});
+
+it("retentarConsultas: não repete consultas para o host reservado .invalid", () => {
+  assert.equal(retentarConsultas("https://e2e.invalid"), false);
+  assert.equal(retentarConsultas("https://E2E.INVALID/rest/v1"), false);
+  assert.equal(retentarConsultas("https://abc.supabase.co"), true);
+  assert.equal(retentarConsultas("não é url"), true);
 });
