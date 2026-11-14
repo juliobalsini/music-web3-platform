@@ -1,12 +1,16 @@
 import "server-only";
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { cache } from "react";
 
+import { TAG_CATALOGO } from "./cache-catalogo";
 import { dadosDemo, demoAtivo } from "./demo";
 import { totalOuvindo } from "./home";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getSupabasePublicKey, getSupabaseUrl } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 import {
@@ -179,57 +183,100 @@ async function lerAlbuns(supabase: Cliente): Promise<LinhaAlbum[]> {
   return (data ?? []) as LinhaAlbum[];
 }
 
+/** Leituras públicas da Rádio (iguais para todos), já com contagens agregadas. */
+type CatalogoPublico = {
+  tracks: LinhaTrack[];
+  pls: LinhaPlaylist[];
+  progs: LinhaPrograma[];
+  albuns: LinhaAlbum[];
+  nomes: [string, string][];
+  escutas: { track_id: string; started_at: string }[];
+  likes: [string, number][];
+  /** Batidas dos últimos 3 min (para "N ouvindo"); `null` sem service_role. */
+  batidas: { user_id: string; last_beat_at: string | null }[] | null;
+};
+
+/** Cliente sem cookies (papel anônimo do Postgres): o resultado não depende de quem pede, então pode ir ao cache. */
+function clientePublico(): Cliente {
+  return createSupabaseClient(getSupabaseUrl(), getSupabasePublicKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  }) as unknown as Cliente;
+}
+
+/**
+ * Catálogo público em cache por 60 s (tag `catalogo`, invalidada ao publicar/editar: `catalogoMudou`).
+ * Antes cada visita à Home (e cada toque na logo) refazia ~8 consultas, incluindo até 20 mil escutas.
+ * Nada aqui depende de cookies: dados por usuário (quem sou eu, demo, histórico) ficam fora do cache.
+ */
+async function catalogoPublico(): Promise<CatalogoPublico> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 60, expire: 600 });
+  cacheTag(TAG_CATALOGO);
+  const supabase = clientePublico();
+  const agora = Date.now();
+  const [tracks, pls, progs, albuns] = await Promise.all([
+    lerFaixasPublicadas(supabase).catch(() => [] as LinhaTrack[]),
+    lerPlaylists(supabase).catch(() => [] as LinhaPlaylist[]),
+    lerProgramas(supabase).catch(() => [] as LinhaPrograma[]),
+    lerAlbuns(supabase).catch(() => [] as LinhaAlbum[]),
+  ]);
+  const ids = new Set([...tracks.map((t) => t.artist_id), ...pls.map((p) => p.curator_id), ...progs.map((p) => p.curator_id)]);
+  const nomes = await lerNomes(supabase, [...ids]).catch(() => new Map<string, string>());
+
+  // Agregados que o RLS não deixa o visitante ler: só contagens, via service_role no servidor.
+  const likes = new Map<string, number>();
+  let escutas: CatalogoPublico["escutas"] = [];
+  let batidas: CatalogoPublico["batidas"] = null;
+  try {
+    const admin = createAdminClient();
+    const [v, l, o] = await Promise.all([
+      admin
+        .from("listen_events")
+        .select("track_id,started_at")
+        .eq("is_valid", true)
+        .order("started_at", { ascending: false })
+        .limit(20000),
+      admin.from("track_reactions").select("track_id").eq("kind", "like").limit(20000),
+      admin
+        .from("listen_events")
+        .select("user_id,last_beat_at")
+        .gte("last_beat_at", new Date(agora - 3 * 60 * 1000).toISOString())
+        .limit(2000),
+    ]);
+    escutas = (v.data ?? []) as typeof escutas;
+    for (const r of (l.data ?? []) as { track_id: string }[]) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);
+    if (!v.error && !o.error) batidas = (o.data ?? []) as NonNullable<CatalogoPublico["batidas"]>;
+  } catch {
+    /* sem service_role (prévias/testes): contagens zeradas */
+  }
+  return { tracks, pls, progs, albuns, nomes: [...nomes], escutas, likes: [...likes], batidas };
+}
+
 /** Tudo da Rádio numa leitura por requisição. Cada parte falha sozinha: nunca derruba as faixas. */
 export const carregarRadio = cache(async (): Promise<Radio> => {
   await connection(); // dados por requisição: o relógio só pode ser lido depois disto (cacheComponents)
   try {
     const supabase = await createClient();
     const agora = Date.now();
-    const [tracksReais, plsReais, progsReais, albunsReais] = await Promise.all([
-      lerFaixasPublicadas(supabase).catch(() => [] as LinhaTrack[]),
-      lerPlaylists(supabase).catch(() => [] as LinhaPlaylist[]),
-      lerProgramas(supabase).catch(() => [] as LinhaPrograma[]),
-      lerAlbuns(supabase).catch(() => [] as LinhaAlbum[]),
+    const [cat, meuId, jar] = await Promise.all([
+      catalogoPublico(),
+      supabase.auth.getUser().then((r) => r.data.user?.id ?? null).catch(() => null),
+      cookies(),
     ]);
     // Cookie `radioon_sem_demo` (só vale fora de produção) deixa o E2E conferir o estado vazio.
-    const semDemo = (await cookies()).has("radioon_sem_demo");
-    const demo = demoAtivo() && !semDemo ? dadosDemo(agora) : null;
-    const tracks = [...tracksReais, ...((demo?.tracks ?? []) as unknown as LinhaTrack[])];
-    const pls = [...plsReais, ...((demo?.playlists ?? []) as unknown as LinhaPlaylist[])];
-    const progs = [...progsReais, ...((demo?.programs ?? []) as unknown as LinhaPrograma[])];
-    const ids = new Set([...tracks.map((t) => t.artist_id), ...pls.map((p) => p.curator_id), ...progs.map((p) => p.curator_id)]);
-    const nomes = await lerNomes(supabase, [...ids].filter((id) => !demo?.nomes.has(id))).catch(() => new Map<string, string>());
+    const demo = demoAtivo() && !jar.has("radioon_sem_demo") ? dadosDemo(agora) : null;
+    const tracks = [...cat.tracks, ...((demo?.tracks ?? []) as unknown as LinhaTrack[])];
+    const pls = [...cat.pls, ...((demo?.playlists ?? []) as unknown as LinhaPlaylist[])];
+    const progs = [...cat.progs, ...((demo?.programs ?? []) as unknown as LinhaPrograma[])];
+    const albunsReais = cat.albuns;
+    const nomes = new Map(cat.nomes);
     for (const [k, v] of demo?.nomes ?? []) nomes.set(k, v);
     const nomeDe = (id: string) => nomes.get(id) ?? null;
 
-    // Agregados que o RLS não deixa o visitante ler: só contagens, via service_role no servidor.
     const plays = new Map<string, number>();
-    const likes = new Map<string, number>();
-    let escutas: { track_id: string; started_at: string }[] = [];
-    let outros: number | null = null;
-    const meuId = await supabase.auth.getUser().then((r) => r.data.user?.id ?? null).catch(() => null);
-    try {
-      const admin = createAdminClient();
-      const [v, l, o] = await Promise.all([
-        admin
-          .from("listen_events")
-          .select("track_id,started_at")
-          .eq("is_valid", true)
-          .order("started_at", { ascending: false })
-          .limit(20000),
-        admin.from("track_reactions").select("track_id").eq("kind", "like").limit(20000),
-        admin
-          .from("listen_events")
-          .select("user_id,last_beat_at")
-          .gte("last_beat_at", new Date(agora - 3 * 60 * 1000).toISOString())
-          .limit(2000),
-      ]);
-      escutas = (v.data ?? []) as typeof escutas;
-      for (const r of (l.data ?? []) as { track_id: string }[]) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);
-      if (!v.error && !o.error) outros = ouvindoAgora(((o.data ?? []) as { user_id: string; last_beat_at: string | null }[]).filter((l) => l.user_id !== meuId), agora);
-    } catch {
-      /* sem service_role (prévias/testes): contagens zeradas */
-    }
+    const likes = new Map(cat.likes);
+    let escutas = cat.escutas;
+    let outros: number | null = cat.batidas ? ouvindoAgora(cat.batidas.filter((l) => l.user_id !== meuId), agora) : null;
     if (demo) {
       escutas = [...escutas, ...demo.escutas];
       for (const r of demo.curtidas) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);

@@ -1,3 +1,4 @@
+import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -26,5 +27,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     .maybeSingle();
   if (error) return Response.json({ error: "falha ao publicar" }, { status: 500, headers: noStore });
   if (!data) return Response.json({ error: "faixa não encontrada" }, { status: 404, headers: noStore });
+  catalogoMudou();
   return Response.json({ trackId: data.id, status: "published" }, { headers: noStore });
 }

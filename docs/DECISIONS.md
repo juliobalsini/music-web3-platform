@@ -425,3 +425,13 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     o próprio; sem update. Botão Seguir/Seguindo no perfil (exceto o próprio e o oficial; resposta imediata com `useFormStatus`);
     visitante é levado ao login e volta ao perfil (base do login contextual, item 5). `/seguindo` na gaveta, com `CartaoCapa`,
     `EstadoVazio` e `Esqueleto`. Testes de RLS no PGlite e E2E do visitante.
+96. **Logo rápida (issue #116, item 2, 2026-11-14):** diagnóstico: a logo já navegava no cliente com prefetch e rolava ao topo na
+    Home; a espera vinha dos dados, porque cada visita à Home (e a cada outra tela que usa `carregarRadio`) refazia ~8 consultas ao
+    Supabase, incluindo até 20 mil escutas, e o carregamento mostrava só um círculo. Correções: (a) `catalogoPublico()` com
+    `"use cache"` (60 s, `stale` 30 s, `expire` 10 min, tag `catalogo`), lido com cliente sem cookies (papel anônimo; as tabelas já
+    têm leitura pública) e service_role só para contagens; dados por usuário (quem sou eu, demo, histórico) ficam fora do cache;
+    (b) `catalogoMudou()` (`revalidateTag(..., { expire: 0 })`) ao publicar faixa, criar álbum, editar playlist/programa e escolher perfil,
+    então quem publica vê na hora (reconciliação de envios roda na renderização e não invalida; espera até 60 s);
+    (c) `experimental.staleTimes.dynamic = 30`: voltar à Home em até 30 s reaproveita a página no cliente; (d) `EsqueletoRadio`
+    com a silhueta da Home no lugar do círculo. Medição: produção antes (runner do GitHub, EUA) TTFB ~100 ms e total 320–400 ms
+    quente, 2,8 s frio; depois: ver o relatório do dia. "Ao vivo · N ouvindo" passa a ter até 60 s de atraso (aceitável).
