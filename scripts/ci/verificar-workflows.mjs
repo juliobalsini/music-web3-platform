@@ -12,10 +12,13 @@
 //      workflow que pode ter execução esperando aprovação (issues/issue_comment/schedule/dispatch
 //      ou job com `environment:`). Exceção: workflow só de `pull_request` — um novo commit no
 //      mesmo PR invalida a aprovação anterior, então cancelar é o comportamento correto.
+//  R4  o bloco TRAVAS do CLAUDE.md (entre <!-- TRAVAS:INICIO --> e <!-- TRAVAS:FIM -->) não pode ser removido
+//      nem ter linhas alteradas no PR (issue #103, alínea e). Mudança nas travas só pelo Julio, direto na main.
+//      Ativa quando CLAUDE_BASE e CLAUDE_PR (caminhos do CLAUDE.md da main e do PR) são informados.
 //
-// Uso: node scripts/ci/verificar-workflows.mjs [diretório=.github/workflows]
+// Uso: CLAUDE_BASE=base/CLAUDE.md CLAUDE_PR=pr/CLAUDE.md node scripts/ci/verificar-workflows.mjs [diretório=.github/workflows]
 
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -160,13 +163,44 @@ export function verificarDiretorio(dir) {
   return erros;
 }
 
+const BLOCO_TRAVAS = /<!-- TRAVAS:INICIO[^>]*-->([\s\S]*?)<!-- TRAVAS:FIM -->/;
+const linhasDoBloco = (t) =>
+  t
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .filter((l) => l.trim());
+
+/** R4: o bloco TRAVAS do PR tem de ser idêntico (linha a linha, ignorando linhas vazias e espaços finais) ao da main. */
+export function verificarTravas(claudeBase, claudePr) {
+  const antes = claudeBase?.match(BLOCO_TRAVAS)?.[1];
+  if (antes === undefined) return []; // main sem bloco: nada a proteger (bootstrap)
+  const depois = claudePr?.match(BLOCO_TRAVAS)?.[1];
+  if (depois === undefined) return ["R4 CLAUDE.md: bloco TRAVAS removido"];
+  const a = linhasDoBloco(antes);
+  const d = linhasDoBloco(depois);
+  const erros = [];
+  const max = Math.max(a.length, d.length);
+  for (let i = 0; i < max; i++) {
+    if (a[i] !== d[i]) {
+      erros.push(`R4 CLAUDE.md: bloco TRAVAS alterado (linha ${i + 1} do bloco); mudanças nas travas só pelo Julio, direto na main`);
+      break;
+    }
+  }
+  return erros;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const dir = process.argv[2] ?? ".github/workflows";
   const erros = verificarDiretorio(dir);
+  const { CLAUDE_BASE, CLAUDE_PR } = process.env;
+  if (CLAUDE_BASE && CLAUDE_PR) {
+    const ler = (f) => (existsSync(f) ? readFileSync(f, "utf8") : "");
+    erros.push(...verificarTravas(ler(CLAUDE_BASE), ler(CLAUDE_PR)));
+  }
   if (erros.length) {
     for (const e of erros) console.error(`::error::${e}`);
     console.error(`${erros.length} violação(ões) nos workflows.`);
     process.exit(1);
   }
-  console.log(`Workflows de ${dir}: sem violações (R1–R3).`);
+  console.log(`Workflows de ${dir}: sem violações (R1–R4).`);
 }

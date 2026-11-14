@@ -3,6 +3,20 @@
 Roadmap derivado do plano de negócios do Julio. Fonte para o autoplanejamento (regra no
 `CLAUDE.md`, "Autoplanejamento"). Estado da fila: `docs/CONTEXTO.md`. Decisões: `docs/DECISIONS.md`.
 
+## Sprints (modelo operacional v2, issue #103)
+
+Toda segunda, a 1ª execução abre a issue **"Sprint AAAA-SS"** (label `sprint`) com até ~5 itens tirados daqui, cada um
+com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estimadas. "aprovado" do Julio aprova o sprint
+inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
+
+**Backlog priorizado (entrada do próximo sprint; issues `fila` do Julio passam à frente):**
+1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas.
+2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa.
+3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa; Google depende da Sessão manual.
+4. Navegação e conta v2: itens 2, 4, 5, 7, 8 e 11 (#116) — complexa, migrations aditivas.
+5. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
+6. Central de recompensas (item o) — proposto, aguarda aprovação.
+
 ## Visão
 
 Hub global de música independente que conecta fãs, artistas e curadores. **Play primeiro:**
