@@ -21,6 +21,8 @@ const SO_CONTA = [
   "app/playlist/nova/page.tsx",
   "app/enviar/page.tsx",
   "app/onboarding/page.tsx",
+  "app/seguindo/actions.ts",
+  "app/seguindo/page.tsx",
 ];
 
 describe("rotas de servidor recusam anônimos", () => {
@@ -73,6 +75,7 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/curador/actions.ts",
       "app/playlist/actions.ts",
       "app/onboarding/actions.ts",
+      "app/seguindo/actions.ts", // getSessionRole (anônimo = null) + RLS restritiva de follows
     ]);
     const achados = ["app", "lib", "components"]
       .flatMap((d) => listar(d))
