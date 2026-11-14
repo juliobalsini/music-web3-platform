@@ -272,8 +272,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   player com ganho, `/ajustes`, `workers/audio-proxy/`. DECISIONS 69–75; relatório `2026-11-12-entrega-audio.md`.
 - [!] **Bloqueado pelo Julio:** copiar `.github/workflows/{transcodificar,worker-deploy}.yml` para `.github/workflows/`; criar chave B2 de escrita
   só em `audio/stream/` (`S3_WRITE_KEY_ID`/`S3_WRITE_KEY`); conferir se o ambiente tem `SUPABASE_URL`/`SUPABASE_SECRET_KEY`.
-- [ ] **Fase B — E2E na prévia (206 do Worker, KV, ganho) e medição de CPU/memória** — depende do deploy do Worker.
-- [ ] **Fase C — verificação após 48 h em produção** — depende de A e B no ar.
+- [x] **Fase B — Worker validado e proxy religado (issue #101, 2026-11-14; DECISIONS 93):** redeploy ok, 200/206, KV HIT, CORS, `tracks/` bloqueado;
+  `PROXY_LIGADO_POR_PADRAO = true`. CPU exata só no painel da Cloudflare (tempo de parede do HIT 10–21 ms). 3 faixas com original ausente
+  no bucket (`Key not found`) ficaram como falha definitiva da transcodificação.
+- [ ] **Fase C — verificação após 48 h em produção** — a partir de 2026-11-16 (contadores do KV `ctl`, B2 Classe B, reprodução real).
 
 - [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
 
@@ -328,3 +330,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-13 (15ª) — issue #124: ícones/abertura (zona segura 80%), envios idempotentes + `failed` + reconciliação (migration `20261113030000`), design system (`components/ds/`, `docs/design-system.md`), auditoria no PLANO.md, regra no CLAUDE.md. Pendente do Julio: conferir a splash num Android real após reinstalar o PWA.
 
 - 2026-11-14 (16ª) — issue #126: Caixa de entrada (issue fixada #128, formato no CLAUDE.md e README; sem workflow novo, reaproveita o gatilho "aprovado…"). Fila restante: #125, #122 (fase 1 restante + fase 2), #120, #116, #103, #101 — grandes; seguem para as próximas execuções.
+
+- 2026-11-14 (17ª) — #130 e #126 fechadas (PRs #131 e #129 em produção; #132 fechada). Issue #101: `worker-deploy` ok, Worker validado (200/206/HIT),
+  proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.

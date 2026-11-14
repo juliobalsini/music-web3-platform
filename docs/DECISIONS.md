@@ -395,3 +395,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     (c) estado terminal `failed` + `failure_reason` (migration aditiva `20261113030000`); `/meus-envios` reconcilia as `processing` com > 15 min (1 HEAD por faixa, máx. 10): arquivo no bucket → publica, ausente → `failed` com motivo.
     Nada é apagado; o usuário remove duplicatas pelo menu. Álbum/EP segue sem chave (só a trava de toque repetido). (d) Design system em `components/ds/` com tokens `--ds-*` (tema claro e destaque prontos para Configurações).
 
+93. **Proxy de áudio religado (issue #101, 2026-11-14):** após o #110, o `worker-deploy` (run 43617896549) publicou o Worker com as chaves
+    B2 de leitura. Validação em `https://radioon-audio.radioon.workers.dev/a/audio/stream/<id>.m4a`: 200 (`audio/mp4`, 4.174.638 bytes),
+    206 em `bytes=0-1023` e no fim do arquivo, MISS → HIT no KV, CORS para produção e prévias, `tracks/` e chave inexistente → 404.
+    `PROXY_LIGADO_POR_PADRAO = true` (só `audio/stream/`, `covers/`, `stories/`; originais seguem por URL assinada). Medição: KV HIT com
+    `Server-Timing kv;dur` 10–21 ms (tempo de parede, inclui a espera do KV, que não conta como CPU no plano gratuito; CPU real só no painel
+    da Cloudflare, sem token local), total 57–104 ms do runner. Transcodificação: 2 faixas ok (aac192, −19,3 LUFS, 6,8 → 4,2 MB, −39%);
+    3 faixas falham com "Key not found" (original ausente no bucket, 3/3 tentativas, não voltam a ser tentadas). Reversão: `false` aqui ou
+    `NEXT_PUBLIC_AUDIO_BASE_URL=off`.
