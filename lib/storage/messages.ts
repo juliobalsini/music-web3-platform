@@ -6,6 +6,7 @@ const LIMITE = "Limite diário de envios atingido. Tente amanhã.";
 export function erroDaRotaDeUpload(status: number, erro?: unknown): string {
   if (status === 401) return "Sua sessão expirou. Entre de novo.";
   if (status === 403) return "Só artistas enviam faixas. Escolha o perfil Artista.";
+  if (status === 409) return "Esse envio já está em andamento. Aguarde um instante.";
   if (status === 503) return "Envio indisponível agora. Tente mais tarde.";
   if (status === 429) return LIMITE;
   const e = typeof erro === "string" ? erro : "";

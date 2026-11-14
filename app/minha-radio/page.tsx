@@ -195,7 +195,7 @@ async function Conteudo() {
           </section>
 
           <section aria-label="Minhas playlists" className="flex flex-col gap-2">
-            <SecaoTitulo titulo="Minhas playlists" href="/curador" rotulo="Criar playlist" />
+            <SecaoTitulo titulo="Minhas playlists" href="/playlist/nova" rotulo="Criar playlist" />
             {(minhasPlaylists ?? []).length === 0 ? (
               <p className="text-white/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
             ) : (

@@ -60,6 +60,66 @@ body::after {
   }
 }
 
+
+/* Tokens do design system (docs/design-system.md). Escuro é o padrão; `data-tema="claro"` e `data-destaque`
+   no <html> trocam tema e cor de destaque (issue de Configurações). Estados e cores nunca dependem só da cor. */
+:root {
+  --ds-bg: #00112a;
+  --ds-surface: rgb(255 255 255 / 0.08);
+  --ds-surface-2: rgb(255 255 255 / 0.14);
+  --ds-texto: #ffffff;
+  --ds-texto-2: rgb(255 255 255 / 0.74);
+  --ds-borda: rgb(255 255 255 / 0.16);
+  --ds-destaque: #e89a3c;
+  --ds-destaque-2: #f4b562;
+  --ds-sobre-destaque: #00112a;
+  --ds-ok: #6ee7a8;
+  --ds-erro: #ff8a80;
+  --ds-aviso: #f4b562;
+  --ds-raio: 0.75rem;
+  --ds-esp-1: 0.25rem;
+  --ds-esp-2: 0.5rem;
+  --ds-esp-3: 0.75rem;
+  --ds-esp-4: 1rem;
+  --ds-esp-6: 1.5rem;
+  --ds-mov-rapido: 150ms;
+  --ds-mov: 250ms;
+  --ds-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+:root[data-tema="claro"] {
+  color-scheme: light;
+  --ds-bg: #f6f8fc;
+  --ds-surface: rgb(0 17 42 / 0.06);
+  --ds-surface-2: rgb(0 17 42 / 0.12);
+  --ds-texto: #00112a;
+  --ds-texto-2: rgb(0 17 42 / 0.78);
+  --ds-borda: rgb(0 17 42 / 0.2);
+  --ds-destaque: #a85d00;
+  --ds-destaque-2: #8a4a00;
+  --ds-sobre-destaque: #ffffff;
+  --ds-ok: #0b6b3a;
+  --ds-erro: #b3261e;
+  --ds-aviso: #8a4a00;
+}
+:root[data-destaque="azul"] { --ds-destaque: #5aa9ff; --ds-destaque-2: #8cc4ff; }
+:root[data-destaque="verde"] { --ds-destaque: #4cd9a0; --ds-destaque-2: #86e8c0; }
+:root[data-destaque="rosa"] { --ds-destaque: #ff7aa8; --ds-destaque-2: #ffa3c4; }
+:root[data-tema="claro"][data-destaque="azul"] { --ds-destaque: #0b5cc2; --ds-destaque-2: #0a4a9e; }
+:root[data-tema="claro"][data-destaque="verde"] { --ds-destaque: #0b6b3a; --ds-destaque-2: #095530; }
+:root[data-tema="claro"][data-destaque="rosa"] { --ds-destaque: #b0235e; --ds-destaque-2: #8e1c4c; }
+
+@keyframes ds-esqueleto {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes ds-subir {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.ds-esqueleto { animation: ds-esqueleto 1.4s ease-in-out infinite; background: var(--ds-surface-2); }
+.ds-subir { animation: ds-subir var(--ds-mov) var(--ds-ease); }
+.ds-anel, .ds-barra { transition: stroke-dashoffset var(--ds-mov) var(--ds-ease), width var(--ds-mov) var(--ds-ease); }
+
 /* Superfícies do navegador que também carregam a marca. */
 ::selection {
   background: #e89a3c;
@@ -119,4 +179,19 @@ input[type="file"]::file-selector-button {
   100% {
     opacity: 0;
   }
+}
+
+/* Stories em tela cheia: barra de progresso e painéis deslizantes. */
+@keyframes story-barra {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes story-folha {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.story-folha { animation: story-folha 0.22s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .story-barra-ativa { animation: none !important; transform: scaleX(1) !important; }
+  .story-folha { animation: none; }
 }

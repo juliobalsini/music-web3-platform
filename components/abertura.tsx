@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
 
 /**
- * Tela de abertura: logo inteiro (gramofone + radioOn), centralizado e sem corte, por ~1,4 s na primeira visita da sessão.
+ * Tela de abertura: logo inteiro, centralizado, no mesmo tamanho do ícone da splash do Android (transição contínua), por ~1,4 s na primeira visita da sessão.
  * Nunca bloqueia toque (pointer-events: none) e some sozinha.
  */
 export function Abertura() {
@@ -27,9 +27,10 @@ export function Abertura() {
     <div
       aria-hidden="true"
       data-testid="abertura"
-      className="abertura pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-night-900 p-8"
+      className="abertura pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-night-900"
     >
-      <Logo className="h-auto max-h-[60vh] w-[min(72vw,20rem)] object-contain" />
+      {/* Mesma posição e proporção da splash do Android (ícone "any": logo a 64% do lado, centrado em 12 rem). */}
+      <Logo className="h-auto w-[7.68rem] object-contain" />
     </div>
   );
 }

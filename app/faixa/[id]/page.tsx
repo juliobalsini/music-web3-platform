@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: Pick<PageProps<"/faixa/[id]">
   const imagem = { url: `/api/tracks/${id}/og`, width: 1200, height: 630, alt: titulo };
   return {
     title: `${titulo} · radioOn`,
-    description: "Ouça no radioOn: música independente, sem cadastro.",
-    openGraph: { title: titulo, description: "Ouça no radioOn", type: "music.song", images: [imagem] },
+    description: "Ouça na radioOn: música independente, sem cadastro.",
+    openGraph: { title: titulo, description: "Ouça na radioOn", type: "music.song", images: [imagem] },
     twitter: { card: "summary_large_image", title: titulo, images: [imagem.url] },
   };
 }

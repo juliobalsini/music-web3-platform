@@ -19,6 +19,8 @@ próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
 - [~] **Fila por issues (PR #100, protegido, aguarda trava do Julio):** `autonomo.yml` dispara em label `fila` e comentário
   "aprovado/recusado" (só `juliobalsini`), sem cancelamento (guarda de execução única). Labels `fila` e `urgente` criados.
   Pendência aprovada do PLANO.md virou a issue #101 (label `fila`); depende do PR #97 mergeado.
+- [~] **Gate: verificação de segurança dos workflows (issue #102, PR protegido, aguarda trava do Julio):** job `workflows`
+  + `scripts/ci/verificar-workflows.mjs` + testes; `autonomo.yml` já mergeado passa (R1–R3). Decisão 85.
 
 Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
 
@@ -270,8 +272,25 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   player com ganho, `/ajustes`, `workers/audio-proxy/`. DECISIONS 69–75; relatório `2026-11-12-entrega-audio.md`.
 - [!] **Bloqueado pelo Julio:** copiar `.github/workflows/{transcodificar,worker-deploy}.yml` para `.github/workflows/`; criar chave B2 de escrita
   só em `audio/stream/` (`S3_WRITE_KEY_ID`/`S3_WRITE_KEY`); conferir se o ambiente tem `SUPABASE_URL`/`SUPABASE_SECRET_KEY`.
-- [ ] **Fase B — E2E na prévia (206 do Worker, KV, ganho) e medição de CPU/memória** — depende do deploy do Worker.
-- [ ] **Fase C — verificação após 48 h em produção** — depende de A e B no ar.
+- [x] **Fase B — Worker validado e proxy religado (issue #101, 2026-11-14; DECISIONS 93):** redeploy ok, 200/206, KV HIT, CORS, `tracks/` bloqueado;
+  `PROXY_LIGADO_POR_PADRAO = true`. CPU exata só no painel da Cloudflare (tempo de parede do HIT 10–21 ms). 3 faixas com original ausente
+  no bucket (`Key not found`) ficaram como falha definitiva da transcodificação.
+- [ ] **Fase C — verificação após 48 h em produção** — a partir de 2026-11-16 (contadores do KV `ctl`, B2 Classe B, reprodução real).
+
+- [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
+
+- [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
+  Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
+  login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11); item 2: cache/revalidação da home e
+  medição antes/depois ainda não feitos. Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Issue #116 segue aberta com `fila`.
+
+- [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
+  busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
+  **Faltam:** prévia de 15 s, arrastar/deslizar, sugestões (clima/gênero/recentes/curtidas), capa em mosaico no editor e foto própria com recorte (`covers/`),
+  perfil "Playlister" com seguidores, notas/destaque/ocultar no editor (as ações em `app/curador/actions.ts` seguem, sem tela), E2E mobile e prints.
+  **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
+  Artista ativado no 1º envio (sem escolha de perfil): não feito; `/enviar` ainda exige papel artist.
 
 ## Correções avulsas
 
@@ -299,3 +318,19 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-12 (8ª) — issue #101 (aprovada): proxy restrito a `audio/stream/`, `covers/`, `stories/`; `transcodificar.mjs` via `SUPABASE_DB_URL`; regra no CLAUDE.md (DECISIONS 84).
   **Bloqueado:** #97 ainda aguarda `travas` (redeploy do Worker, 200/206, religar proxy, medições); `transcodificar.yml` precisa passar `SUPABASE_DB_URL` ao passo
   do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.
+
+- 2026-11-13 (9ª) — issue #101: #97 aprovado na trava, mas o merge falhou por conflito em DECISIONS.md; atualizado sobre a main (decisão renumerada 86) e a trava foi pedida de novo (novo commit invalida a aprovação). **Aguarda `travas` do #97.** Depois: dispare `worker-deploy`, validar 200/206, religar o proxy restrito, `transcodificar` lote=5, medições do #78. #107 (Dependabot) com E2E falho: investigar na próxima execução.
+
+- 2026-11-13 (11ª) — issue #101: #97 mergeado; `worker-deploy` falhou (exit 127, caminho do `derivar-env.sh` com working-directory do job). Correção no PR #110 (protegido, **aguarda `travas`**). Depois: redeploy, 200/206, religar proxy, transcodificar lote=5, medições do #78, #103.
+
+- 2026-11-13 (12ª) — issue #113 (Stories v2) concluída: PR #114 mergeado, deploy e migrations ok. Fila restante: #103 e #101 (dependem de #110, que aguarda `travas`).
+
+- 2026-11-13 (13ª) — issue #116: fatia 1 (PR #117) concluída; restante registrado na fila acima.
+- 2026-11-13 (14ª) — issue #119 era duplicata da #113 (já entregue): fechada. #116 item 9 (ícones das redes) em PR.
+- 2026-11-13 (15ª) — issue #124: ícones/abertura (zona segura 80%), envios idempotentes + `failed` + reconciliação (migration `20261113030000`), design system (`components/ds/`, `docs/design-system.md`), auditoria no PLANO.md, regra no CLAUDE.md. Pendente do Julio: conferir a splash num Android real após reinstalar o PWA.
+
+- 2026-11-14 (16ª) — issue #126: Caixa de entrada (issue fixada #128, formato no CLAUDE.md e README; sem workflow novo, reaproveita o gatilho "aprovado…"). Fila restante: #125, #122 (fase 1 restante + fase 2), #120, #116, #103, #101 — grandes; seguem para as próximas execuções.
+
+- 2026-11-14 (17ª) — #130 e #126 fechadas (PRs #131 e #129 em produção; #132 fechada). Issue #101: `worker-deploy` ok, Worker validado (200/206/HIT),
+  proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.
+  #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95).

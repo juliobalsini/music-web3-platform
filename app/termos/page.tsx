@@ -2,7 +2,7 @@ import { Tela } from "@/components/ui";
 
 export const metadata = {
   title: "Termos de uso · radioOn",
-  description: "Regras de uso do radioOn para ouvintes, artistas e curadores.",
+  description: "Regras de uso da radioOn para ouvintes, artistas e curadores.",
 };
 
 const h2 = "mt-4 text-lg font-bold";
@@ -15,13 +15,13 @@ export default function TermosPage() {
       <p className="text-sm text-white/70">Atualizados em 11/11/2026</p>
 
       <h2 className={h2}>O serviço</h2>
-      <p className={p}>O radioOn permite ouvir música independente, enviar faixas (artistas), montar playlists (curadores) e ganhar pontos por escutas válidas. Ouvir não exige conta; enviar música, criar playlist e resgatar recompensas exigem entrar com e-mail ou Google.</p>
+      <p className={p}>A radioOn permite ouvir música independente, enviar faixas (artistas), montar playlists (curadores) e ganhar pontos por escutas válidas. Ouvir não exige conta; enviar música, criar playlist e resgatar recompensas exigem entrar com e-mail ou Google.</p>
 
       <h2 className={h2}>Pontos</h2>
       <p className={p}>Pontos são ganhos por escutas válidas (30 segundos contínuos, com limites por faixa e por dia, e teto menor para visitantes sem conta). Não têm valor em dinheiro, não são transferíveis e podem ser ajustados ou cancelados em caso de fraude, uso de robôs ou abuso. As regras de pontos podem mudar.</p>
 
       <h2 className={h2}>Artistas e direitos autorais</h2>
-      <p className={p}>Ao enviar uma faixa, você declara ter todos os direitos sobre ela (composição, gravação e samples) e autoriza o radioOn a armazená-la e transmiti-la na plataforma. Você continua dono da obra e pode pedir a remoção quando quiser. Conteúdo que viole direitos de terceiros será removido.</p>
+      <p className={p}>Ao enviar uma faixa, você declara ter todos os direitos sobre ela (composição, gravação e samples) e autoriza a radioOn a armazená-la e transmiti-la na plataforma. Você continua dono da obra e pode pedir a remoção quando quiser. Conteúdo que viole direitos de terceiros será removido.</p>
 
       <h2 className={h2}>Condutas proibidas</h2>
       <p className={p}>Burlar limites ou a contagem de escutas, criar sessões em massa, atacar ou sobrecarregar o serviço, enviar conteúdo ilegal, ofensivo ou que não seja seu, e se passar por outra pessoa.</p>

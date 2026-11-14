@@ -1,114 +1,135 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- capas do bucket por URL assinada; sem otimizador (cota). */
 
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { ConteudoStory, type FaixaDoStory } from "@/components/conteudo-story";
+import { CapaArte } from "@/components/capa";
 import { Logo } from "@/components/logo";
+import { useVistos } from "@/components/stories-vistos";
+import { VisualizadorStories } from "@/components/visualizador-stories";
 import { capaGerada } from "@/lib/radio/rules";
-import { agruparPorAutor, type Story } from "@/lib/stories/rules";
+import { agruparPorAutor, type GrupoStories, type Story } from "@/lib/stories/rules";
+import { ordenarGrupos, primeiroNaoVisto, tudoVisto, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
+
+
+/** Anel âmbar (não visto) ou cinza (visto) em volta do avatar. */
+function Anel({ visto, children }: { visto: boolean; children: React.ReactNode }) {
+  return <span data-visto={visto ? "sim" : "nao"} className={`rounded-full p-[3px] ${visto ? "bg-white/30" : "bg-gradient-to-br from-brand to-brand-2"}`}>{children}</span>;
+}
+
+function Avatar({ g, tamanho }: { g: GrupoStories; tamanho: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={g.isPlatform ? undefined : { background: capaGerada(g.authorName).fundo }}
+      className={`flex ${tamanho} items-center justify-center rounded-full border-[3px] border-night-900 font-bold text-white ${g.isPlatform ? "bg-night-800" : ""}`}
+    >
+      {g.isPlatform ? <Logo className="h-8 w-auto" alt="" /> : g.authorName.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+/** Card vertical de um perfil (grade Rádio > Stories e linha do Explorar): capa da faixa, avatar com anel e estado visto. */
+function CartaoPerfil({ g, vistos, faixas, onAbrir }: { g: GrupoStories; vistos: ReadonlySet<string>; faixas: Record<string, FaixaDoStory>; onAbrir: () => void }) {
+  const visto = tudoVisto(g, vistos);
+  const alvo = g.stories.find((s) => !vistos.has(s.id)) ?? g.stories[g.stories.length - 1];
+  const faixa = alvo.trackId ? faixas[alvo.trackId] : null;
+  const tem = g.stories.length;
+  return (
+    <button
+      type="button"
+      onClick={onAbrir}
+      aria-label={`Ver stories de ${g.authorName}`}
+      data-visto={visto ? "sim" : "nao"}
+      className={`relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-xl p-2.5 text-left ${visto ? "opacity-75" : ""}`}
+      style={{ background: capaGerada(g.authorName).fundo }}
+    >
+      {faixa && (faixa.hasCover ? <img src={`/api/tracks/${faixa.id}/capa`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" /> : <CapaArte title={faixa.title} className="absolute inset-0 size-full !rounded-none" />)}
+      <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night-900/85 via-night-900/10 to-night-900/40" />
+      <span className="relative self-start">
+        <Anel visto={visto}><Avatar g={g} tamanho="size-9 text-sm" /></Anel>
+      </span>
+      <span className="relative flex flex-col gap-0.5">
+        <span className="truncate text-sm font-bold">{g.authorName}</span>
+        <span className="line-clamp-2 text-xs text-white/90">{alvo.body?.split("\n")[0] || (faixa ? faixa.title : alvo.hasImage ? "Imagem" : "Story")}</span>
+        <span className="text-xs font-semibold text-white/80">{visto ? "Visto" : tem > 1 ? `${tem} stories` : "Novo"}</span>
+      </span>
+    </button>
+  );
+}
 
 /**
- * Faixa de stories recentes (círculos por autor) e visor em tela cheia. O visor percorre os stories do
- * autor (do mais antigo ao mais novo) e depois fecha. `agora` vem do servidor (render puro).
+ * Stories recentes: círculos (home), grade (Rádio > Stories) ou linha de cards (Explorar). Todos abrem o mesmo
+ * visualizador em tela cheia. A ordem é: radioOn oficial, não vistos, vistos (congelada ao abrir).
  */
-export function FaixaStories({ stories, faixas, agora, modo = "circulos" }: { stories: Story[]; faixas: Record<string, FaixaDoStory>; agora: number; modo?: "circulos" | "grade" }) {
-  // O perfil oficial radioOn vem sempre primeiro, como o story fixo do Instagram.
-  const grupos = agruparPorAutor(stories).sort((a, b) => Number(b.isPlatform) - Number(a.isPlatform));
-  const [aberto, setAberto] = useState<{ g: number; i: number } | null>(null);
-  const ref = useRef<HTMLDialogElement>(null);
+export function FaixaStories({
+  stories,
+  faixas,
+  agora,
+  modo = "circulos",
+  usuarioArtista = false,
+}: {
+  stories: Story[];
+  faixas: Record<string, FaixaDoStory>;
+  agora: number;
+  modo?: "circulos" | "grade" | "linha";
+  /** Artista/playlister logado: mostra "Seu story +" no início. */
+  usuarioArtista?: boolean;
+}) {
+  const vistos = useVistos();
+  const grupos = useMemo(() => ordenarGrupos(agruparPorAutor(stories), vistos), [stories, vistos]);
+  const [aberto, setAberto] = useState<{ grupos: GrupoStories[]; inicio: Posicao } | null>(null);
 
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (aberto && !d.open) d.showModal();
-    if (!aberto && d.open) d.close();
-  }, [aberto]);
-
-  if (grupos.length === 0) return null;
-  const grupo = aberto ? grupos[aberto.g] : null;
-  const story = grupo && aberto ? grupo.stories[aberto.i] : null;
-  const passo = (d: 1 | -1) => {
-    if (!aberto || !grupo) return;
-    const i = aberto.i + d;
-    if (i >= 0 && i < grupo.stories.length) setAberto({ g: aberto.g, i });
-    else if (d === 1) setAberto(null);
-  };
+  if (grupos.length === 0 && !usuarioArtista) return null;
+  const abrir = (idx: number) => setAberto({ grupos, inicio: { g: idx, i: primeiroNaoVisto(grupos[idx], vistos) } });
 
   return (
     <section aria-label="Stories" className="flex flex-col gap-2">
-      {modo === "circulos" ? (
-      <ul data-testid="stories-circulos" className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
-        {grupos.map((g, idx) => (
-          <li key={g.authorId} className="w-[4.75rem] shrink-0">
-            <button type="button" onClick={() => setAberto({ g: idx, i: 0 })} aria-label={`Ver stories de ${g.authorName}`} className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
-              <span className="rounded-full bg-gradient-to-br from-brand to-brand-2 p-[3px]">
-                <span
-                  aria-hidden="true"
-                  style={g.isPlatform ? undefined : { background: capaGerada(g.authorName).fundo }}
-                  className={`flex size-16 items-center justify-center rounded-full border-[3px] border-night-900 text-xl font-bold text-white ${g.isPlatform ? "bg-night-800" : ""}`}
-                >
-                  {g.isPlatform ? <Logo className="h-10 w-auto" alt="" /> : g.authorName.charAt(0).toUpperCase()}
+      {modo === "circulos" && (
+        <ul data-testid="stories-circulos" className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
+          {usuarioArtista && (
+            <li className="w-[4.75rem] shrink-0">
+              <a href="/stories/novo" aria-label="Seu story, publicar" className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
+                <span className="rounded-full border-2 border-dashed border-brand p-[3px]">
+                  <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-night-800 text-3xl font-bold text-brand">+</span>
                 </span>
-              </span>
-              <span className="w-full truncate text-center text-xs font-semibold">{g.authorName}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      ) : (
+                <span className="w-full truncate text-center text-xs font-semibold">Seu story +</span>
+              </a>
+            </li>
+          )}
+          {grupos.map((g, idx) => (
+            <li key={g.authorId} className="w-[4.75rem] shrink-0">
+              <button type="button" onClick={() => abrir(idx)} aria-label={`Ver stories de ${g.authorName}`} className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
+                <Anel visto={tudoVisto(g, vistos)}>
+                  <Avatar g={g} tamanho="size-16 text-xl" />
+                </Anel>
+                <span className="w-full truncate text-center text-xs font-semibold">{g.authorName}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {modo === "grade" && (
         <>
           <h2 className="text-lg font-bold">Stories no ar</h2>
           <ul data-testid="stories-grade" className="grid grid-cols-2 gap-3">
-            {grupos.flatMap((g, gi) =>
-              g.stories.map((st, i) => (
-                <li key={st.id}>
-                  <button
-                    type="button"
-                    onClick={() => setAberto({ g: gi, i })}
-                    aria-label={`Ver story de ${g.authorName}`}
-                    style={{ background: capaGerada(g.authorName).fundo }}
-                    className="flex aspect-[3/4] w-full flex-col justify-between rounded-xl p-3 text-left"
-                  >
-                    <span className="self-start truncate rounded-full bg-night-900/70 px-2 py-0.5 text-sm font-bold">{g.authorName}</span>
-                    <span className="line-clamp-4 text-pretty rounded-lg bg-night-900/70 px-2 py-1.5 text-sm font-semibold">{st.body?.split("\n")[0] || (st.hasImage ? "Imagem" : "Trecho de música")}</span>
-                  </button>
-                </li>
-              )),
-            )}
+            {grupos.map((g, idx) => (
+              <li key={g.authorId}><CartaoPerfil g={g} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} /></li>
+            ))}
           </ul>
         </>
       )}
-      <dialog
-        ref={ref}
-        aria-label={grupo ? `Stories de ${grupo.authorName}` : "Stories"}
-        onClose={() => setAberto(null)}
-        className="m-0 size-full max-h-none max-w-none overflow-y-auto bg-night-900 text-white backdrop:bg-night-900"
-      >
-        {story && grupo && (
-          <div className="mx-auto flex min-h-full w-full max-w-md flex-col gap-4 px-5 pb-8 pt-4">
-            <div className="flex items-center justify-between">
-              <div aria-hidden="true" className="flex flex-1 gap-1 pr-3">
-                {grupo.stories.map((s, k) => (
-                  <span key={s.id} className={`h-1 flex-1 rounded-full ${k <= aberto!.i ? "bg-brand" : "bg-white/20"}`} />
-                ))}
-              </div>
-              <button type="button" onClick={() => setAberto(null)} aria-label="Fechar stories" className="flex size-11 items-center justify-center rounded-full hover:bg-white/10">
-                <X className="size-6" aria-hidden="true" />
-              </button>
-            </div>
-            <ConteudoStory key={story.id} story={story} faixa={story.trackId ? (faixas[story.trackId] ?? null) : null} agora={agora} />
-            <div className="mt-auto flex justify-between">
-              <button type="button" onClick={() => passo(-1)} disabled={aberto!.i === 0} aria-label="Story anterior" className="flex size-12 items-center justify-center rounded-full bg-white/10 disabled:opacity-30">
-                <ChevronLeft className="size-6" aria-hidden="true" />
-              </button>
-              <button type="button" onClick={() => passo(1)} aria-label={aberto!.i === grupo.stories.length - 1 ? "Concluir stories" : "Próximo story"} className="flex size-12 items-center justify-center rounded-full bg-white/10">
-                <ChevronRight className="size-6" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        )}
-      </dialog>
+      {modo === "linha" && (
+        <>
+          <h2 className="text-lg font-bold">Stories</h2>
+          <ul data-testid="stories-linha" className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+            {grupos.map((g, idx) => (
+              <li key={g.authorId} className="w-32 shrink-0"><CartaoPerfil g={g} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} /></li>
+            ))}
+          </ul>
+        </>
+      )}
+      {aberto && <VisualizadorStories grupos={aberto.grupos} faixas={faixas} agora={agora} inicio={aberto.inicio} onFechar={() => setAberto(null)} />}
     </section>
   );
 }

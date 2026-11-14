@@ -15,12 +15,17 @@ test("home carrega com a identidade visual do radioOn", async ({ page }) => {
   await expect(page.locator("[data-testid=play]:visible, [data-testid=play-vazio]:visible").first()).toBeVisible();
 });
 
-test("cabeçalho deslogado tem Entrar e leva ao login", async ({ page }) => {
+test("topo só tem logo e menu; a gaveta do visitante leva ao login", async ({ page }) => {
   await page.goto("/");
-  const entrar = page.getByRole("banner").getByRole("link", { name: "Entrar" });
-  await expect(entrar).toBeVisible();
-  await expect(page.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
-  await entrar.click();
+  const topo = page.getByRole("banner");
+  await expect(topo.getByRole("link", { name: "Entrar" })).toHaveCount(0);
+  await expect(topo.getByTestId("selo-no-ar")).toHaveCount(0);
+  await topo.getByRole("button", { name: "Abrir menu" }).click();
+  const gaveta = page.getByRole("dialog", { name: "Menu" });
+  await expect(gaveta.getByRole("region", { name: "Crie sua conta" })).toBeVisible();
+  await expect(gaveta.getByRole("button", { name: "Continuar com Google" })).toBeVisible();
+  await expect(gaveta.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
+  await gaveta.getByRole("link", { name: "Entrar com link por e-mail" }).click();
   await expect(page).toHaveURL(/\/login/);
   // O logo do cabeçalho volta ao início.
   await page.getByRole("link", { name: "radioOn, início" }).click();
@@ -84,12 +89,14 @@ test("playlist inexistente dá 404 e /curador exige login", async ({ page }) => 
   await expect(page).toHaveURL(/\/login\?next=%2Fenviar/);
   // Perfil de visitante não redireciona: mostra o convite com Entrar com Google.
   await page.goto("/minha-radio");
-  await expect(page.getByRole("region", { name: "Entre no radioOn" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("region", { name: "Entre na radioOn" })).toBeVisible({ timeout: 20_000 });
 });
 
-test("páginas legais são públicas, com contato e links no rodapé e no login", async ({ page }) => {
+test("páginas legais são públicas, com contato; links na gaveta e no login", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: "Privacidade" }).click();
+  await expect(page.getByRole("contentinfo")).toHaveCount(0);
+  await page.getByRole("button", { name: "Abrir menu" }).click();
+  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Privacidade" }).click();
   await expect(page).toHaveURL(/\/privacidade$/);
   await expect(page.getByRole("heading", { name: "Política de Privacidade" })).toBeVisible();
   await expect(page.getByRole("link", { name: "juliobalsini@gmail.com" }).first()).toBeVisible();

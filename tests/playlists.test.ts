@@ -36,3 +36,35 @@ describe("trocarPosicao", () => {
     assert.equal(trocarPosicao(itens, "x", "up"), null);
   });
 });
+
+import { MIN_FAIXAS_PUBLICAR, parseCreateKey, parseDescricao, podePublicar, reordenar, tituloPadrao } from "../lib/playlists/rules.ts";
+
+describe("playlists v2 (regras)", () => {
+  it("publica só com 5 faixas ou mais", () => {
+    assert.equal(MIN_FAIXAS_PUBLICAR, 5);
+    assert.equal(podePublicar(4), false);
+    assert.equal(podePublicar(5), true);
+  });
+  it("título padrão numerado", () => {
+    assert.equal(tituloPadrao(0), "Minha playlist 1");
+    assert.equal(tituloPadrao(2), "Minha playlist 3");
+  });
+  it("chave de criação valida formato", () => {
+    assert.equal(parseCreateKey("3f2c1a9e-aaaa-bbbb-cccc-123456789012"), "3f2c1a9e-aaaa-bbbb-cccc-123456789012");
+    assert.equal(parseCreateKey("x"), null);
+    assert.equal(parseCreateKey("a b c d e f g h"), null);
+    assert.equal(parseCreateKey(5), null);
+  });
+  it("descrição opcional até 500", () => {
+    assert.equal(parseDescricao("  "), null);
+    assert.equal(parseDescricao(" oi "), "oi");
+    assert.equal(parseDescricao("x".repeat(501)), undefined);
+    assert.equal(parseDescricao(3), undefined);
+  });
+  it("reordena sem mutar", () => {
+    const l = ["a", "b", "c"];
+    assert.deepEqual(reordenar(l, 0, 2), ["b", "c", "a"]);
+    assert.deepEqual(l, ["a", "b", "c"]);
+    assert.deepEqual(reordenar(l, 5, 0), l);
+  });
+});

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { limpar } from "../env";
@@ -86,4 +86,17 @@ export async function signCover(key: string) {
     new GetObjectCommand({ Bucket: bucket, Key: key, ResponseCacheControl: "public, max-age=3600" }),
     { expiresIn: PLAYBACK_TTL_SECONDS },
   );
+}
+
+/** Confere se o objeto existe (1 HEAD). Só para reconciliar envios travados, nunca em listagens. */
+export async function objetoExiste(key: string): Promise<boolean> {
+  const { s3, bucket } = getClient();
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return true;
+  } catch (e) {
+    const st = (e as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+    if (st === 404) return false;
+    throw e;
+  }
 }

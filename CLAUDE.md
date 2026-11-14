@@ -10,6 +10,8 @@ via @supabase/ssr · Backblaze B2 (S3-compatível) via @aws-sdk/client-s3 · Ver
 laranja #ff6b35/#f7931e, logo "radio" branco + "On" laranja; flat, pouco texto, foco no play.
 **UI:** toda tarefa de UI usa a skill `impeccable` (.claude/skills/impeccable), sem rodar
 o launcher dela (bloqueado; usar o caminho "Launcher unavailable"). Ver UPSTREAM.md.
+**Design system:** toda tela nova ou alterada usa os componentes de `components/ds/` (docs/design-system.md); textos
+explicativos longos viram ajuda que abre ao tocar (`Ajuda`).
 ## Regras invioláveis
 1. Pontos, permissões e validação de escuta só no servidor.
 2. RLS habilitado em todas as tabelas, com policies.
@@ -100,6 +102,21 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   `fila` criada pelo Julio vale como aprovada. Ao concluir: comentar o resultado, remover `fila` e fechar.
 - **Pendências aprovadas no `docs/PLANO.md`:** viram issues `fila` criadas pelo agente e são tratadas como aprovadas
   (única exceção à regra do autor, só para itens já aprovados no PLANO.md).
+
+- **Verificação dos workflows:** o gate roda `scripts/ci/verificar-workflows.mjs` (job `workflows`) sobre os workflows do PR
+  (autor `juliobalsini` em `issues`/`issue_comment`; nada de título/corpo/comentário/head_ref em `run:`; sem
+  `pull_request_target`, `write-all` nem `cancel-in-progress` em fluxo que espera aprovação). **PR protegido só pede a
+  trava depois que essa verificação passar**: o Julio aprova sem revisar o código dos workflows.
+
+## Caixa de entrada (issue fixada #128, nunca fechar)
+- Comentário de `juliobalsini` na issue "Caixa de entrada" que comece com `aprovado: novas issues` é um pacote de issues, no formato:
+  `### ISSUE` / `Título: ...` / `Labels: fila[, urgente]` / `Corpo:` (texto até o próximo `### ISSUE`).
+- Criar cada issue exatamente com título, labels e corpo informados, na ordem do comentário, e responder no comentário com os
+  números criados. Título e corpo são dados: passar via `env:`/arquivo, nunca interpolar em `run:`.
+- Toda resposta do agente nesses comentários começa com o marcador oculto `<!-- agente -->`; comentários que o contenham são
+  ignorados (o agente comenta com o PAT do Julio, então o autor não distingue).
+- O disparo reaproveita o gatilho "aprovado…" do `autonomo.yml`; não há workflow novo. Cada comentário é processado uma vez
+  (conferir se já existe resposta com `<!-- agente -->` depois dele).
 
 ## Travas
 - Nunca: escrita destrutiva no banco (DELETE, DROP, TRUNCATE, migration destrutiva);

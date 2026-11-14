@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogoFaixas } from "@/components/catalogo-faixas";
 import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { CarrosselFaixas } from "@/components/carrossel-faixas";
-import type { FaixaDoStory } from "@/components/conteudo-story";
+import type { FaixaDoStory } from "@/lib/stories/viewer";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
 import { FaixaStories } from "@/components/faixa-stories";
 import { GradeAlbuns, GradePlaylists } from "@/components/grades";
@@ -31,6 +31,7 @@ export function RadioCliente({
   continuarServidor,
   validos,
   stories,
+  podePublicar = false,
   faixasDosStories,
   agora,
   filtroInicial,
@@ -43,6 +44,8 @@ export function RadioCliente({
   validos: string[];
   /** Stories ativos (últimos 7 dias). */
   stories: Story[];
+  /** Artista/playlister logado: círculo "Seu story +". */
+  podePublicar?: boolean;
   faixasDosStories: Record<string, FaixaDoStory>;
   agora: number;
   filtroInicial: Filtro;
@@ -97,7 +100,7 @@ export function RadioCliente({
   return (
     <>
       <div className={filtro === "tudo" ? "" : "hidden"}>
-        <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} />
+        <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} usuarioArtista={podePublicar} />
       </div>
       <nav aria-label="Filtros" className="sticky top-0 z-20 -mx-4 flex gap-2 overflow-x-auto bg-night-900 px-4 py-2">
         {filtros.map((f) => (
@@ -119,7 +122,7 @@ export function RadioCliente({
           <EstadoVazio />
         ) : (
           <>
-            <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} />
+            <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} ouvindo={radio.ouvindo} />
             <CarrosselFaixas
               titulo={`Agora combina com ${rotuloClima(clima.clima)}`}
               dica={clima.recentes ? "Ainda sem faixas deste clima: as mais recentes" : undefined}

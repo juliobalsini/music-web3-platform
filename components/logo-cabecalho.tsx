@@ -1,12 +1,27 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/logo";
 
-/** Logo pequeno no cabeçalho; leva à Rádio. */
+/** Logo do cabeçalho: navegação client-side com prefetch; na Home, tocar leva ao topo. */
 export function LogoCabecalho() {
+  const caminho = usePathname();
   return (
-    <Link href="/" aria-label="radioOn, início" className="inline-flex min-h-11 items-center rounded">
-      <Logo className="h-12 w-auto" />
+    <Link
+      href="/"
+      prefetch
+      aria-label="radioOn, início"
+      className="inline-flex min-h-11 items-center rounded"
+      onClick={(e) => {
+        if (caminho === "/") {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }}
+    >
+      <Logo className="h-[62px] w-auto" />
     </Link>
   );
 }

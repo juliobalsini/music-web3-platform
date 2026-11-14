@@ -100,3 +100,27 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
 - **Propostas de segurança em aberto:** CSP completa com nonces (médio, 2–3 execuções); `story_reports` sem policy (intencional?);
   PAT sem leitura de alertas de segurança (precisa do Julio).
 - **Aprovado (Julio, 2026-11-12), continuar na próxima execução:** pós-#97: redeploy do Worker, validar 200/206, religar o proxy, `transcodificar` lote=5 (precisa de `SUPABASE_SECRET_KEY`), medir CPU/memória (<10 ms) e ganho; avaliar restringir o proxy a `audio/stream/`. *Virou a issue #101 (label `fila`).*
+
+## Stories v2 (issue #113, Julio, 2026-11-13)
+
+- **Fase 1 — experiência** (visualizador em tela cheia, gestos, visto/não visto, compartilhar em linha, grade por perfil, linha no Explorar, link
+  compartilhado, pré-carga) e **Fase 2 — interação** (curtir, comentários ≤ 140, reações e figurinhas, moderação, estatísticas do dono, RLS). *Em PR
+  (item-113-stories-v2); DECISIONS 87–88.*
+- **Pós-beta (registrado, não implementar agora):** mensagem direta (resposta privada ao dono do story) e story com foto/vídeo capturado na hora
+  (vídeo depende de armazenamento maior que a cota grátis do B2).
+
+- **Pós-beta (issue #122):** playlists colaborativas e notificações — registrado, não implementar agora.
+
+## Base visual e correções (issue #124, 2026-11-13)
+Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara de painel administrativo** e ordem de migração para os componentes novos:
+1. **Enviar música** (`components/upload-form.tsx`): formulário cru com muitos campos e textos explicativos → `Abas` (avulsa/álbum), `Ajuda` para a ficha e a capa, `AnelProgresso` no envio.
+2. **Meus envios** (`app/meus-envios`): listas de texto sem capa → `CartaoCapa` horizontal + `ChipStatus` (Publicada/Em processamento/Falhou) + `MenuMais`.
+3. **Métricas** (`/metricas`, `app/minha-radio`): números em lista → `LinhaEstatistica`, `GraficoCircular`, `BarrasLeves`.
+4. **Pontos** (`/pontos`): lista de eventos → `AnelProgresso` (meta diária) + `LinhaEstatistica`.
+5. **Onboarding** (escolha de perfil): cartões com texto longo → `CartaoCapa` + `Ajuda`.
+6. **Login** (`components/login-form.tsx`): campos crus e textos → fica para a issue Login v2.
+7. **Curador/Programação** (`app/curador`) e **editor de playlist**: listas sem capa e textos longos → `CartaoCapa`, `Ajuda`, `EstadoVazio`.
+8. **Biblioteca** e **Explorar** (grades): já têm capa; trocar listas restantes por `CartaoCapa` e vazios por `EstadoVazio`.
+9. **Stories** (`story-form`, `story-paineis`): painéis próprios → `PainelInferior`.
+10. **Privacidade/Termos**: texto jurídico longo → aceitável; só `Ajuda` nos resumos.
+Telas novas (Stories v2, Navegação v2, Login v2, Playlists v2, Configurações) já nascem com estes componentes.

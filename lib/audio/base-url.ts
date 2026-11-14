@@ -6,10 +6,10 @@
 export const AUDIO_BASE_URL_PADRAO = "https://radioon-audio.radioon.workers.dev";
 
 /**
- * Proxy DESLIGADO por padrão enquanto o Worker não estiver saudável (2026-11-12: respondia 503 sem as chaves B2).
- * Religar: trocar para true após `curl <worker>/a/<chave>` responder 200/206.
+ * Proxy LIGADO por padrão desde 2026-11-14: o Worker respondeu 200/206 (KV HIT) após o redeploy (DECISIONS 93).
+ * Emergência: trocar para false (ou `NEXT_PUBLIC_AUDIO_BASE_URL=off`) volta às URLs assinadas do B2.
  */
-export const PROXY_LIGADO_POR_PADRAO = false;
+export const PROXY_LIGADO_POR_PADRAO = true;
 
 export function resolverAudioBaseUrl(env: string | undefined): string | undefined {
   const v = env?.trim();

@@ -4,7 +4,7 @@
 
 # radioOn
 
-**Resumo (pt-BR):** o radioOn é um streaming mobile-first de música independente global. O público entra e dá play já;
+**Resumo (pt-BR):** a radioOn é um streaming mobile-first de música independente global. O público entra e dá play já;
 artistas enviam faixas em `/enviar`; curadores montam playlists; ouvintes ganham pontos por escutas válidas (validadas no
 servidor). Produção: <https://radioon-ten.vercel.app>. Stack 100% gratuita e desenvolvimento autônomo com Claude Code.
 Código público só para consulta (ver [License](#license)).
@@ -72,6 +72,10 @@ radioOn is built largely by an autonomous agent: **Claude Code running on GitHub
   honoured; others are silently ignored, and issue text is treated as data, never interpolated into shell. Runs never cancel
   each other: if one is active the new one exits, and the queue (persisted in issues) is read on the next run. Order: `urgente`
   first, then oldest to newest; on completion the agent comments the result, removes `fila` and closes the issue.
+
+- **Inbox:** the pinned "Caixa de entrada" issue (#128) turns an owner comment starting with `aprovado: novas issues` into new
+  issues. Each block is `### ISSUE` + `Título:` + `Labels: fila[, urgente]` + `Corpo:`; the agent replies with the created
+  numbers, marking its own replies with a hidden `<!-- agente -->` so they are never re-processed.
 
 ## Getting started
 

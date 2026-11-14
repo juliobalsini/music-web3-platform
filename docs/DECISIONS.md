@@ -351,3 +351,61 @@ Formato: data · decisão · motivo. Mais recente no fim.
     `SUPABASE_DB_URL` (conexão do `migracao`, via `pg`, só `UPDATE` em colunas de transcode de `tracks`) em vez de
     `SUPABASE_SECRET_KEY`. Regra permanente no CLAUDE.md: endurecimento próprio sem ampliar acesso é risco baixo; antes de pedir
     secret, checar se um existente resolve. Reversível por PR.
+85. **Verificação de segurança dos workflows no gate (2026-11-12, issue #102):** `scripts/ci/verificar-workflows.mjs` (sem
+    dependências; regex/linhas) roda no job `workflows` do gate, com o script da main e os workflows do PR. Regras R1 (autor
+    `juliobalsini` no `if` de job em `issues`/`issue_comment`), R2 (nada de título/corpo/comentário/head_ref em `run:`/`script:`),
+    R3 (sem `pull_request_target`, `write-all` ou `cancel-in-progress` em fluxo que espera aprovação). Exceção deliberada em R3:
+    workflow só de `pull_request` (o próprio `gate.yml`), pois novo commit invalida a aprovação anterior. `aprovacao`,
+    `avisar-travas`, `gate-ok` e `merge` dependem do job: a trava só é pedida depois que ele passa. Bootstrap: se a main ainda não
+    tem o script, o job usa o do PR (aviso); some após o merge. Falha por dúvida de parsing é preferível a passar em falso.
+86. **worker-deploy deriva o endpoint do B2** (`scripts/ci/derivar-env.sh`, valores públicos) antes de gravar os secrets do Worker e passa a
+    falhar se algum vier vazio (antes gravava vazio em silêncio e o Worker respondia 503). Arquivo protegido (`.github/**`): PR próprio, trava.
+87. **Stories v2 (issue #113, 2026-11-13):** visualizador em tela cheia único (`components/visualizador-stories.tsx`, `<dialog>` modal que cobre
+    cabeçalho, player e navegação) usado por círculos da home, grade Rádio > Stories, linha do Explorar e `/story/[id]`. Regras puras em
+    `lib/stories/viewer.ts` (duração 5 s texto / trecho ≤ 15 s com música, gestos, ordem radioOn → não vistos → vistos, "há N h"). "Visto" fica em
+    `localStorage` (anel cinza) e, no servidor, em `story_views` por usuário ou sessão anônima (sessão anônima criada sob demanda, como na escuta).
+    Setas visíveis removidas; controles "Story anterior/Próximo story" ficam só para teclado e leitor de tela (`sr-only`) e setas ←/→.
+    "Apagar" do dono é `deleted_at` (sem DELETE; policy restritiva esconde de todos). Duas migrations aditivas (`20261113000000`, `20261113010000`),
+    ambas dentro da allowlist (`validar-sql.mjs`). Os dois commits (fase 1 e fase 2) seguem no mesmo PR porque a barra inferior da fase 1 já tem os
+    controles de curtir/comentar.
+88. **Interação nos stories (fase 2):** curtir = 1 por usuário ou sessão anônima (PK + RLS "só como si mesmo"); comentar = só contas, ≤ 140
+    caracteres, reações (🔥 😍 👏 🎶 🎧 😮) e figurinhas próprias (No repeat, Que solo, Hino, Arrepiou) validadas no servidor, sem GIFs nem serviços
+    externos. Moderação: filtro básico de palavras ofensivas (`lib/stories/moderacao.ts`), limite de 5 comentários/min por **trigger** (a policy não
+    pode ler a própria tabela: recursão), denúncia de comentário só de contas e 3 denunciantes distintos ocultam (`hidden`, reversão só pelo Julio),
+    dono apaga comentários do próprio story (`deleted_at`). Visualizações/curtidas/comentários aparecem ao dono no menu ⋯ (`/estatisticas`, via RLS).
+    Mensagem direta e story com foto/vídeo ficam como pós-beta no PLANO.md (não implementados).
+
+## 89. Navegação e conta v2 — fatia 1 (issue #116)
+Topo só com logo (+30%) e ☰; "Entrar", selo "No ar" e rodapé saíram (links legais na gaveta; login mantém só o aceite).
+Gaveta lateral (visitante: Crie sua conta, Google primeiro; logado: perfil, pontos, Meus envios, Enviar, Configurações, Privacidade, Termos, Sair).
+Barra inferior: Rádio, Explorar, Biblioteca (`/biblioteca`); `/meus-envios` lista faixas, álbuns, playlists e stories (somente leitura nesta fatia).
+"Player On" substitui "Rádio radioOn"; "Ao vivo · N ouvindo" só com N ≥ 10. Marca no feminino ("na radioOn"). Logo: client-side com prefetch; na Home rola ao topo.
+Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configurações/conta, login contextual, compartilhar com Simple Icons, RLS.
+
+90. **Ícones de compartilhar (issue #116, item 9):** caminhos SVG do Simple Icons (CC0) copiados para `lib/stories/icones-redes.ts`, sem nova dependência. LinkedIn vem da v13 (removido das versões novas por marca). Painel de stories trocou as siglas pelos ícones.
+
+91. **Playlists v2, fatia 1 (issue #122):** rascunho = `is_public=false` + `published_at` nulo (a RLS existente já o esconde de quem não é dono); migration aditiva `20261113020000`
+    (`description`, `published_at`, `cover_path`, `create_key` + índice único por conta, tabela `playlist_saves` com RLS própria e bloqueio de anônimo). Criação idempotente: a
+    chave nasce com a tela e o índice único barra toque repetido. Publicar exige ≥ 5 faixas (validado no servidor). Contagem de salvamentos lida só no servidor (número, nunca quem salvou).
+    `/curador` virou só "Programação" (curadores); lista/criação de playlists saiu e as do usuário ficam na Biblioteca (rascunhos marcados). Barra inferior: Rádio, Explorar, Biblioteca, Criar
+    (painel: Playlist, Story, Enviar música). Painel de compartilhar virou genérico (`PainelCompartilharAlvo`), usado também por playlists (cartão 9:16 em `/api/playlists/[id]/cartao`).
+    Não apagamos dados existentes (as 3 "Jazz independente" seguem; o dono remove pelo menu ⋯).
+92. **Base visual e envios (issue #124):** (a) ícones `any`/`maskable` separados, ambos dentro do círculo de 80% (o script de ícones falha se sair) e abertura interna com o mesmo marinho e proporção do ícone;
+    (b) envio idempotente: `tracks.upload_key` (índice único por artista) + trava síncrona no formulário; causa dos duplicados e travados = linha `processing` criada antes do PUT, e cada nova tentativa/toque criava outra;
+    (c) estado terminal `failed` + `failure_reason` (migration aditiva `20261113030000`); `/meus-envios` reconcilia as `processing` com > 15 min (1 HEAD por faixa, máx. 10): arquivo no bucket → publica, ausente → `failed` com motivo.
+    Nada é apagado; o usuário remove duplicatas pelo menu. Álbum/EP segue sem chave (só a trava de toque repetido). (d) Design system em `components/ds/` com tokens `--ds-*` (tema claro e destaque prontos para Configurações).
+
+93. **Proxy de áudio religado (issue #101, 2026-11-14):** após o #110, o `worker-deploy` (run 43617896549) publicou o Worker com as chaves
+    B2 de leitura. Validação em `https://radioon-audio.radioon.workers.dev/a/audio/stream/<id>.m4a`: 200 (`audio/mp4`, 4.174.638 bytes),
+    206 em `bytes=0-1023` e no fim do arquivo, MISS → HIT no KV, CORS para produção e prévias, `tracks/` e chave inexistente → 404.
+    `PROXY_LIGADO_POR_PADRAO = true` (só `audio/stream/`, `covers/`, `stories/`; originais seguem por URL assinada). Medição: KV HIT com
+    `Server-Timing kv;dur` 10–21 ms (tempo de parede, inclui a espera do KV, que não conta como CPU no plano gratuito; CPU real só no painel
+    da Cloudflare, sem token local), total 57–104 ms do runner. Transcodificação: 2 faixas ok (aac192, −19,3 LUFS, 6,8 → 4,2 MB, −39%);
+    3 faixas falham com "Key not found" (original ausente no bucket, 3/3 tentativas, não voltam a ser tentadas). Reversão: `false` aqui ou
+    `NEXT_PUBLIC_AUDIO_BASE_URL=off`.
+95. **Seguir perfis (issue #116, item 4 e parte do 11, 2026-11-14):** tabela `follows` (migration aditiva `20261114000000`), chave
+    (seguidor, seguido), sem seguir a si mesmo. RLS: só conta segue (restritiva barra a sessão anônima), como si mesma; cada um
+    vê quem segue e quem o segue (terceiros e visitantes não veem; contagem pública, se vier, pelo servidor); deixar de seguir só
+    o próprio; sem update. Botão Seguir/Seguindo no perfil (exceto o próprio e o oficial; resposta imediata com `useFormStatus`);
+    visitante é levado ao login e volta ao perfil (base do login contextual, item 5). `/seguindo` na gaveta, com `CartaoCapa`,
+    `EstadoVazio` e `Esqueleto`. Testes de RLS no PGlite e E2E do visitante.
