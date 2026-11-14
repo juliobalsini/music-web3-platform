@@ -333,3 +333,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-14 (17ª) — #130 e #126 fechadas (PRs #131 e #129 em produção; #132 fechada). Issue #101: `worker-deploy` ok, Worker validado (200/206/HIT),
   proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.
+  #103 (modelo operacional v2): PR protegido único (R4 TRAVAS, escopo menor da trava, encadeamento, `feedback`, resumo diário,
+  CLAUDE.md/README/PLANO.md; DECISIONS 94) — **aguarda `travas`**. Issue "Sessão manual" criada. Primeiro Sprint na segunda 2026-11-16.
+

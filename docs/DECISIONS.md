@@ -403,3 +403,17 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     da Cloudflare, sem token local), total 57–104 ms do runner. Transcodificação: 2 faixas ok (aac192, −19,3 LUFS, 6,8 → 4,2 MB, −39%);
     3 faixas falham com "Key not found" (original ausente no bucket, 3/3 tentativas, não voltam a ser tentadas). Reversão: `false` aqui ou
     `NEXT_PUBLIC_AUDIO_BASE_URL=off`.
+94. **Modelo operacional v2 (issue #103, 2026-11-14):** (a) R4 em `verificar-workflows.mjs`: o gate reprova qualquer alteração
+    do bloco TRAVAS do CLAUDE.md (linha a linha, ignorando linhas vazias e espaços finais); só o Julio o edita, direto na `main`.
+    O bloco foi reduzido às travas; as regras operacionais (aprovação, segurança contínua, fila, caixa de entrada, modelo v2)
+    saíram dele. (b) Escopo da trava (`scripts/ci/travas.mjs`): bloco TRAVAS, `gate.yml`, `autonomo.yml` e, além do pedido,
+    `migracao.yml` (aplica SQL na produção: mudar um passo dele contornaria a allowlist), `scripts/ci/**` (lógica do próprio
+    gate) e `.claude/settings*.json` (hooks rodam comandos no Codespace) — na dúvida, a opção mais segura. Nos demais
+    workflows só travam mudanças de permissions/secrets/environment/tokens, workflow sem `permissions:` no topo, e workflow
+    novo/removido que use secrets (novo com `permissions` só de leitura passa). `notify.sh`, `dependabot.yml`,
+    `supabase/config.toml` e skills deixam de ser protegidos. (c) Encadeamento: o agente cria `$RUNNER_TEMP/encadear`; o
+    `autonomo.yml` dispara `workflow_dispatch` com `encadeada=true` (cuja guarda espera até 10 min a anterior terminar), até o
+    teto do CLAUDE.md (6/dia, contando toda execução manual/encadeada do dia em Brasília). (d) Canal único: `notify.sh resumo`
+    comenta na issue `sprint` aberta como github-actions[bot] (gera e-mail ao Julio, autor da issue); sem Sprint, abre issue de
+    relatório. (e) Label `feedback` dispara o agente (mesma checagem de autor). (f) Issue "Sessão manual" única (label
+    `sessao-manual`).
