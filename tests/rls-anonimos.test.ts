@@ -584,3 +584,32 @@ describe("RLS — Configurações e exclusão de conta (migration 20261115010000
     assert.ok(l.error || l.affected === 0);
   });
 });
+
+describe("RLS — story de bio: bio e foto do perfil (migration 20261115020000)", () => {
+  it("todos leem bio e foto do perfil (story de bio é público)", async () => {
+    await como("service", `update public.profiles set bio = 'Canções de porto.', avatar_url = 'https://lh3.googleusercontent.com/a/x' where id = '${ids.artista}'`);
+    for (const quem of ["anon", "conta", "curador"] as Quem[]) {
+      const r = await como(quem, `select bio, avatar_url from public.profiles where id = '${ids.artista}'`);
+      assert.equal(r.rows[0]?.bio, "Canções de porto.", quem);
+    }
+  });
+
+  it("nenhum cliente grava bio ou foto (nem o dono, nem a sessão anônima): só o servidor", async () => {
+    for (const quem of ["artista", "anon", "conta"] as Quem[]) {
+      const alvo = ids[quem as "artista"];
+      const b = await como(quem, `update public.profiles set bio = 'invadido' where id = '${alvo}'`);
+      assert.match(b.error ?? "", /permission denied/, `${quem} bio`);
+      const f = await como(quem, `update public.profiles set avatar_url = 'https://evil.example/x' where id = '${alvo}'`);
+      assert.match(f.error ?? "", /permission denied/, `${quem} foto`);
+    }
+  });
+
+  it("bio tem até 140 caracteres e a foto precisa ser https", async () => {
+    const longa = await como("service", `update public.profiles set bio = repeat('a', 141) where id = '${ids.artista}'`);
+    assert.match(longa.error ?? "", /check/i);
+    const http = await como("service", `update public.profiles set avatar_url = 'http://x' where id = '${ids.artista}'`);
+    assert.match(http.error ?? "", /check/i);
+    const js = await como("service", `update public.profiles set avatar_url = 'javascript:alert(1)' where id = '${ids.artista}'`);
+    assert.match(js.error ?? "", /check/i);
+  });
+});

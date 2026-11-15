@@ -7,6 +7,8 @@ import { excluirConta, salvarPreferenciasConta } from "@/lib/preferencias/conta"
 import { confirmouExclusao, parseEmail, parseNome, sanear, type Preferencias } from "@/lib/preferencias/rules";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
+import { fotoSegura, parseBio } from "@/lib/stories/bio";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type Resultado = { ok: true; aviso?: string } | { ok: false; erro: string };
 
@@ -39,6 +41,34 @@ export async function salvarNome(_: Resultado | null, form: FormData): Promise<R
   catalogoMudou();
   revalidatePath("/", "layout");
   return { ok: true, aviso: "Nome salvo." };
+}
+
+/**
+ * Perfil de artista (story de bio): frase e foto pública. Só artistas; a foto vem da conta Google lida no servidor
+ * (nunca de um valor enviado pelo cliente). Grava com service_role: o cliente só tem grant em display_name.
+ */
+export async function salvarPerfilArtista(_: Resultado | null, form: FormData): Promise<Resultado> {
+  const s = await getSessionRole();
+  if (!s) return SEM_CONTA;
+  if (s.role !== "artist") return { ok: false, erro: "Só perfis de artista têm story de bio." };
+  const bio = parseBio(form.get("bio"));
+  if (bio === undefined) return { ok: false, erro: "Use até 140 caracteres na frase." };
+  let foto: string | null = null;
+  if (form.get("foto") === "1") {
+    const { data } = await s.supabase.auth.getUser();
+    const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+    foto = fotoSegura(typeof meta.avatar_url === "string" ? meta.avatar_url : typeof meta.picture === "string" ? meta.picture : null);
+    if (!foto) return { ok: false, erro: "Sua conta não tem foto do Google para usar." };
+  }
+  try {
+    const { error } = await createAdminClient().from("profiles").update({ bio, avatar_url: foto }).eq("id", s.userId);
+    if (error) return { ok: false, erro: "Não foi possível salvar. Tente de novo." };
+  } catch {
+    return { ok: false, erro: "Não foi possível salvar. Tente de novo." };
+  }
+  catalogoMudou();
+  revalidatePath("/", "layout");
+  return { ok: true, aviso: foto ? "Perfil salvo. Seu story de bio já está no ar." : "Perfil salvo. Com uma foto, seu story de bio entra no ar." };
 }
 
 /** Troca de e-mail: o Supabase manda um link de confirmação ao endereço novo. */

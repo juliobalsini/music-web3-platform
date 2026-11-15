@@ -3,10 +3,10 @@ import { expect, test, type Page } from "@playwright/test";
 // Telas do redesenho mobile-first. Rodam em viewport de celular.
 test.use({ viewport: { width: 390, height: 844 } });
 
-/** A Rádio chega em streaming: os stories só aparecem quando o conteúdo carregou. */
+/** A Rádio chega em streaming: o Player On só aparece quando o conteúdo carregou. */
 async function radioCarregada(page: Page) {
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("region", { name: "No ar", exact: true })).toBeVisible({ timeout: 20_000 });
 }
 
 test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
@@ -21,16 +21,18 @@ test("navegação inferior tem 3 abas e leva a cada tela", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("Home segue a ordem: stories, No ar, Agora combina, Seleção radioOn, Artistas", async ({ page }) => {
+test("Home segue a ordem: No ar, Agora combina, Seleção radioOn, Artistas para conhecer (sem círculos de stories)", async ({ page }) => {
   await radioCarregada(page);
   // Cabeçalho: logo à esquerda e menu à direita, na mesma linha; sem selo "No ar".
   await expect(page.getByTestId("selo-no-ar")).toHaveCount(0);
   const [l, m] = await Promise.all([page.getByRole("link", { name: "radioOn, início" }).boundingBox(), page.getByRole("button", { name: "Abrir menu" }).boundingBox()]);
   expect(Math.abs((l!.y + l!.height / 2) - (m!.y + m!.height / 2))).toBeLessThan(20);
   expect(l!.x).toBeLessThan(m!.x);
-  // Sempre há o story da plataforma, primeiro.
-  await expect(page.getByRole("region", { name: "Stories" }).getByRole("button").first()).toHaveAccessibleName("Ver stories de radioOn");
-  const nomes = ["Stories", "No ar", /Agora combina com/, "Seleção radioOn", "Faixas", "Artistas para conhecer"] as const;
+  // Sem círculos de stories na Home; visitante novo vê as boas-vindas como 1º card de Artistas para conhecer.
+  await expect(page.getByRole("region", { name: "Stories", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("stories-circulos")).toHaveCount(0);
+  await expect(page.getByTestId("linha-artistas").getByRole("button").first()).toHaveAccessibleName("Ver stories de radioOn");
+  const nomes = ["No ar", /Agora combina com/, "Seleção radioOn", "Artistas para conhecer", "Faixas"] as const;
   let ultimo = -1;
   for (const n of nomes) {
     const caixa = await page.getByRole("region", { name: n, exact: typeof n === "string" }).first().boundingBox();
@@ -42,7 +44,7 @@ test("Home segue a ordem: stories, No ar, Agora combina, Seleção radioOn, Arti
   await expect(page.getByRole("group", { name: "A seguir" }).getByRole("button")).toHaveCount(3);
   // Sem busca na Home (é do Explorar); os filtros são visões próprias.
   await expect(page.getByRole("search")).toHaveCount(0);
-  await expect(page.getByRole("navigation", { name: "Filtros" }).getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists", "Stories"]);
+  await expect(page.getByRole("navigation", { name: "Filtros" }).getByRole("button")).toHaveText(["Tudo", "Faixas", "Álbuns", "Playlists"]);
 });
 
 test("story de boas-vindas abre e a Seleção radioOn tem página", async ({ page }) => {
@@ -263,9 +265,10 @@ test("rotas de álbum e envio exigem login", async ({ request }) => {
 const STORY_DEMO = "00000000-0000-4000-8000-000000000501";
 const STORY_ARQUIVADO = "00000000-0000-4000-8000-000000000503";
 
-test("Stories: faixa na home, visor em tela cheia com música, compartilhar e denunciar", async ({ page }) => {
-  await radioCarregada(page);
+test("Stories: linha no Explorar, visor em tela cheia com música, compartilhar e denunciar", async ({ page }) => {
+  await page.goto("/explorar");
   const faixa = page.getByRole("region", { name: "Stories", exact: true });
+  await expect(faixa).toBeVisible({ timeout: 20_000 });
   await expect(faixa).toBeVisible();
   await faixa.getByRole("button", { name: /Ver stories de Lia Norte/ }).click();
   const visor = page.getByRole("dialog", { name: /Stories de Lia Norte/ });
@@ -382,8 +385,8 @@ test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await filtros.getByRole("button", { name: "Faixas" }).click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
-  await filtros.getByRole("button", { name: "Stories" }).click();
-  await expect(page.getByTestId("stories-grade").getByRole("button").first()).toBeVisible();
+  // Stories saíram dos filtros da Home (ficam no Explorar).
+  await expect(filtros.getByRole("button", { name: "Stories" })).toHaveCount(0);
 });
 
 test("gaveta lateral: abre pelo menu, fecha por toque fora e pelo Esc; logo rola ao topo", async ({ page }) => {
@@ -414,7 +417,7 @@ test("logo em outra tela volta à Rádio sem recarregar a página e mede o tempo
   const inicio = Date.now();
   await page.getByRole("link", { name: "radioOn, início" }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("region", { name: "No ar", exact: true })).toBeVisible({ timeout: 20_000 });
   const ms = Date.now() - inicio;
   info.annotations.push({ type: "logo-ms", description: String(ms) });
   console.log(`[medida] logo → Rádio pronta em ${ms} ms`);
@@ -424,7 +427,7 @@ test("logo em outra tela volta à Rádio sem recarregar a página e mede o tempo
   await expect(page.getByRole("heading", { name: "Explorar" })).toBeVisible();
   const inicio2 = Date.now();
   await page.getByRole("link", { name: "radioOn, início" }).click();
-  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "No ar", exact: true })).toBeVisible();
   console.log(`[medida] logo → Rádio (cache do cliente) em ${Date.now() - inicio2} ms`);
 });
 
