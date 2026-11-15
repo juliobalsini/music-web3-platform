@@ -2,6 +2,7 @@ import { ListMusic, LogIn, Star, Upload } from "lucide-react";
 import Link from "next/link";
 
 import { entrarComGoogle } from "@/app/login/actions";
+import { BotaoGoogle } from "@/components/google-gis";
 import { Logo } from "@/components/logo";
 import { botao } from "@/components/ui";
 
@@ -35,10 +36,15 @@ export function ConviteVisitante({ compacto = false }: { compacto?: boolean }) {
       </ul>
       <form action={entrarComGoogle} className="flex w-full flex-col gap-2">
         <input type="hidden" name="next" value="/minha-radio" />
-        <button className={`${botao} !bg-none !bg-white !text-night-900`}>
-          <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
-        </button>
-        <Link href="/login?next=/minha-radio" className="flex min-h-11 items-center justify-center text-sm font-semibold text-brand underline underline-offset-2">
+        <BotaoGoogle
+          next="/minha-radio"
+          reserva={
+            <button className={`${botao} !bg-none !bg-white !text-night-900`}>
+              <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
+            </button>
+          }
+        />
+        <Link href="/entrar?next=/minha-radio" className="flex min-h-11 items-center justify-center text-sm font-semibold text-brand underline underline-offset-2">
           Prefiro entrar por e-mail
         </Link>
       </form>

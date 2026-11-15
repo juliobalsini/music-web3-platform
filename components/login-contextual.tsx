@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 
+import { ConteudoLogin } from "@/components/conteudo-login";
 import { PainelInferior } from "@/components/ds/interativos";
-import { LoginForm } from "@/components/login-form";
-import { AceiteLegal } from "@/components/rodape";
+import { OneTapGoogle } from "@/components/google-gis";
+import { ACAO_PENDENTE_CHAVE, acaoDaTela, lerAcao, serializarAcao } from "@/lib/auth/acao-pendente";
 import { destinoAtual, motivoPadrao } from "@/lib/auth/contextual";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,8 +15,11 @@ type Pedido = { motivo: string; destino: string };
 type Contexto = {
   /** `true` só com conta (sessão anônima ou sem sessão = `false`); `null` enquanto não se sabe. */
   conta: boolean | null;
-  /** Abre o painel inferior de login; depois de entrar, volta a `destino` (padrão: a tela atual). */
-  pedirLogin: (motivo?: string, destino?: string) => void;
+  /**
+   * Abre o painel inferior de login; depois de entrar, volta a `destino` (padrão: a tela atual) e, se houver
+   * `acao` (ex.: `seguir:<id>`), o componente que a registrou com `useAcaoPendente` a conclui sozinho.
+   */
+  pedirLogin: (motivo?: string, destino?: string, acao?: string) => void;
 };
 
 const Ctx = createContext<Contexto | null>(null);
@@ -44,10 +48,18 @@ export function LoginContextualProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const pedirLogin = useCallback((motivo?: string, destino?: string) => {
-    setPedido({ motivo: motivo ?? motivoPadrao(), destino: destino ?? destinoAtual(window.location) });
+  const pedirLogin = useCallback((motivo?: string, destino?: string, acao?: string) => {
+    const alvo = destino ?? destinoAtual(window.location);
+    guardarAcao(acao ? serializarAcao(acao, alvo, Date.now()) : null);
+    setPedido({ motivo: motivo ?? motivoPadrao(), destino: alvo });
   }, []);
-  const fechar = useCallback(() => setPedido(null), []);
+  // Fechar sem entrar desiste da ação (entrar recarrega a página antes de qualquer fechamento).
+  const fechar = useCallback(() => {
+    setPedido((p) => {
+      if (p) guardarAcao(null);
+      return null;
+    });
+  }, []);
   const valor = useMemo(() => ({ conta, pedirLogin }), [conta, pedirLogin]);
 
   return (
@@ -58,17 +70,52 @@ export function LoginContextualProvider({ children }: { children: ReactNode }) {
       </Suspense>
       {/* Marca para os testes E2E: a sessão já foi lida (antes disso os links navegam normalmente). */}
       {conta !== null && <span hidden data-testid="sessao-lida" data-conta={conta ? "1" : "0"} />}
-      <PainelInferior aberto={!!pedido} aoFechar={fechar} titulo="Entre para continuar">
+      <Suspense>
+        <OneTapGoogle conta={conta} />
+      </Suspense>
+      <PainelInferior aberto={!!pedido} aoFechar={fechar} titulo="Entre na radioOn">
         {pedido && (
-          <div data-testid="login-contextual" className="flex flex-col gap-4">
-            <p className="text-pretty text-[var(--ds-texto-2)]">{pedido.motivo}</p>
-            <LoginForm key={pedido.destino} next={pedido.destino} />
-            <AceiteLegal />
+          <div data-testid="login-contextual">
+            <ConteudoLogin key={pedido.destino} next={pedido.destino} motivo={pedido.motivo} />
           </div>
         )}
       </PainelInferior>
     </Ctx.Provider>
   );
+}
+
+function guardarAcao(valor: string | null) {
+  try {
+    if (valor) localStorage.setItem(ACAO_PENDENTE_CHAVE, valor);
+    else localStorage.removeItem(ACAO_PENDENTE_CHAVE);
+  } catch {
+    /* sem armazenamento: só não conclui sozinho */
+  }
+}
+
+/**
+ * Conclui a ação pedida antes do login (ex.: `seguir:<id>`) quando a pessoa volta com conta à mesma tela.
+ * Executa uma vez e apaga o lembrete; o servidor continua decidindo (é a mesma ação do toque).
+ */
+export function useAcaoPendente(acao: string, executar: () => void) {
+  const { conta } = useLoginContextual();
+  const fn = useRef(executar);
+  useEffect(() => {
+    fn.current = executar;
+  });
+  useEffect(() => {
+    if (conta !== true) return;
+    let p = null;
+    try {
+      p = lerAcao(localStorage.getItem(ACAO_PENDENTE_CHAVE), Date.now());
+    } catch {
+      return;
+    }
+    // Caminho lido do navegador (sem usePathname: o hook exigiria Suspense em volta de cada botão).
+    if (!p || !acaoDaTela(p, acao, window.location.pathname)) return;
+    guardarAcao(null);
+    fn.current();
+  }, [conta, acao]);
 }
 
 /** Ao trocar de tela (ex.: tocar em Termos) o pedido perde o sentido. Fica em Suspense por causa do `usePathname`. */
@@ -90,7 +137,7 @@ export function useLoginContextual(): Contexto {
   return (
     ctx ?? {
       conta: null,
-      pedirLogin: (_m, destino) => router.push(`/login?next=${encodeURIComponent(destino ?? destinoAtual(window.location))}`),
+      pedirLogin: (_m, destino) => router.push(`/entrar?next=${encodeURIComponent(destino ?? destinoAtual(window.location))}`),
     }
   );
 }

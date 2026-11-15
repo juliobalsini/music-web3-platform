@@ -60,7 +60,7 @@ test("Home: Player On primeiro, sem círculos; Artistas para conhecer com cards 
   await foto(page, "bio-02-story", testInfo);
   // Visitante: Seguir abre o login contextual, que volta ao perfil do artista.
   await bio.getByTestId("botao-seguir").click();
-  const login = page.getByRole("dialog", { name: "Entre para continuar" });
+  const login = page.getByRole("dialog", { name: "Entre na radioOn" });
   await expect(login).toBeVisible({ timeout: 15_000 });
   await expect(login.locator('input[name="next"]')).toHaveValue(`/perfil/${LIA}`);
   await login.getByRole("button", { name: "Fechar" }).click();

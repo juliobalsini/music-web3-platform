@@ -17,7 +17,8 @@ export function SeguirNoStory({ id, seguindo: inicial }: { id: string; seguindo:
 
   function alternar() {
     if (conta === false) {
-      pedirLogin("Entre para seguir artistas e ver as novidades deles.", `/perfil/${id}`);
+      // Depois de entrar, o perfil do artista conclui o "Seguir" sozinho (ação pendente).
+      pedirLogin("Entre para seguir artistas e ver as novidades deles.", `/perfil/${id}`, `seguir:${id}`);
       return;
     }
     const novo = !seguindo;

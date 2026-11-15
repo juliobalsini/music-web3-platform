@@ -12,6 +12,7 @@ import {
   parseTipoCodigo,
   type TipoCodigo,
 } from "@/lib/auth/codigo";
+import { COOKIE_TESTE_GIS, parseCredencialGoogle, TOKEN_TESTE_GOOGLE } from "@/lib/auth/google";
 import { NEXT_COOKIE, parseEmail, safeNext } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -56,6 +57,37 @@ export async function entrarComGoogle(form: FormData) {
     /* cai no redirect de erro */
   }
   redirect(url ?? "/login?erro=google");
+}
+
+export type GoogleState = { erro?: string; entrou?: string };
+
+/**
+ * Google Identity Services (botão oficial / One Tap): o navegador manda o token de ID e o nonce cru; o Supabase
+ * confere a assinatura, o público (Client ID) e o hash do nonce. Sessão anônima: tenta vincular o Google a ela
+ * (mesmo id, pontos ficam); se a conta Google já existe, entra nela.
+ */
+export async function entrarComGoogleToken(token: string, nonce: string, next: string): Promise<GoogleState> {
+  const cred = parseCredencialGoogle(token, nonce);
+  if (!cred) return { erro: "Não foi possível entrar com Google. Tente de novo." };
+  const destino = safeNext(next, "/");
+  // Modo de teste do E2E (só fora de produção, com o cookie): não fala com o Supabase nem cria sessão.
+  if (process.env.VERCEL_ENV !== "production" && (await cookies()).get(COOKIE_TESTE_GIS)?.value === "1") {
+    return cred.token === TOKEN_TESTE_GOOGLE ? { entrou: destino } : { erro: "Não foi possível entrar com Google. Tente de novo ou use o e-mail." };
+  }
+  try {
+    const supabase = await createClient();
+    const { data: atual } = await supabase.auth.getUser();
+    const credenciais = { provider: "google", token: cred.token, nonce: cred.nonce };
+    if (atual.user?.is_anonymous) {
+      const { error } = await supabase.auth.linkIdentity(credenciais);
+      if (!error) return { entrou: destino };
+    }
+    const { error } = await supabase.auth.signInWithIdToken(credenciais);
+    if (error) return { erro: "Não foi possível entrar com Google. Tente de novo ou use o e-mail." };
+    return { entrou: destino };
+  } catch {
+    return { erro: "Login indisponível no momento." };
+  }
 }
 
 export async function enviarLink(_: LoginState, form: FormData): Promise<LoginState> {

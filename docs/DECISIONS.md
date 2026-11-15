@@ -505,3 +505,24 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     Change Email, HTML + texto, assunto "Seu código radioOn: {{ .Token }}") e guia do SMTP Gmail (465, remetente "radioOn", 20 e-mails/h,
     OTP de 600 s). (e) Fatia 2: Google Identity Services (botão oficial + One Tap, `signInWithIdToken` com nonce), textos do painel
     ("Entre na radioOn"), rota `/entrar`, concluir a ação pendente após entrar, protótipo.
+103. **Login v2, fatia 2 — Google oficial, One Tap, painel único e ação pendente (issue #120, 2026-11-15):** (a) Botão oficial
+    "Fazer login com o Google" (Google Identity Services) no painel, em `/entrar`, `/login` e no convite do Perfil; o token de ID vai a
+    uma server action que chama `signInWithIdToken` (sessão anônima: tenta `linkIdentity` com o token antes, mesmo id; senão entra
+    na conta). **Nonce:** 32 bytes aleatórios no navegador; o Google recebe só o SHA-256 em hex, o Supabase recebe o cru e compara.
+    O servidor só aceita token com formato de JWT (≤ 4 KB) e nonce hex de 64. (b) **Client ID** público gravado como padrão
+    (`lib/auth/google.ts`; lido do redirecionamento OAuth público do próprio projeto), sobrescrita `NEXT_PUBLIC_GOOGLE_CLIENT_ID`;
+    flag `LOGIN_GIS_POR_PADRAO = true` (sobrescrita `NEXT_PUBLIC_LOGIN_GIS`). O script do Google só carrega na **origem cadastrada**
+    (`https://radioon-ten.vercel.app`; sobrescrita `NEXT_PUBLIC_GOOGLE_ORIGENS`): em prévias, CI e local o Google recusaria o botão,
+    então fica o botão de redirecionamento de antes — que também é o reserva se o script não carregar em 4 s. Não há como o agente
+    "detectar" a origem cadastrada além disso; o Julio já a cadastrou (item 0 da issue). (c) **One Tap:** só visitante sem conta, no
+    máximo uma vez por sessão (`sessionStorage`), 2,5 s depois de abrir a tela, nunca em login/termos/privacidade/onboarding nem com
+    `<dialog>` aberto (player em tela cheia, stories, painéis) ou camada modal ativa (gaveta, menu Criar); se uma delas abrir com o
+    One Tap na tela, ele é cancelado (MutationObserver). (d) **Painel único** (`components/conteudo-login.tsx`): logo, "Entre na
+    radioOn", "Música independente do mundo todo. Ouça, siga artistas e envie suas faixas.", motivo da ação em âmbar, Google, "ou",
+    e-mail → link/código, aceite. `/entrar` é a rota direta com o mesmo conteúdo; `/login` continua (destino dos redirecionamentos
+    das páginas protegidas) e mostra o mesmo. (e) **Ação pendente:** `pedirLogin(motivo, destino, acao)` guarda `{acao, destino, em}`
+    no `localStorage` por 15 min (sobrevive ao redirecionamento e ao link em outra aba); fechar o painel desiste. De volta com conta
+    à tela de destino, `useAcaoPendente` conclui uma vez (hoje: Seguir no perfil e no story de bio). É só lembrete do cliente; o
+    servidor decide. Curtir/comentar continuam voltando à tela de origem sem concluir sozinhos (próximo passo, se pedido).
+    (f) E2E: cookie `radioon_teste_gis` libera o GIS em qualquer origem com o script do Google trocado por um falso; só fora de
+    produção o servidor aceita o token `teste.google.ok` sem criar sessão (não chama o Supabase).

@@ -1,10 +1,11 @@
 "use client";
 
 import { Check, UserPlus } from "lucide-react";
+import { useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { alternarSeguir } from "@/app/seguindo/actions";
-import { useLoginContextual } from "@/components/login-contextual";
+import { useAcaoPendente, useLoginContextual } from "@/components/login-contextual";
 
 function Botao({ seguindo }: { seguindo: boolean }) {
   const { pending } = useFormStatus();
@@ -26,16 +27,24 @@ function Botao({ seguindo }: { seguindo: boolean }) {
   );
 }
 
-/** Seguir/Seguindo no perfil. Visitante: abre o painel de login e volta ao perfil (o servidor também redireciona). */
+/**
+ * Seguir/Seguindo no perfil. Visitante: abre o painel de login, volta ao perfil e segue sozinho ao entrar
+ * (ação pendente; o servidor também redireciona e decide).
+ */
 export function BotaoSeguir({ id, seguindo }: { id: string; seguindo: boolean }) {
   const { conta, pedirLogin } = useLoginContextual();
+  const form = useRef<HTMLFormElement>(null);
+  useAcaoPendente(`seguir:${id}`, () => {
+    if (!seguindo) form.current?.requestSubmit();
+  });
   return (
     <form
+      ref={form}
       action={alternarSeguir}
       onSubmit={(e) => {
         if (conta !== false) return;
         e.preventDefault();
-        pedirLogin("Entre para seguir perfis e ver as novidades deles.", `/perfil/${id}`);
+        pedirLogin("Entre para seguir perfis e ver as novidades deles.", `/perfil/${id}`, `seguir:${id}`);
       }}
     >
       <input type="hidden" name="id" value={id} />

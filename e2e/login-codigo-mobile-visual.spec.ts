@@ -58,7 +58,8 @@ test("Login por código: painel inferior, código errado, expirado e volta ao po
   // Certo: recarrega a tela de origem inteira (para ler a sessão nova) e volta exatamente a ela.
   await page.evaluate(() => ((window as unknown as { __antes?: boolean }).__antes = true));
   await painel.getByLabel("Código de 6 dígitos").fill("123456");
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __antes?: boolean }).__antes ?? false), { timeout: 20_000 }).toBe(false);
+  // Durante a navegação o evaluate falha: conta como "ainda não recarregou".
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __antes?: boolean }).__antes ?? false).catch(() => true), { timeout: 20_000 }).toBe(false);
   expect(new URL(page.url()).pathname).toBe(PERFIL);
   await expect(page.locator("[data-testid=botao-seguir]:visible")).toBeVisible({ timeout: 20_000 });
 });
