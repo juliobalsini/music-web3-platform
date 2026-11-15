@@ -473,3 +473,13 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     `profiles.deleted_at` (o cliente não grava a coluna: grant só de `display_name`) e preferências privadas; 4) sessão encerrada. Pontos
     (append-only) e escutas ficam, sem dado pessoal; seguidores deixam de ver a conta em Seguindo. `auth.identities` ainda guarda o e-mail do
     Google até a remoção física, que é **pós-beta** (PLANO.md; escrita destrutiva, só com aprovação e trava).
+100. **Uso do agente distribuído ao longo do dia (issue #153, 2026-11-15):** o encadeamento esgotou o limite de 5 h do plano
+    (run 43667460025: "You've hit your 5-hour limit"; Opus e Sonnet compartilham o limite). (a) Agendamento a cada 4 h
+    (`0 3,7,11,15,19,23 * * *`). (b) No máximo 2 execuções seguidas: a execução com `encadeada=true` não encadeia outra (o teto
+    diário de 6 continua). (c) A saída do CLI vai também para um arquivo; se a execução falhar e a saída tiver "hit your … limit"
+    ou "usage limit reached", o passo termina com sucesso (sem "Alertar falha", logo sem issue nem e-mail), escreve uma linha no
+    resumo do workflow e uma anotação `limite-de-uso` com o horário e a retomada. Como o workflow não comita na `main`, quem
+    registra no CONTEXTO.md é a execução seguinte, via `scripts/limites-de-uso.sh` (lê as anotações), que também dá a linha
+    do resumo diário. (d) O fallback Opus→Sonnet da decisão da #130 ficou: se o Sonnet também bater no limite, encerra igual.
+    (e) PR protegido aberto num domingo: vale como o PR protegido semanal da semana de 2026-11-16 (as demais alterações
+    protegidas da semana entram nele), por ser `urgente` e evitar alertas falsos. A #152 (alerta por limite) foi fechada.

@@ -1,9 +1,9 @@
 name: autonomo
 
 # Agente Claude Code do radioOn (arquivo PROTEGIDO).
-# Roda 08:00 e 20:00 de Brasília (UTC-3, sem horário de verão) — horários
-# diferentes do STRATEX OS (02:00 e 14:00). O agendamento do GitHub pode
-# atrasar (às vezes horas) ou pular execuções em horários de pico.
+# Roda a cada 4 h (03, 07, 11, 15, 19 e 23 UTC = 00, 04, 08, 12, 16 e 20 de Brasília)
+# para distribuir o uso do plano ao longo do dia (issue #153). O agendamento do
+# GitHub pode atrasar (às vezes horas) ou pular execuções em horários de pico.
 #
 # Credenciais do agente: CLAUDE_CODE_OAUTH_TOKEN, AGENT_GH_TOKEN (PAT
 # fine-grained sem permissão "Workflows" nem "Administration") e, opcional,
@@ -15,9 +15,14 @@ name: autonomo
 # Execução contínua (issue #103): se o agente deixar "$RUNNER_TEMP/encadear" (há item
 # aprovado pendente), o passo final dispara a próxima execução, até o teto diário
 # definido no CLAUDE.md ("Teto de execuções encadeadas por dia: N", padrão 6).
+# No máximo 2 execuções seguidas (issue #153): a encadeada não encadeia outra;
+# depois, espera o próximo agendamento.
+# Limite de uso do plano ("hit your … limit" na saída do CLI): a execução termina com
+# sucesso, sem alerta nem e-mail; o horário de retomada fica numa anotação
+# "limite-de-uso" (lida por scripts/limites-de-uso.sh para o CONTEXTO.md e o resumo).
 on:
   schedule:
-    - cron: "0 11,23 * * *"
+    - cron: "0 3,7,11,15,19,23 * * *"
   issues:
     types: [labeled]
   issue_comment:
@@ -199,14 +204,36 @@ jobs:
             prompt="$prompt
           Instrução extra do Julio para esta execução: $INSTRUCAO"
           fi
-          if ! claude -p "$prompt" --model "$MODELO_ID" --dangerously-skip-permissions --output-format text; then
+          saida="$RUNNER_TEMP/claude-saida.txt"
+          limite="$RUNNER_TEMP/limite-de-uso"
+          rodar() {
+            # Saída também em arquivo, para detectar o limite de uso do plano.
+            set +e
+            claude -p "$prompt" --model "$1" --dangerously-skip-permissions --output-format text 2>&1 | tee "$saida"
+            rc=${PIPESTATUS[0]}
+            set -e
+            if grep -qiE "hit your .*limit|usage limit reached" "$saida"; then
+              grep -iE "hit your .*limit|usage limit reached" "$saida" | tail -n 1 > "$limite"
+            else
+              rm -f "$limite"
+            fi
+            return "$rc"
+          }
+          if ! rodar "$MODELO_ID"; then
             if [ "$MODELO_ESCOLHA" = "opus" ]; then
               # Cota do plano atingida (ou falha com Opus): cai para Sonnet 5.5 e registra.
               echo "- ⚠️ Falha com \`$MODELO_ID\` (provável cota do plano); repetindo com \`claude-sonnet-5-5\`." >> "$GITHUB_STEP_SUMMARY"
-              claude -p "$prompt" --model claude-sonnet-5-5 --dangerously-skip-permissions --output-format text
-            else
-              exit 1
+              rodar claude-sonnet-5-5 && exit 0
             fi
+            if [ -f "$limite" ]; then
+              # Limite de uso: não é falha (sem alerta/e-mail); só registra a retomada.
+              msg=$(tr -d '\r' < "$limite" | head -c 200)
+              echo "- ⏸️ Limite de uso do plano: $msg — retoma no próximo agendamento." >> "$GITHUB_STEP_SUMMARY"
+              echo "::notice title=limite-de-uso::$(TZ=America/Sao_Paulo date '+%F %H:%M') BRT — $msg"
+              rm -f "$RUNNER_TEMP/encadear"
+              exit 0
+            fi
+            exit 1
           fi
 
       - name: Encadear próxima execução
@@ -214,9 +241,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          ENCADEADA: ${{ inputs.encadeada }}
         run: |
           if [ ! -f "$RUNNER_TEMP/encadear" ]; then
             echo "- Encadeamento: nada aprovado pendente." >> "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          if [ "$ENCADEADA" = "true" ]; then
+            # No máximo 2 execuções seguidas (issue #153): espera o próximo agendamento.
+            echo "- Encadeamento: 2 execuções seguidas; retoma no próximo agendamento." >> "$GITHUB_STEP_SUMMARY"; exit 0
           fi
           teto=$(grep -oE 'Teto de execuções encadeadas por dia: [0-9]+' CLAUDE.md | grep -oE '[0-9]+$' || true)
           teto=${teto:-6}
