@@ -14,7 +14,9 @@ inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou vol
    conta, privacidade, excluir conta; DECISIONS 99). Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria,
    itens 1–4, 6 e 7.
 2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa.
-3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa; Google depende da Sessão manual.
+3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa. Fatia 1 entregue (código atrás de flag,
+   modelos de e-mail, guia SMTP; DECISIONS 102). Faltam: GIS + One Tap, textos do painel, `/entrar`, ação pendente, ligar a flag
+   depois da Sessão manual.
 4. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
 5. Central de recompensas (item o) — proposto, aguarda aprovação.
 

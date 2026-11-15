@@ -76,7 +76,8 @@ test("rotas de faixa sem armazenamento/sessão não quebram", async ({ request }
 test("página de login carrega e callback inválido volta ao login", async ({ page }) => {
   const r = await page.goto("/login");
   expect(r?.status()).toBe(200);
-  await expect(page.getByLabel("E-mail")).toBeVisible();
+  // Só o visível: durante o streaming o formulário existe por instantes duplicado (oculto), antes da troca.
+  await expect(page.getByLabel("E-mail").filter({ visible: true })).toBeVisible();
   await expect(page.getByText("Música para os melhores ouvintes.")).toBeVisible();
   await page.goto("/auth/callback");
   await expect(page).toHaveURL(/\/login\?erro=1/);

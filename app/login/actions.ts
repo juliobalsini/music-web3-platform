@@ -3,6 +3,15 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import {
+  CODIGO_TESTE_EXPIRADO,
+  CODIGO_TESTE_OK,
+  COOKIE_TESTE_CODIGO,
+  mensagemErroCodigo,
+  normalizarCodigo,
+  parseTipoCodigo,
+  type TipoCodigo,
+} from "@/lib/auth/codigo";
 import { NEXT_COOKIE, parseEmail, safeNext } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -71,6 +80,65 @@ export async function enviarLink(_: LoginState, form: FormData): Promise<LoginSt
     return { erro: "Login indisponível no momento." };
   }
   return { ok: true, email };
+}
+
+/** `entrou`: destino interno para onde o cliente recarrega (página inteira, para todos os componentes lerem a sessão nova). */
+export type CodigoState = { etapa?: "codigo"; email?: string; tipo?: TipoCodigo; enviadoEm?: number; erro?: string; entrou?: string };
+
+/** Modo de teste do E2E: só fora de produção e com o cookie de teste; não fala com o Supabase nem cria sessão. */
+async function modoTesteCodigo(): Promise<boolean> {
+  if (process.env.VERCEL_ENV === "production") return false;
+  return (await cookies()).get(COOKIE_TESTE_CODIGO)?.value === "1";
+}
+
+/** Envia o código de 6 dígitos (OTP sem link). Sessão anônima: troca de e-mail, mantendo o mesmo id. */
+export async function enviarCodigo(_: CodigoState, form: FormData): Promise<CodigoState> {
+  const email = parseEmail(form.get("email"));
+  if (!email) return { erro: "Digite um e-mail válido." };
+  if (await modoTesteCodigo()) return { etapa: "codigo", email, tipo: "email", enviadoEm: Date.now() };
+  try {
+    const supabase = await createClient();
+    const { data: atual } = await supabase.auth.getUser();
+    let tipo: TipoCodigo = "email";
+    let erro = null;
+    if (atual.user?.is_anonymous) {
+      const { error } = await supabase.auth.updateUser({ email });
+      if (error) erro = (await supabase.auth.signInWithOtp({ email })).error;
+      else tipo = "email_change";
+    } else {
+      erro = (await supabase.auth.signInWithOtp({ email })).error;
+    }
+    if (erro) {
+      return { erro: erro.status === 429 ? "Muitos pedidos. Espere um minuto e tente de novo." : "Não foi possível enviar o código. Tente de novo em instantes." };
+    }
+    return { etapa: "codigo", email, tipo, enviadoEm: Date.now() };
+  } catch {
+    return { erro: "Login indisponível no momento." };
+  }
+}
+
+/** Confere o código; certo → sessão nos cookies e o cliente volta ao ponto de origem. */
+export async function verificarCodigo(_: CodigoState, form: FormData): Promise<CodigoState> {
+  const email = parseEmail(form.get("email"));
+  const tipo = parseTipoCodigo(form.get("tipo"));
+  const token = normalizarCodigo(form.get("codigo"));
+  const enviadoEm = Number(form.get("enviadoEm")) || Date.now();
+  const base = { etapa: "codigo" as const, email: email ?? "", tipo, enviadoEm };
+  if (!email) return { erro: "Digite um e-mail válido." };
+  if (token.length !== 6) return { ...base, erro: "O código tem 6 dígitos." };
+  const destino = safeNext(form.get("next"), "/");
+  if (await modoTesteCodigo()) {
+    if (token === CODIGO_TESTE_OK) return { ...base, entrou: destino };
+    return { ...base, erro: mensagemErroCodigo(token === CODIGO_TESTE_EXPIRADO ? { code: "otp_expired" } : { code: "otp_invalid" }) };
+  }
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: tipo });
+    if (error) return { ...base, erro: mensagemErroCodigo(error) };
+    return { ...base, entrou: destino };
+  } catch {
+    return { ...base, erro: "Login indisponível no momento." };
+  }
 }
 
 export async function sair() {
