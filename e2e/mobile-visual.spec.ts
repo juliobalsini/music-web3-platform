@@ -55,6 +55,9 @@ test("telas principais em celular", async ({ page }, testInfo) => {
   for (const [caminho, nome] of [["/explorar", "explorar"], ["/minha-radio", "perfil"], ["/enviar", "enviar"]] as const) {
     await page.goto(caminho);
     await page.waitForLoadState("domcontentloaded");
+    // Deslogado, o redirect ao login chega pelo streaming (depois do DOMContentLoaded): espera a URL final.
+    if (nome === "enviar") await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+    await page.waitForLoadState("load");
     await foto(page, nome, testInfo);
   }
 });
