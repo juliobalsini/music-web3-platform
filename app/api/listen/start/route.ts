@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     let { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       // Visitante: só cria sessão anônima se a faixa existe e está publicada (evita criar contas à toa).
-      const { data: faixa } = await createAdminClient().from("tracks").select("id").eq("id", body.trackId).eq("status", "published").maybeSingle();
+      const { data: faixa } = await createAdminClient().from("tracks").select("id").eq("id", body.trackId).eq("status", "published").is("deleted_at", null).maybeSingle();
       if (!faixa) return Response.json({ error: "faixa não encontrada" }, { status: 404, headers: noStore });
       const { data: anon, error: erroAnon } = await supabase.auth.signInAnonymously();
       if (erroAnon || !anon.user) return Response.json({ error: "login necessário" }, { status: 401, headers: noStore });

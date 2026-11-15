@@ -443,3 +443,14 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     faixa". O cliente sabe se há conta lendo a sessão do cookie local (`getSession`, sem ida à rede; sessão anônima conta como
     visitante); isso só decide **abrir o painel** — o acesso continua decidido no servidor (as páginas e ações seguem redirecionando
     ao `/login` como reserva, por exemplo antes da hidratação). A tela `/login` continua existindo para links diretos e erros.
+98. **Meus envios: editar, apagar lógico e desfazer por 30 dias (issue #116, item 7 e parte do 11, 2026-11-15):** migration aditiva
+    `20261115000000` com `deleted_at` em `tracks`, `albums` e `playlists` (stories já tinham) e policies **restritivas** de leitura
+    `deleted_at is null` para `anon` e `authenticated`: o item some na hora de todas as listagens e das playlists alheias (o join com a
+    faixa apagada volta vazio e a tela já o descarta), inclusive para o dono nas leituras comuns. Escrita (apagar, desfazer, renomear)
+    só no servidor (`lib/envios/apagar.ts`, service_role), com o dono vindo da sessão (`getSessionRole`, anônimo recusado) e sempre no
+    filtro da escrita; nenhum cliente marca ou limpa `deleted_at` (testado no PGlite, inclusive sessão anônima). Leituras com service_role
+    de faixa publicada (play, escuta, reação, story, catálogo de reserva) repetem o filtro. Álbum apagado leva as faixas dele com a mesma
+    data, e o desfazer devolve exatamente essas. Desfazer só dentro de 30 dias (o servidor confere o prazo); a lista "Apagados" em Meus
+    envios vem do servidor. Apagar playlist deixou de ser `DELETE` (agora lógico). Editar: faixa/álbum por título (painel inferior),
+    playlist pelo editor existente; story não tem edição (some em 7 dias). Remoção física de linhas e arquivos no B2 após 30 dias é
+    **pós-beta** (PLANO.md): exige aprovação do Julio e a trava de escrita destrutiva.

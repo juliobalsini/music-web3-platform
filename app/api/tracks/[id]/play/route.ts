@@ -27,7 +27,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     // A Rádio lista faixas publicadas também via service_role; tocar precisa seguir a mesma regra
     // (o filtro `published` continua sendo o único critério).
     try {
-      ({ data } = await consulta(createAdminClient() as unknown as typeof supabase));
+      // service_role ignora RLS: repete à mão o filtro da policy "apagadas não aparecem".
+      ({ data } = await (createAdminClient() as unknown as typeof supabase)
+        .from("tracks")
+        .select("r2_key, duration_sec, stream_path, transcode_status, loudness_lufs")
+        .eq("id", id)
+        .eq("status", "published")
+        .is("deleted_at", null)
+        .maybeSingle());
     } catch {
       /* sem service_role: segue sem faixa */
     }

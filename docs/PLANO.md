@@ -13,7 +13,7 @@ inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou vol
 1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas.
 2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa.
 3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa; Google depende da Sessão manual.
-4. Navegação e conta v2: itens 2, 4, 5, 7, 8 e 11 (#116) — complexa, migrations aditivas.
+4. Navegação e conta v2: itens 8 e 11 restante (#116) — complexa, migrations aditivas (2, 4, 5 e 7 entregues).
 5. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
 6. Central de recompensas (item o) — proposto, aguarda aprovação.
 
@@ -124,6 +124,10 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
   (vídeo depende de armazenamento maior que a cota grátis do B2).
 
 - **Pós-beta (issue #122):** playlists colaborativas e notificações — registrado, não implementar agora.
+
+- **Pós-beta (issue #116, item 7; DECISIONS 98):** remoção física de faixas, álbuns, playlists e stories apagados há mais de 30 dias
+  (linhas no banco e arquivos no B2: áudio original, stream, capas, imagens de story). É escrita destrutiva: só com aprovação do Julio e
+  pela trava (nunca pelo agente sozinho). Até lá, apagados ficam ocultos por RLS e ocupam espaço no bucket.
 
 ## Base visual e correções (issue #124, 2026-11-13)
 Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara de painel administrativo** e ordem de migração para os componentes novos:

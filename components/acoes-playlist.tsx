@@ -69,7 +69,7 @@ export function AcoesPlaylist({
             {menu && (
               <div role="menu" className="absolute right-0 z-20 mt-1 flex w-44 flex-col rounded-xl bg-night-800 p-1 shadow-lg ring-1 ring-white/10">
                 <Link role="menuitem" href={`/playlist/${id}?editar=1`} className="flex min-h-11 items-center gap-2 rounded-lg px-3 hover:bg-white/10"><Pencil className="size-4" aria-hidden="true" /> Editar</Link>
-                <form action={apagarPlaylist.bind(null, id)} onSubmit={(e) => { if (!confirm("Apagar esta playlist? Não dá para desfazer.")) e.preventDefault(); }}>
+                <form action={apagarPlaylist.bind(null, id)} onSubmit={(e) => { if (!confirm("Apagar esta playlist? Dá para desfazer em Meus envios por 30 dias.")) e.preventDefault(); }}>
                   <button role="menuitem" className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-white/10"><Trash2 className="size-4" aria-hidden="true" /> Apagar</button>
                 </form>
               </div>

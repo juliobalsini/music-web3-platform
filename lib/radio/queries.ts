@@ -119,12 +119,10 @@ async function lerFaixasPublicadas(supabase: Cliente): Promise<LinhaTrack[]> {
       : []),
   ];
   for (const t of tentativas) {
-    const { data, error } = await t.cliente
-      .from("tracks")
-      .select(t.colunas)
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .limit(200);
+    let q = t.cliente.from("tracks").select(t.colunas).eq("status", "published");
+    // service_role ignora RLS: repete à mão o filtro da policy "apagadas não aparecem".
+    if (t.rotulo.startsWith("admin")) q = q.is("deleted_at", null);
+    const { data, error } = await q.order("created_at", { ascending: false }).limit(200);
     if (error) {
       console.error(`[radio] faixas (${t.rotulo}):`, error.message);
       continue;

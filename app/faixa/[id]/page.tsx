@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { BotaoFaixa } from "@/components/botao-faixa";
 import { Capa } from "@/components/capa";
+import { MenuDono } from "@/components/menu-dono";
 import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
 import { carregarRadio } from "@/lib/radio/queries";
@@ -33,6 +34,9 @@ async function Conteudo({ params }: Pick<PageProps<"/faixa/[id]">, "params">) {
   if (!faixa) notFound();
   return (
     <div className="flex flex-col items-center gap-5 text-center">
+      <div className="self-end">
+        <MenuDono tipo="faixa" id={faixa.id} titulo={faixa.title} donoId={faixa.artistId} />
+      </div>
       <Capa id={faixa.id} title={faixa.title} hasCover={faixa.hasCover} className="size-60" />
       <div>
         <h1 className="text-2xl font-bold text-balance">{faixa.title}</h1>

@@ -24,7 +24,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const admin = createAdminClient();
     if (corpo.on) {
       // Só faixa publicada; a chave primária torna repetir inofensivo.
-      const { data: faixa } = await admin.from("tracks").select("id").eq("id", id).eq("status", "published").maybeSingle();
+      const { data: faixa } = await admin.from("tracks").select("id").eq("id", id).eq("status", "published").is("deleted_at", null).maybeSingle();
       if (!faixa) return Response.json({ error: "faixa não encontrada" }, { status: 404, headers: noStore });
       const { error } = await admin
         .from("track_reactions")
