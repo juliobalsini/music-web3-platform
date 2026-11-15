@@ -345,5 +345,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Fila restante: #116 (itens 5, 7, 8, 11), #120, #122, #125, #140.
 
 - 2026-11-14 (19ª) — Caixa de entrada: pacote de 23:33 virou as issues #145 (Descoberta v2), #146 (Recompensas v1 e Fanfest) e #147
-  (Trilha do artista), todas com `fila`. #116 item 5 (login contextual) em PR item-116-login-contextual (DECISIONS 97).
+  (Trilha do artista), todas com `fila`. #116 item 5 (login contextual) em produção (PR #148, DECISIONS 97;
+  E2E desktop/iPhone/Android verdes, print `05-login-contextual`).
   Fila restante: #116 (itens 7, 8, 11), #120, #122, #125, #140, #145, #146, #147.
