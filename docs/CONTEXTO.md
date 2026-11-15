@@ -374,3 +374,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (`LOGIN_CODIGO_POR_PADRAO=false`), modelos de e-mail em `docs/email-templates/`, guia SMTP, item na Sessão manual; teste de login do
   home.spec só com campo visível. Ligar o código quando o Julio concluir a Sessão manual. Fila restante: #153 (trava), #120 (fatia 2:
   GIS/One Tap, textos, `/entrar`), #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (25ª) — #120 fatia 1 em produção (PR #159). #120 fatia 2 em produção (PR #160, commit f32235a; DECISIONS 103): botão oficial
+  do Google (GIS) + One Tap com `signInWithIdToken` e nonce, Client ID público como padrão (script só na origem de produção; reserva =
+  redirecionamento), painel único "Entre na radioOn", `/entrar`, ação pendente (Seguir conclui sozinho após entrar), protótipo. Conferido
+  em produção: botão do Google carrega sem erro. Pendências: entrar com Google num celular real; ligar o código de 6 dígitos após o item 6
+  da Sessão manual (#135). #154 (trava da #153) segue aguardando o Julio.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122, #125 (resto), #140, #145, #146, #147.
