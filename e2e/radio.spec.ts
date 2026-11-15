@@ -327,6 +327,18 @@ test("Stories: publicar e denunciar exigem conta; novo story redireciona ao logi
   await expect(page).toHaveURL(/\/login\?next=%2Fstories%2Fnovo/);
 });
 
+test("Apagar só para o dono: visitante não vê o ⋯ de faixa nem de álbum; ações recusam sem conta", async ({ page }) => {
+  await page.goto(`/faixa/${FAIXA_DEMO}`);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: /^Mais ações/ })).toHaveCount(0);
+  await page.goto("/album/00000000-0000-4000-8000-000000000401");
+  await expect(page.getByRole("heading", { name: "Sinais" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: /^Mais ações/ })).toHaveCount(0);
+  // Aviso com Desfazer vindo de outra página exige conta: visitante vai ao login.
+  await page.goto(`/meus-envios?apagado=faixa.${FAIXA_DEMO}`);
+  await expect(page).toHaveURL(/\/login\?next=%2Fmeus-envios/);
+});
+
 test("Continue ouvindo: grade de atalhos, progresso e retomada do ponto exato", async ({ page }) => {
   await radioCarregada(page);
   await page.getByRole("list", { name: "Descobertas" }).getByRole("button", { name: DEMO }).first().click();

@@ -305,9 +305,12 @@ export function PainelMenu({ story, onFechar, onApagado, onDono }: { story: Stor
             <MessageCircle className="size-4" aria-hidden="true" /> {stats.comentarios}
           </p>
           {estado === "confirmar" ? (
-            <div className="flex gap-2">
-              <button type="button" onClick={() => void apagar()} className="min-h-11 flex-1 rounded-lg bg-brand-2 px-3 text-sm font-bold text-night-900">Apagar de vez</button>
-              <button type="button" onClick={() => setEstado("")} className="min-h-11 flex-1 rounded-lg bg-white/10 px-3 text-sm font-semibold">Cancelar</button>
+            <div className="flex flex-col gap-2">
+              <p className="px-2 text-sm text-white/70">Some na hora para todos. Dá para desfazer em Meus envios por 30 dias.</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => void apagar()} className="min-h-11 flex-1 rounded-lg bg-brand-2 px-3 text-sm font-bold text-night-900">Apagar</button>
+                <button type="button" onClick={() => setEstado("")} className="min-h-11 flex-1 rounded-lg bg-white/10 px-3 text-sm font-semibold">Cancelar</button>
+              </div>
             </div>
           ) : (
             <button type="button" onClick={() => setEstado("confirmar")} className={linha}><Trash2 className="size-4" aria-hidden="true" /> Apagar story</button>

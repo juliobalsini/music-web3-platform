@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseDescricao, parseTitle, podePublicar, tituloPadrao } from "@/lib/playlists/rules";
 import { loginPath } from "@/lib/auth/roles";
+import { apagarEnvio } from "@/lib/envios/apagar";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 
@@ -121,14 +122,16 @@ export async function publicar(id: string): Promise<Resultado> {
   return { ok: true };
 }
 
+/** Apagar lógico (sem DELETE): some para todos na hora; o dono desfaz em Meus envios por 30 dias. */
 export async function apagarPlaylist(id: string) {
   const d = await donoDe(id);
   if (!d) redirect("/biblioteca");
-  await d.supabase.from("playlists").delete().eq("id", id).eq("curator_id", d.userId);
+  const r = await apagarEnvio(d.userId, "playlist", id).catch(() => null);
   catalogoMudou();
   revalidatePath("/");
   revalidatePath("/biblioteca");
-  redirect("/biblioteca");
+  revalidatePath("/meus-envios");
+  redirect(r?.ok ? `/meus-envios?apagado=playlist.${id}` : "/meus-envios");
 }
 
 /** Salvar/Remover dos salvos (só conta; anônimo é barrado por RLS restritiva). */

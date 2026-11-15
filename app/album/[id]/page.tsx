@@ -7,6 +7,7 @@ import { BotaoAlbum } from "@/components/botao-album";
 import { RegistrarVisita } from "@/components/registrar-visita";
 import { Capa } from "@/components/capa";
 import { ListaFaixas } from "@/components/lista-faixas";
+import { MenuDono } from "@/components/menu-dono";
 import { Tela } from "@/components/ui";
 import { isUuid } from "@/lib/playlists/rules";
 import { carregarRadio } from "@/lib/radio/queries";
@@ -23,6 +24,9 @@ async function Conteudo({ params }: Pick<PageProps<"/album/[id]">, "params">) {
     <>
       <RegistrarVisita tipo="album" id={album.id} titulo={album.title} sub={`${album.kind === "ep" ? "EP" : "Álbum"} · ${album.artistName}`} capaId={primeira.id} temCapa={primeira.hasCover} />
       <div className="flex flex-col items-center gap-4 text-center">
+        <div className="self-end">
+          <MenuDono tipo="album" id={album.id} titulo={album.title} donoId={album.artistId} />
+        </div>
         <Capa id={primeira.id} title={album.title} hasCover={primeira.hasCover} className="size-56 !rounded-xl" />
         <div>
           <h1 className="text-2xl font-bold text-balance">{album.title}</h1>

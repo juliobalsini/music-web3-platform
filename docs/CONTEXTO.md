@@ -281,8 +281,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
-  Meus envios com editar/apagar lógico + desfazer 30 dias (7),
-  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Issue #116 segue aberta com `fila`.
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Item 7 (Meus envios: editar, apagar lógico com `deleted_at`, desfazer 30 dias; migration aditiva `20261115000000`; RLS testada no PGlite) feito em 2026-11-15 (DECISIONS 98); remoção física no B2 registrada como pós-beta no PLANO.md. Issue #116 segue aberta com `fila`.
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
@@ -348,3 +347,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (Trilha do artista), todas com `fila`. #116 item 5 (login contextual) em produção (PR #148, DECISIONS 97;
   E2E desktop/iPhone/Android verdes, print `05-login-contextual`).
   Fila restante: #116 (itens 7, 8, 11), #120, #122, #125, #140, #145, #146, #147.
+
+- 2026-11-15 (20ª) — sem pacote novo na Caixa de entrada. #116 item 7 (Meus envios: ⋯ Editar/Apagar em cada item próprio, confirmação,
+  aviso com Desfazer, seção Apagados por 30 dias; apagar playlist deixou de ser DELETE) em PR item-116-meus-envios (migration aditiva
+  `20261115000000`, DECISIONS 98). Pendência: conferir logado (artista apagando faixa/álbum e desfazendo) e no celular real.
+  Fila restante: #116 (itens 8 e resto do 11), #120, #122, #125, #140, #145, #146, #147.

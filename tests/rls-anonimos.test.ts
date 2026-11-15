@@ -448,3 +448,76 @@ describe("RLS — seguir perfis (migration 20261114000000)", () => {
     assert.equal((await como("service", `select * from public.follows`)).rows.length, 1);
   });
 });
+
+describe("RLS — exclusão lógica de faixas, álbuns e playlists (migration 20261115000000)", () => {
+  const f2 = "00000000-0000-4000-8000-0000000001f2";
+  const f3 = "00000000-0000-4000-8000-0000000001f3";
+  const a2 = "00000000-0000-4000-8000-0000000001a2";
+  const p2 = "00000000-0000-4000-8000-0000000001e2";
+
+  before(async () => {
+    await db.exec(`
+      insert into public.albums (id, artist_id, title, kind) values ('${a2}', '${ids.artista}', 'Apagável', 'ep');
+      insert into public.tracks (id, artist_id, title, r2_key, duration_sec, status, rights_confirmed, album_id) values
+        ('${f2}', '${ids.artista}', 'Some', 'tracks/x/2', 180, 'published', true, null),
+        ('${f3}', '${ids.artista}', 'Do EP', 'tracks/x/3', 180, 'published', true, '${a2}');
+      insert into public.playlists (id, curator_id, title, is_public) values ('${p2}', '${ids.curador}', 'Alheia', true);
+      insert into public.playlist_tracks (playlist_id, track_id, position) values ('${p2}', '${f2}', 0), ('${p2}', '${f3}', 1);
+    `);
+  });
+
+  const conta = async (quem: Quem, sql: string) => (await como(quem, sql)).rows.length;
+
+  it("antes de apagar, todos veem", async () => {
+    assert.equal(await conta("anon", `select id from public.tracks where id in ('${f2}', '${f3}')`), 2);
+    assert.equal(await conta("conta", `select id from public.albums where id = '${a2}'`), 1);
+  });
+
+  it("nenhum cliente apaga faixa ou álbum (nem o dono): só o servidor marca deleted_at", async () => {
+    for (const quem of ["artista", "conta", "anon"] as Quem[]) {
+      const t = await como(quem, `update public.tracks set deleted_at = now() where id = '${f2}'`);
+      assert.ok(t.error || t.affected === 0, `${quem} tracks`);
+      const a = await como(quem, `update public.albums set deleted_at = now() where id = '${a2}'`);
+      assert.ok(a.error || a.affected === 0, `${quem} albums`);
+    }
+    assert.equal(await conta("anon", `select id from public.tracks where id = '${f2}' and deleted_at is null`), 1);
+  });
+
+  it("outra conta e a sessão anônima não apagam playlist alheia", async () => {
+    for (const quem of ["conta", "artista", "anon"] as Quem[]) {
+      const r = await como(quem, `update public.playlists set deleted_at = now() where id = '${p2}'`);
+      assert.ok(r.error || r.affected === 0, quem);
+    }
+  });
+
+  it("apagado some para todos na hora, inclusive para o dono nas leituras comuns e nas playlists alheias", async () => {
+    assert.equal((await como("service", `update public.tracks set deleted_at = now() where id in ('${f2}', '${f3}')`)).affected, 2);
+    assert.equal((await como("service", `update public.albums set deleted_at = now() where id = '${a2}'`)).affected, 1);
+    for (const quem of ["anon", "conta", "curador", "artista"] as Quem[]) {
+      assert.equal(await conta(quem, `select id from public.tracks where id in ('${f2}', '${f3}')`), 0, `${quem} tracks`);
+      assert.equal(await conta(quem, `select id from public.albums where id = '${a2}'`), 0, `${quem} albums`);
+    }
+    // Playlist alheia: os itens continuam, mas o join com a faixa apagada volta vazio (a tela os descarta).
+    const itens = await como("anon", `
+      select pt.track_id, t.id as faixa from public.playlist_tracks pt
+      left join public.tracks t on t.id = pt.track_id where pt.playlist_id = '${p2}'`);
+    assert.equal(itens.rows.length, 2);
+    assert.ok(itens.rows.every((i) => i.faixa === null));
+    // O servidor (service_role) ainda lê, para a lista "Apagados" e o desfazer.
+    assert.equal(await conta("service", `select id from public.tracks where id in ('${f2}', '${f3}') and deleted_at is not null`), 2);
+  });
+
+  it("o dono não desfaz pelo cliente (o desfazer passa pelo servidor, que confere o prazo)", async () => {
+    const t = await como("artista", `update public.tracks set deleted_at = null where id = '${f2}'`);
+    assert.ok(t.error || t.affected === 0);
+    await como("service", `update public.playlists set deleted_at = now() where id = '${p2}'`);
+    const p = await como("curador", `update public.playlists set deleted_at = null where id = '${p2}'`);
+    assert.ok(p.error || p.affected === 0);
+    assert.equal(await conta("anon", `select id from public.playlists where id = '${p2}'`), 0);
+    // Servidor desfaz: volta para todos.
+    await como("service", `update public.playlists set deleted_at = null where id = '${p2}'`);
+    await como("service", `update public.tracks set deleted_at = null where id = '${f2}'`);
+    assert.equal(await conta("anon", `select id from public.playlists where id = '${p2}'`), 1);
+    assert.equal(await conta("conta", `select id from public.tracks where id = '${f2}'`), 1);
+  });
+});

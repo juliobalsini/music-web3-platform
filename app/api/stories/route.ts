@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   if (trackId) {
-    const { data: faixa } = await admin.from("tracks").select("id").eq("id", trackId).eq("status", "published").maybeSingle();
+    const { data: faixa } = await admin.from("tracks").select("id").eq("id", trackId).eq("status", "published").is("deleted_at", null).maybeSingle();
     if (!faixa) return Response.json({ error: "faixa não encontrada" }, { status: 400, headers: noStore });
   }
   const id = randomUUID();

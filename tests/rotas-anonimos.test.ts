@@ -23,6 +23,9 @@ const SO_CONTA = [
   "app/onboarding/page.tsx",
   "app/seguindo/actions.ts",
   "app/seguindo/page.tsx",
+  "app/meus-envios/actions.ts",
+  "app/meus-envios/page.tsx",
+  "components/menu-dono.tsx",
 ];
 
 describe("rotas de servidor recusam anônimos", () => {
@@ -76,6 +79,7 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/playlist/actions.ts",
       "app/onboarding/actions.ts",
       "app/seguindo/actions.ts", // getSessionRole (anônimo = null) + RLS restritiva de follows
+      "lib/envios/apagar.ts", // só chamada de app/meus-envios/actions.ts e app/playlist/actions.ts, depois de getSessionRole; filtra pelo dono
     ]);
     const achados = ["app", "lib", "components"]
       .flatMap((d) => listar(d))
@@ -126,3 +130,24 @@ function listar(dir: string): string[] {
     return statSync(new URL(`../${rel}`, import.meta.url)).isDirectory() ? listar(rel) : [rel];
   });
 }
+
+describe("exclusão lógica: dono vem da sessão e entra no filtro de toda escrita", () => {
+  it("apagar/desfazer/renomear filtram pela coluna do dono e nunca usam DELETE", () => {
+    const src = ler("lib/envios/apagar.ts");
+    assert.doesNotMatch(src, /\.delete\(/);
+    const updates = src.split(".update(").slice(1).map((trecho) => trecho.slice(0, trecho.indexOf(";")));
+    assert.ok(updates.length >= 3);
+    for (const u of updates) assert.match(u, /\.eq\((dono|"artist_id"), userId\)/);
+    assert.match(ler("app/meus-envios/actions.ts"), /sessao\.userId/);
+  });
+
+  it("apagar playlist é lógico (sem DELETE na tabela playlists)", () => {
+    assert.doesNotMatch(ler("app/playlist/actions.ts"), /from\("playlists"\)\.delete\(/);
+  });
+
+  it("leituras com service_role de faixa publicada repetem o filtro de apagadas", () => {
+    for (const f of ["app/api/listen/start/route.ts", "app/api/tracks/[id]/reacao/route.ts", "app/api/stories/route.ts", "app/api/tracks/[id]/play/route.ts"]) {
+      assert.match(ler(f), /\.is\("deleted_at", null\)/, f);
+    }
+  });
+});

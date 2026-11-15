@@ -2,30 +2,39 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 
-import { linha, Tela } from "@/components/ui";
+import { ChipStatus, EstadoVazio, Esqueleto } from "@/components/ds";
+import { Ajuda } from "@/components/ds/interativos";
+import { AvisoApagado, BotaoDesfazer, MenuEnvio } from "@/components/envios";
+import { Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
+import { listarApagados } from "@/lib/envios/apagar";
+import { DIAS_DESFAZER, isTipoEnvio, ROTULO_TIPO, type TipoEnvio } from "@/lib/envios/rules";
+import { isUuid } from "@/lib/playlists/rules";
 import { getSessionRole } from "@/lib/session";
 import { reconciliarEnvios } from "@/lib/tracks/reconciliar";
 import { rotuloStatus } from "@/lib/tracks/envios";
 
 export const metadata = { title: "Meus envios · radioOn" };
 
-type Item = { id: string; titulo: string; href: string; info?: string };
+type Item = { id: string; titulo: string; href: string; info?: string; tom?: "neutro" | "aviso" | "erro" };
 
-function Secao({ titulo, itens, vazio }: { titulo: string; itens: Item[]; vazio: string }) {
+const linhaItem = "flex min-h-12 items-center gap-1 rounded-[var(--ds-raio)] bg-[var(--ds-surface)] pl-4 pr-1";
+
+function Secao({ titulo, tipo, itens, vazio }: { titulo: string; tipo: TipoEnvio; itens: Item[]; vazio: string }) {
   return (
     <section aria-label={titulo} className="flex flex-col gap-2">
       <h2 className="text-lg font-bold">{titulo}</h2>
       {itens.length === 0 ? (
-        <p className="text-white/70 text-pretty">{vazio}</p>
+        <p className="text-[var(--ds-texto-2)] text-pretty">{vazio}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {itens.map((i) => (
-            <li key={i.id}>
-              <Link href={i.href} className={`${linha} min-h-12`}>
+            <li key={i.id} className={linhaItem}>
+              <Link href={i.href} className="flex min-h-12 min-w-0 flex-1 items-center justify-between gap-3">
                 <span className="min-w-0 truncate font-medium">{i.titulo}</span>
-                {i.info && <span className="shrink-0 text-sm text-white/70">{i.info}</span>}
+                {i.info && <ChipStatus tom={i.tom ?? "neutro"}>{i.info}</ChipStatus>}
               </Link>
+              <MenuEnvio tipo={tipo} id={i.id} titulo={i.titulo} />
             </li>
           ))}
         </ul>
@@ -34,34 +43,81 @@ function Secao({ titulo, itens, vazio }: { titulo: string; itens: Item[]; vazio:
   );
 }
 
-async function Conteudo() {
+/** `?apagado=tipo.id` (vindo da página do item): mostra o aviso com Desfazer. */
+function lerApagado(v: string | string[] | undefined): { tipo: TipoEnvio; id: string } | null {
+  const [tipo, id] = (typeof v === "string" ? v : "").split(".");
+  return isTipoEnvio(tipo) && isUuid(id) ? { tipo, id } : null;
+}
+
+async function Conteudo({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sessao = await getSessionRole();
   if (!sessao) redirect(loginPath("/meus-envios"));
   const { supabase, userId } = sessao;
+  const aviso = lerApagado((await searchParams).apagado);
   // Toda faixa em processamento termina: publicada (arquivo no bucket) ou falhou (com motivo).
   await reconciliarEnvios(userId).catch(() => {});
-  const [faixas, albuns, playlists, stories] = await Promise.all([
+  // Leituras comuns já não veem itens apagados (policy restritiva); os apagados vêm do servidor.
+  const [faixas, albuns, playlists, stories, apagados] = await Promise.all([
     supabase.from("tracks").select("id,title,status,failure_reason").eq("artist_id", userId).neq("status", "removed").order("created_at", { ascending: false }).limit(100),
     supabase.from("albums").select("id,title,kind").eq("artist_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("playlists").select("id,title").eq("curator_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("stories").select("id,body").eq("author_id", userId).order("created_at", { ascending: false }).limit(50),
+    listarApagados(userId),
   ]);
+  const nada = [faixas, albuns, playlists, stories].every((r) => (r.data ?? []).length === 0) && apagados.length === 0;
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Meus envios</h1>
-      <Secao titulo="Faixas" vazio="Nenhuma faixa enviada." itens={(faixas.data ?? []).map((t) => ({ id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: rotuloStatus(t.status, t.failure_reason) }))} />
-      <Secao titulo="Álbuns e EPs" vazio="Nenhum álbum ou EP." itens={(albuns.data ?? []).map((a) => ({ id: a.id, titulo: a.title, href: `/album/${a.id}`, info: a.kind === "ep" ? "EP" : "Álbum" }))} />
-      <Secao titulo="Playlists" vazio="Nenhuma playlist." itens={(playlists.data ?? []).map((p) => ({ id: p.id, titulo: p.title, href: `/playlist/${p.id}` }))} />
-      <Secao titulo="Stories" vazio="Nenhum story." itens={(stories.data ?? []).map((s) => ({ id: s.id, titulo: s.body || "Story sem texto", href: `/story/${s.id}` }))} />
+      {nada ? (
+        <EstadoVazio titulo="Nada enviado ainda" texto="Suas faixas, álbuns, playlists e stories aparecem aqui." acao={<Link href="/enviar" className="font-semibold text-[var(--ds-destaque)]">Enviar música</Link>} />
+      ) : (
+        <>
+          <Secao titulo="Faixas" tipo="faixa" vazio="Nenhuma faixa enviada." itens={(faixas.data ?? []).map((t) => ({ id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: rotuloStatus(t.status, t.failure_reason), tom: t.status === "failed" ? "erro" : "aviso" }))} />
+          <Secao titulo="Álbuns e EPs" tipo="album" vazio="Nenhum álbum ou EP." itens={(albuns.data ?? []).map((a) => ({ id: a.id, titulo: a.title, href: `/album/${a.id}`, info: a.kind === "ep" ? "EP" : undefined }))} />
+          <Secao titulo="Playlists" tipo="playlist" vazio="Nenhuma playlist." itens={(playlists.data ?? []).map((p) => ({ id: p.id, titulo: p.title, href: `/playlist/${p.id}` }))} />
+          <Secao titulo="Stories" tipo="story" vazio="Nenhum story." itens={(stories.data ?? []).map((s) => ({ id: s.id, titulo: s.body || "Story sem texto", href: `/story/${s.id}` }))} />
+          {apagados.length > 0 && (
+            <section aria-label="Apagados" className="flex flex-col gap-2">
+              <h2 className="text-lg font-bold">Apagados</h2>
+              <Ajuda titulo="Como funciona">
+                Itens apagados somem na hora para todos, inclusive das playlists de outras pessoas. Você pode desfazer por {DIAS_DESFAZER} dias.
+              </Ajuda>
+              <ul className="flex flex-col gap-2">
+                {apagados.map((a) => (
+                  <li key={`${a.tipo}.${a.id}`} className={linhaItem}>
+                    <span className="flex min-h-12 min-w-0 flex-1 flex-col justify-center">
+                      <span className="truncate font-medium text-[var(--ds-texto-2)]">{a.titulo}</span>
+                      <span className="text-xs text-[var(--ds-texto-2)]">
+                        {ROTULO_TIPO[a.tipo]} · {a.dias} {a.dias === 1 ? "dia" : "dias"} para desfazer
+                      </span>
+                    </span>
+                    <BotaoDesfazer tipo={a.tipo} id={a.id} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+      {aviso && <AvisoApagado tipo={aviso.tipo} id={aviso.id} />}
     </>
   );
 }
 
-export default function MeusEnviosPage() {
+function Carregando() {
+  return (
+    <div aria-busy="true" className="flex flex-col gap-3">
+      <Esqueleto className="h-8 w-48" />
+      {[0, 1, 2, 3].map((i) => <Esqueleto key={i} className="h-12 w-full" />)}
+    </div>
+  );
+}
+
+export default function MeusEnviosPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <Tela>
-      <Suspense>
-        <Conteudo />
+      <Suspense fallback={<Carregando />}>
+        <Conteudo searchParams={searchParams} />
       </Suspense>
     </Tela>
   );
