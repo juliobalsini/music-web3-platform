@@ -362,7 +362,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-15 (23ª) — Caixa de entrada: pacote das 15:16 virou a issue #156 (Stories reposicionados e story de bio; `fila`+`urgente`).
   #153 aguarda a trava (PR #154, alerta #155). #156: Home sem círculos (Player On primeiro), Artistas para conhecer com cards de story
   de bio, seguido com story novo primeiro, Explorar com stories ordenados, Perfil de artista em Configurações (frase e foto do Google),
-  ocultar o story de bio (DECISIONS 101; migration aditiva `20261115020000`; RLS testada no PGlite; E2E mobile `stories-bio-mobile-visual`).
+  ocultar o story de bio (DECISIONS 101; migration aditiva `20261115020000` aplicada; RLS testada no PGlite; E2E mobile `stories-bio-mobile-visual`).
+  **Em produção:** PR #157 (commit a5b79ce), issue #156 fechada. E2E da prévia: a ordem do Explorar compara só itens da demonstração (a prévia
+  lê stories reais do banco).
   Pendência: conferir logado como artista (salvar frase e foto, ver o próprio card; seguir e ver o selo "Novo") no celular real.
   Fila restante: #153 (trava), #120, #122, #125 (resto), #140, #145, #146, #147.
 
