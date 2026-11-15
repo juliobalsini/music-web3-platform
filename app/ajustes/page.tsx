@@ -1,13 +1,48 @@
-import { AjusteNormalizar } from "@/components/ajuste-normalizar";
-import { Tela } from "@/components/ui";
+import { Suspense } from "react";
 
-export const metadata = { title: "Ajustes · radioOn" };
+import { Esqueleto } from "@/components/ds";
+import { Configuracoes, type DadosConta } from "@/components/configuracoes";
+import { Tela } from "@/components/ui";
+import { getSessionRole } from "@/lib/session";
+
+export const metadata = { title: "Configurações · radioOn" };
+
+async function dadosConta(): Promise<DadosConta | null> {
+  try {
+    const s = await getSessionRole();
+    if (!s) return null;
+    const [{ data: u }, { data: p }] = await Promise.all([
+      s.supabase.auth.getUser(),
+      s.supabase.from("profiles").select("display_name").eq("id", s.userId).maybeSingle(),
+    ]);
+    const meta = (u.user?.user_metadata ?? {}) as Record<string, unknown>;
+    const foto = typeof meta.avatar_url === "string" && meta.avatar_url.startsWith("https://") ? meta.avatar_url : null;
+    const nome = p?.display_name || (typeof meta.full_name === "string" ? meta.full_name : null);
+    return { nome, email: u.user?.email ?? null, foto };
+  } catch {
+    return null; // sem Supabase (testes/prévias): só os ajustes do aparelho
+  }
+}
+
+/** Configurações: Reprodução e Dados valem para todos (aparelho); Conta e Privacidade só com conta. */
+async function Conteudo() {
+  return <Configuracoes conta={await dadosConta()} />;
+}
 
 export default function AjustesPage() {
   return (
     <Tela>
-      <h1 className="text-2xl font-semibold text-balance">Ajustes</h1>
-      <AjusteNormalizar />
+      <h1 className="text-2xl font-semibold text-balance">Configurações</h1>
+      <Suspense
+        fallback={
+          <div aria-busy="true" className="flex flex-col gap-3">
+            <Esqueleto className="h-6 w-32" />
+            <Esqueleto className="h-48 w-full" />
+          </div>
+        }
+      >
+        <Conteudo />
+      </Suspense>
     </Tela>
   );
 }

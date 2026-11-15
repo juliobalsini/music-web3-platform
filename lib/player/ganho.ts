@@ -1,24 +1,14 @@
 "use client";
 
 import { dbParaLinear, ganhoDb } from "../audio/transcode.ts";
+import { gravarPreferencias, lerPreferencias } from "../preferencias/cliente.ts";
 
-const CHAVE = "radioon:normalizar";
-
-/** "Normalizar volume": ligado por padrão (guardado só neste aparelho). */
+/** "Normalizar volume": ligado por padrão (preferência do aparelho; sincroniza com a conta). */
 export function normalizarLigado(): boolean {
-  try {
-    return localStorage.getItem(CHAVE) !== "0";
-  } catch {
-    return true;
-  }
+  return lerPreferencias().normalizar;
 }
 export function definirNormalizar(v: boolean) {
-  try {
-    localStorage.setItem(CHAVE, v ? "1" : "0");
-    window.dispatchEvent(new Event("radioon:normalizar"));
-  } catch {
-    /* sem armazenamento: vale a sessão */
-  }
+  gravarPreferencias({ normalizar: v });
 }
 
 /**

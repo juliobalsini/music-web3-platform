@@ -10,12 +10,13 @@ com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estima
 inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
 
 **Backlog priorizado (entrada do próximo sprint; issues `fila` do Julio passam à frente):**
-1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas.
+1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas. Configurações fatia 1 entregue (reprodução, dados,
+   conta, privacidade, excluir conta; DECISIONS 99). Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria,
+   itens 1–4, 6 e 7.
 2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa.
 3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa; Google depende da Sessão manual.
-4. Navegação e conta v2: itens 8 e 11 restante (#116) — complexa, migrations aditivas (2, 4, 5 e 7 entregues).
-5. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
-6. Central de recompensas (item o) — proposto, aguarda aprovação.
+4. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
+5. Central de recompensas (item o) — proposto, aguarda aprovação.
 
 ## Visão
 
@@ -128,6 +129,9 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
 - **Pós-beta (issue #116, item 7; DECISIONS 98):** remoção física de faixas, álbuns, playlists e stories apagados há mais de 30 dias
   (linhas no banco e arquivos no B2: áudio original, stream, capas, imagens de story). É escrita destrutiva: só com aprovação do Julio e
   pela trava (nunca pelo agente sozinho). Até lá, apagados ficam ocultos por RLS e ocupam espaço no bucket.
+
+- **Pós-beta (issue #116, item 8; DECISIONS 99):** remoção física da conta excluída (linha em `auth.users`/`auth.identities`, que ainda
+  guarda o e-mail do Google, perfil, preferências e arquivos no B2). Escrita destrutiva: só com aprovação do Julio e pela trava.
 
 ## Base visual e correções (issue #124, 2026-11-13)
 Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara de painel administrativo** e ordem de migração para os componentes novos:

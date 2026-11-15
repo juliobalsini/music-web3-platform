@@ -131,3 +131,40 @@ export function Ajuda({ titulo = "Ajuda", children }: { titulo?: string; childre
     </details>
   );
 }
+
+/** Interruptor (role=switch) em linha de lista: título, apoio curto opcional e estado também em texto para leitores de tela. */
+export function Interruptor({
+  titulo,
+  apoio,
+  ligado,
+  aoMudar,
+  desabilitado = false,
+  testId,
+}: {
+  titulo: string;
+  apoio?: string;
+  ligado: boolean;
+  aoMudar: (v: boolean) => void;
+  desabilitado?: boolean;
+  testId?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={ligado}
+      disabled={desabilitado}
+      data-testid={testId}
+      onClick={() => aoMudar(!ligado)}
+      className="foco-claro flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left disabled:opacity-60"
+    >
+      <span className="min-w-0">
+        <span className="block font-semibold">{titulo}</span>
+        {apoio && <span className="block text-sm text-[var(--ds-texto-2)] text-pretty">{apoio}</span>}
+      </span>
+      <span aria-hidden="true" className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors duration-[var(--ds-mov-rapido)] ${ligado ? "bg-[var(--ds-destaque)]" : "bg-white/25"}`}>
+        <span className={`size-5 rounded-full bg-white shadow-[0_1px_2px_rgb(0_0_0/0.35)] transition-transform duration-[var(--ds-mov-rapido)] ease-[var(--ds-ease)] ${ligado ? "translate-x-5" : ""}`} />
+      </span>
+    </button>
+  );
+}

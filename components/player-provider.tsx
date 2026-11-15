@@ -6,6 +6,7 @@ import { PlayerCheio } from "@/components/player-cheio";
 import { capaGerada, type FaixaListada } from "@/lib/radio/rules";
 import { salvarPosicao } from "@/lib/radio/continuar-local";
 import { createUrlCache } from "@/lib/player/url-cache";
+import { lerPreferencias } from "@/lib/preferencias/cliente";
 import { criarGanho } from "@/lib/player/ganho";
 import { resolverAudioBaseUrl } from "@/lib/audio/base-url";
 
@@ -165,8 +166,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       const id = carregada.current;
       if (id && ganho.current && audio.current?.src) ganho.current.aplicar(lufsPorFaixa.get(id), ehProxy(audio.current.src));
     };
-    window.addEventListener("radioon:normalizar", reaplicar);
-    return () => window.removeEventListener("radioon:normalizar", reaplicar);
+    window.addEventListener("radioon:prefs", reaplicar);
+    return () => window.removeEventListener("radioon:prefs", reaplicar);
   }, []);
 
   // Guarda o ponto exato da faixa atual (Continue ouvindo). Chamado a cada ~5 s, na pausa e ao sair.
@@ -323,7 +324,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           guardarPonto(true);
           evento.current = null;
           setEstado("parado");
-          if (!vizinha(1)) setTempo((t) => ({ ...t, atual: 0 }));
+          // Configurações › Reprodução contínua (desligada: para ao fim da faixa).
+          if (!lerPreferencias().continua || !vizinha(1)) setTempo((t) => ({ ...t, atual: 0 }));
         }}
         onError={aoErrar}
       />
