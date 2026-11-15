@@ -521,3 +521,66 @@ describe("RLS — exclusão lógica de faixas, álbuns e playlists (migration 20
     assert.equal(await conta("conta", `select id from public.tracks where id = '${f2}'`), 1);
   });
 });
+
+describe("RLS — Configurações e exclusão de conta (migration 20261115010000)", () => {
+  before(async () => {
+    await db.exec(`
+      insert into public.user_settings (user_id, prefs) values
+        ('${ids.conta}', '{"economia": true}'), ('${ids.artista}', '{"perfilPublico": false}');
+    `);
+  });
+
+  it("cada conta lê só as próprias preferências; visitante anônimo e terceiros não leem", async () => {
+    const minha = await como("conta", `select user_id, prefs from public.user_settings`);
+    assert.deepEqual(minha.rows.map((r) => r.user_id), [ids.conta]);
+    assert.equal((await como("anon", `select user_id from public.user_settings`)).rows.length, 0);
+    assert.equal((await como("curador", `select user_id from public.user_settings`)).rows.length, 0);
+  });
+
+  it("nenhum cliente grava preferências (nem o dono, nem a sessão anônima): só o servidor", async () => {
+    for (const quem of ["conta", "artista", "anon"] as Quem[]) {
+      const i = await como(quem, `insert into public.user_settings (user_id, prefs) values ('${ids[quem as "conta"]}', '{}')`);
+      assert.ok(i.error, `${quem} insert`);
+      const u = await como(quem, `update public.user_settings set prefs = '{"perfilPublico": true}' where user_id = '${ids.artista}'`);
+      assert.ok(u.error || u.affected === 0, `${quem} update`);
+      const d = await como(quem, `delete from public.user_settings where user_id = '${ids.conta}'`);
+      assert.ok(d.error || d.affected === 0, `${quem} delete`);
+    }
+    const r = await db.query<{ prefs: { perfilPublico: boolean } }>(`select prefs from public.user_settings where user_id = '${ids.artista}'`);
+    assert.equal(r.rows[0].prefs.perfilPublico, false);
+    assert.ok((await como("service", `update public.user_settings set prefs = '{}' where user_id = '${ids.conta}'`)).affected === 1);
+  });
+
+  it("prefs precisa ser objeto JSON", async () => {
+    const r = await como("service", `update public.user_settings set prefs = '[1]' where user_id = '${ids.conta}'`);
+    assert.match(r.error ?? "", /check/i);
+  });
+
+  it("ninguém marca a própria conta (ou a de outro) como excluída pelo cliente; o dono só troca o nome", async () => {
+    for (const quem of ["conta", "anon"] as Quem[]) {
+      const r = await como(quem, `update public.profiles set deleted_at = now() where id = '${ids[quem as "conta"]}'`);
+      assert.match(r.error ?? "", /permission denied/, quem);
+    }
+    const nome = await como("conta", `update public.profiles set display_name = 'Novo nome' where id = '${ids.conta}'`);
+    assert.equal(nome.affected, 1);
+    const anon = await como("anon", `update public.profiles set display_name = 'X' where id = '${ids.anon}'`);
+    assert.ok(anon.error || anon.affected === 0);
+  });
+
+  it("exclusão pelo servidor: conteúdo some para todos e o perfil vira 'Conta excluída'", async () => {
+    const pl = "00000000-0000-4000-8000-0000000002e1";
+    await db.exec(`insert into public.playlists (id, curator_id, title, is_public) values ('${pl}', '${ids.conta}', 'Minha', true)`);
+    assert.equal((await como("anon", `select id from public.playlists where id = '${pl}'`)).rows.length, 1);
+    await como("service", `update public.playlists set deleted_at = now() where curator_id = '${ids.conta}' and deleted_at is null`);
+    await como("service", `update public.profiles set display_name = 'Conta excluída', deleted_at = now() where id = '${ids.conta}'`);
+    for (const quem of ["anon", "curador", "conta"] as Quem[]) {
+      assert.equal((await como(quem, `select id from public.playlists where id = '${pl}'`)).rows.length, 0, quem);
+    }
+    const p = await como("curador", `select display_name, deleted_at from public.profiles where id = '${ids.conta}'`);
+    assert.equal(p.rows[0].display_name, "Conta excluída");
+    assert.ok(p.rows[0].deleted_at);
+    // Pontos seguem append-only (a exclusão não toca o ledger).
+    const l = await como("service", `delete from public.points_ledger where user_id = '${ids.conta}'`);
+    assert.ok(l.error || l.affected === 0);
+  });
+});

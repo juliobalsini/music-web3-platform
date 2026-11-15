@@ -10,6 +10,7 @@ import { Logo } from "@/components/logo";
 import { PainelCompartilhar, PainelComentarios, PainelMenu } from "@/components/story-paineis";
 import { marcarVistoLocal } from "@/components/stories-vistos";
 import { usePlayer } from "@/components/player-provider";
+import { lerPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
 import { capaGerada } from "@/lib/radio/rules";
 import { CLIP_SEGUNDOS, inicioDoTrecho, type GrupoStories } from "@/lib/stories/rules";
 import { anterior, classificarGesto, duracaoDoStory, proxima, tempoRelativo, trocarPerfil, zonaDoToque, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
@@ -45,7 +46,11 @@ export function VisualizadorStories({
   const [segurando, setSegurando] = useState(false);
   const [painel, setPainel] = useState<Painel>(null);
   const [foco, setFoco] = useState(false);
-  const [mudo, setMudo] = useState(false);
+  // Configurações: sem "Som nos stories" ou com economia de dados, o story abre sem som (a pessoa ainda pode ligar).
+  const prefs = usePreferencias();
+  const [mudoEscolhido, setMudoEscolhido] = useState<boolean | null>(null);
+  const mudo = mudoEscolhido ?? (!prefs.somStories || prefs.economia);
+  const setMudo = (f: (m: boolean) => boolean) => setMudoEscolhido(f(mudo));
   const [curtiu, setCurtiu] = useState(false);
   const [dono, setDono] = useState(false);
   const [apagados, setApagados] = useState<ReadonlySet<string>>(new Set());
@@ -138,14 +143,20 @@ export function VisualizadorStories({
   }, []);
   const faixaId = faixa?.id ?? null;
   const comeco = story ? inicioDoTrecho(story.clipStart, faixa?.durationSec ?? null) : 0;
+  // Economia de dados: com o story sem som, o áudio nem é baixado; baixa quando a pessoa liga o som.
+  const carregado = useRef<string | null>(null);
   useEffect(() => {
+    const chave = `${idStory}:${faixaId}`;
+    if (carregado.current === chave) return;
     const el = audio.current ?? (audio.current = new Audio());
     el.pause();
+    carregado.current = null;
     if (!faixaId) return;
-    let vivo = true;
+    if (mudoRef.current && lerPreferencias().economia) return;
+    carregado.current = chave;
     urlDe(faixaId)
       .then((url) => {
-        if (!vivo) return;
+        if (carregado.current !== chave) return;
         if (player.estado === "tocando") player.alternar();
         el.src = url;
         el.preload = "auto";
@@ -156,13 +167,11 @@ export function VisualizadorStories({
         };
         if (!pausadoRef.current) void el.play().catch(() => {});
       })
-      .catch(() => {});
-    return () => {
-      vivo = false;
-      el.pause();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao trocar de story
-  }, [idStory, faixaId, comeco, urlDe]);
+      .catch(() => {
+        if (carregado.current === chave) carregado.current = null;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ao trocar de story ou ao ligar o som
+  }, [idStory, faixaId, comeco, urlDe, mudo]);
   useEffect(() => {
     const el = audio.current;
     if (!el) return;
@@ -182,14 +191,14 @@ export function VisualizadorStories({
   const prox = proxima(grupos, pos);
   const proximoStory = prox ? grupos[prox.g].stories[prox.i] : null;
   useEffect(() => {
-    if (!proximoStory) return;
+    if (!proximoStory || prefs.economia) return;
     if (proximoStory.hasImage) new Image().src = `/api/stories/${proximoStory.id}/imagem`;
     const f = proximoStory.trackId ? faixas[proximoStory.trackId] : null;
     if (f) {
       if (f.hasCover) new Image().src = `/api/tracks/${f.id}/capa`;
       void urlDe(f.id).catch(() => {});
     }
-  }, [proximoStory, faixas, urlDe]);
+  }, [proximoStory, faixas, urlDe, prefs.economia]);
 
   // Gestos no palco.
   const toque = useRef<{ x: number; y: number; t: number; w: number; x0: number; hold: ReturnType<typeof setTimeout> } | null>(null);

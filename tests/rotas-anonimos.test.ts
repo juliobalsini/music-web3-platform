@@ -79,6 +79,8 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/playlist/actions.ts",
       "app/onboarding/actions.ts",
       "app/seguindo/actions.ts", // getSessionRole (anônimo = null) + RLS restritiva de follows
+      "app/ajustes/actions.ts", // cada ação começa com getSessionRole (anônimo = null); o dono vem da sessão
+      "lib/preferencias/conta.ts", // só chamada de app/ajustes/actions.ts, depois de getSessionRole; filtra pelo dono
       "lib/envios/apagar.ts", // só chamada de app/meus-envios/actions.ts e app/playlist/actions.ts, depois de getSessionRole; filtra pelo dono
     ]);
     const achados = ["app", "lib", "components"]
@@ -90,6 +92,14 @@ describe("rotas de servidor recusam anônimos", () => {
         return usaBanco && /\.(insert|update|upsert|delete|rpc)\(/.test(src.replace(/cookies\.delete\(/g, ""));
       });
     for (const f of achados) assert.ok(permitidos.has(f), `escrita não auditada para anônimos: ${f}`);
+  });
+
+  it("configurações: toda ação exige conta (getSessionRole) e excluir exige a palavra de confirmação", () => {
+    const src = ler("app/ajustes/actions.ts");
+    const acoes = src.split("export async function").slice(1);
+    assert.equal(acoes.length, 4);
+    for (const a of acoes) assert.match(a, /const s = await getSessionRole\(\);\s+if \(!s\) return SEM_CONTA;/);
+    assert.match(src, /confirmouExclusao\(form\.get\("confirmacao"\)\)/);
   });
 
   it("stories v2: comentar, apagar e denunciar exigem conta; visualizar/curtir usam o cliente do usuário (RLS)", () => {

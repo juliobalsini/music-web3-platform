@@ -454,3 +454,22 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     envios vem do servidor. Apagar playlist deixou de ser `DELETE` (agora lógico). Editar: faixa/álbum por título (painel inferior),
     playlist pelo editor existente; story não tem edição (some em 7 dias). Remoção física de linhas e arquivos no B2 após 30 dias é
     **pós-beta** (PLANO.md): exige aprovação do Julio e a trava de escrita destrutiva.
+99. **Configurações, fatia 1 (issue #125 item 5 e #116 itens 8 e 11, 2026-11-15):** a #125 declara que substitui o item 8 da #116; esta
+    fatia entrega a parte do 8 e começa o 5 da #125, e a #116 fecha. (a) Preferências `normalizar`, `continua`, `somStories`, `economia`,
+    `perfilPublico`, `mostrarOuvindo` em `lib/preferencias/` (regras puras com saneamento: só chaves conhecidas e booleanas). Aparelho:
+    `localStorage` `radioon:prefs` (a chave antiga `radioon:normalizar` é lida como reserva). Conta: tabela nova `user_settings`
+    (migration aditiva `20261115010000`), RLS só de leitura própria, **nenhuma escrita pelo cliente** (o servidor grava com service_role, dono
+    vindo de `getSessionRole`; sessão anônima fica só no aparelho). A gaveta (montada em todas as telas) aplica no aparelho as preferências
+    da conta; a conta vence. (b) Efeitos: reprodução contínua desligada para ao fim da faixa; sem "Som nos stories" ou com economia, o
+    story abre sem som; com economia, o áudio do story só é baixado quando a pessoa liga o som e o próximo story não é pré-carregado (o
+    player principal já não pré-busca a próxima faixa, decisão 22). Perfil privado: quem visita `/perfil/[id]` vê só o nome e "Perfil
+    privado"; as faixas e playlists publicadas continuam no catálogo (o conteúdo é público por natureza). "Mostrar o que estou ouvindo":
+    hoje nenhuma tela mostra o que alguém ouve (o "N ouvindo" é contagem anônima); a escolha fica salva para a tela que vier.
+    (c) Conta: nome (coluna `display_name`, que o dono já podia trocar pela RLS), e-mail (`auth.updateUser`; o Supabase confirma por link no
+    endereço novo), foto da conta Google (foto própria com recorte fica para a fatia de `covers/`). (d) **Excluir conta:** confirmação dupla
+    (aviso → digitar EXCLUIR, conferido de novo no servidor); exclusão lógica, sem DELETE: 1) login anonimizado pela API admin (e-mail
+    `excluida-<id>@radioon.invalid`, metadados limpos, acesso bloqueado por `ban_duration`); se falhar, nada mais muda; 2) `deleted_at` em
+    faixas, álbuns, playlists e stories (somem para todos pelas policies restritivas da decisão 98); 3) perfil "Conta excluída" com
+    `profiles.deleted_at` (o cliente não grava a coluna: grant só de `display_name`) e preferências privadas; 4) sessão encerrada. Pontos
+    (append-only) e escutas ficam, sem dado pessoal; seguidores deixam de ver a conta em Seguindo. `auth.identities` ainda guarda o e-mail do
+    Google até a remoção física, que é **pós-beta** (PLANO.md; escrita destrutiva, só com aprovação e trava).

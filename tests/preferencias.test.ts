@@ -1,0 +1,48 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { confirmouExclusao, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+
+describe("Configurações — preferências", () => {
+  it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
+    assert.deepEqual(PADRAO, { normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true });
+  });
+
+  it("saneia: só chaves conhecidas e booleanas", () => {
+    assert.deepEqual(sanear({ economia: true, continua: "não", role: "curator", __proto__: { x: 1 } }), { economia: true });
+    for (const v of [null, undefined, 1, "x", [true]]) assert.deepEqual(sanear(v), {});
+  });
+
+  it("mescla da esquerda para a direita (a conta vence o aparelho quando vem depois)", () => {
+    const p = mesclar({ economia: true, somStories: false }, { somStories: true }, { perfilPublico: "x" });
+    assert.equal(p.economia, true);
+    assert.equal(p.somStories, true);
+    assert.equal(p.perfilPublico, true);
+  });
+});
+
+describe("Configurações — conta", () => {
+  it("exclusão só com a palavra EXCLUIR", () => {
+    assert.equal(confirmouExclusao(" excluir "), true);
+    assert.equal(confirmouExclusao("EXCLUIR"), true);
+    for (const v of ["sim", "", null, "EXCLUI", 1]) assert.equal(confirmouExclusao(v), false);
+  });
+
+  it("nome: 1–80 caracteres, espaços colapsados", () => {
+    assert.equal(parseNome("  Ana   Lu "), "Ana Lu");
+    assert.equal(parseNome("   "), null);
+    assert.equal(parseNome("a".repeat(81)), null);
+    assert.equal(parseNome(3), null);
+  });
+
+  it("e-mail: forma simples, minúsculas", () => {
+    assert.equal(parseEmail(" Ana@Exemplo.com "), "ana@exemplo.com");
+    for (const v of ["ana", "ana@x", "a b@x.com", "", null]) assert.equal(parseEmail(v), null);
+  });
+
+  it("e-mail substituto da conta excluída não entrega (domínio .invalid) e é único por conta", () => {
+    const e = emailAnonimo("00000000-0000-4000-8000-000000000001");
+    assert.match(e, /@radioon\.invalid$/);
+    assert.notEqual(e, emailAnonimo("00000000-0000-4000-8000-000000000002"));
+  });
+});

@@ -25,7 +25,7 @@ async function Conteudo() {
   if (!sessao) redirect(loginPath("/seguindo"));
   const { data } = await sessao.supabase
     .from("follows")
-    .select("followed_id, created_at, profiles!follows_followed_id_fkey(display_name)")
+    .select("followed_id, created_at, profiles!follows_followed_id_fkey(display_name, deleted_at)")
     .eq("follower_id", sessao.userId)
     .order("created_at", { ascending: false })
     .limit(200);

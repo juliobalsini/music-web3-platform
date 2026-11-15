@@ -31,6 +31,7 @@ Fonte: `app/globals.css` (tokens `--ds-*`), `components/ds/index.tsx` (sem estad
 | `Esqueleto` | carregamento (contêiner com `aria-busy`) |
 | `PainelInferior` | bottom sheet em `<dialog>` modal (Esc, toque fora, ×) |
 | `LinkConta` / `BotaoEntrar` / `useLoginContextual` | ação que exige conta: visitante vê o painel de login (`components/login-contextual.tsx`) e volta ao ponto de origem |
+| `Interruptor` | liga/desliga em linha de lista (`role=switch`), título + apoio curto; agrupar em cartão com `divide-y` (Configurações) |
 | `MenuMais` | menu ⋯ (Esc, toque fora, `role=menu`) |
 | `Ajuda` | `<details>` que guarda o texto longo |
 

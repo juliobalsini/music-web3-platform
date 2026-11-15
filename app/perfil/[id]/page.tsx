@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -14,15 +15,17 @@ import { carregarRadio } from "@/lib/radio/queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
 import { podeSeguir } from "@/lib/seguir/rules";
+import { perfilEhPublico } from "@/lib/preferencias/conta";
 import { getSessionRole } from "@/lib/session";
 
 /** O usuário (com conta) segue este perfil? Visitante/anônimo: false (o botão leva ao login). */
-async function seguindoPerfil(id: string): Promise<{ mostrar: boolean; seguindo: boolean }> {
+async function seguindoPerfil(id: string): Promise<{ mostrar: boolean; seguindo: boolean; eu: string | null }> {
   const sessao = await getSessionRole().catch(() => null);
-  if (!podeSeguir(sessao?.userId ?? null, id, PLATAFORMA_ID)) return { mostrar: false, seguindo: false };
-  if (!sessao) return { mostrar: true, seguindo: false };
+  const eu = sessao?.userId ?? null;
+  if (!podeSeguir(eu, id, PLATAFORMA_ID)) return { mostrar: false, seguindo: false, eu };
+  if (!sessao) return { mostrar: true, seguindo: false, eu };
   const { data } = await sessao.supabase.from("follows").select("followed_id").eq("follower_id", sessao.userId).eq("followed_id", id).maybeSingle();
-  return { mostrar: true, seguindo: !!data };
+  return { mostrar: true, seguindo: !!data, eu };
 }
 
 export const metadata = { title: "Perfil · radioOn" };
@@ -31,7 +34,7 @@ export const metadata = { title: "Perfil · radioOn" };
 async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const [radio, todosStories, seguir] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id)]);
+  const [radio, todosStories, seguir, publico] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id), perfilEhPublico(id)]);
   const stories = todosStories.filter((s) => s.authorId === id);
   const agora = new Date().getTime();
   const faixas = radio.faixas.filter((f) => f.artistId === id);
@@ -39,6 +42,21 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   if (faixas.length === 0 && playlists.length === 0 && stories.length === 0) notFound();
   const nome = faixas[0]?.artistName ?? playlists[0]?.curator ?? stories[0]?.authorName ?? "Perfil";
   const plays = faixas.reduce((n, f) => n + f.plays, 0);
+  // Configurações › Perfil público desligado: quem visita vê só o nome (o dono vê tudo). As faixas e playlists
+  // publicadas seguem tocando no resto da radioOn.
+  if (!publico && seguir.eu !== id) {
+    return (
+      <div className="flex items-center gap-4">
+        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/70">
+          <Lock className="size-7" />
+        </span>
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold">{nome}</h1>
+          <p data-testid="perfil-privado" className="text-sm text-white/70">Perfil privado</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <RegistrarVisita tipo="perfil" id={id} titulo={nome} sub={id === PLATAFORMA_ID ? "Perfil oficial" : "Perfil"} />

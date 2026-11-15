@@ -279,9 +279,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
 
-- [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
+- [x] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
-  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Item 7 (Meus envios: editar, apagar lógico com `deleted_at`, desfazer 30 dias; migration aditiva `20261115000000`; RLS testada no PGlite) feito em 2026-11-15 (DECISIONS 98); remoção física no B2 registrada como pós-beta no PLANO.md. Issue #116 segue aberta com `fila`.
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Item 7 (Meus envios: editar, apagar lógico com `deleted_at`, desfazer 30 dias; migration aditiva `20261115000000`; RLS testada no PGlite) feito em 2026-11-15 (DECISIONS 98); remoção física no B2 registrada como pós-beta no PLANO.md. Itens 8 e resto do 11 (Configurações, exclusão de conta) entregues em 2026-11-15 como fatia 1 das Configurações da #125, que substitui o item 8 (DECISIONS 99; migration aditiva `20261115010000`). **Issue #116 concluída.**
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
@@ -351,4 +351,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-15 (20ª) — sem pacote novo na Caixa de entrada. #116 item 7 (Meus envios: ⋯ Editar/Apagar em cada item próprio, confirmação,
   aviso com Desfazer, seção Apagados por 30 dias; apagar playlist deixou de ser DELETE) em PR item-116-meus-envios (migration aditiva
   `20261115000000`, DECISIONS 98). Pendência: conferir logado (artista apagando faixa/álbum e desfazendo) e no celular real.
-  Fila restante: #116 (itens 8 e resto do 11), #120, #122, #125, #140, #145, #146, #147.
+  Fila restante: #116 (itens 8 e resto do 11), #120, #122, #125, #140, #145, #146, #147. (Item 7 em produção: PR #150.)
+
+- 2026-11-15 (21ª) — sem pacote novo na Caixa de entrada. #116 itens 8 e 11 (restante) entregues como Configurações fatia 1 da #125
+  (PR item-125-configuracoes; DECISIONS 99): Reprodução (normalizar, contínua, som nos stories), Dados (economia), Conta (nome, e-mail,
+  foto do Google), Privacidade (perfil público, mostrar o que ouço), Excluir conta (confirmação dupla, exclusão lógica + anonimização);
+  preferências no aparelho e na conta (`user_settings`, RLS testada no PGlite). #116 fechada. Pendência: conferir logado no celular
+  (trocar nome/e-mail; excluir uma conta de teste). Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.

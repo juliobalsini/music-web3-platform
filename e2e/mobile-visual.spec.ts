@@ -61,3 +61,32 @@ test("telas principais em celular", async ({ page }, testInfo) => {
     await foto(page, nome, testInfo);
   }
 });
+
+test("configurações: ajustes do aparelho valem para o visitante e ficam salvos", async ({ page }, testInfo) => {
+  await page.goto("/ajustes");
+  await expect(page.getByRole("heading", { name: "Configurações", level: 1 })).toBeVisible();
+  const economia = page.getByTestId("pref-economia");
+  const continua = page.getByTestId("pref-continua");
+  // O conteúdo chega por streaming (cópia oculta por um instante) e só responde ao toque depois de hidratar.
+  await expect(economia).toHaveCount(1);
+  await expect(economia).toHaveAttribute("aria-checked", "false");
+  await expect(continua).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByTestId("pref-som-stories")).toHaveAttribute("aria-checked", "true");
+  // Visitante: sem Conta/Privacidade/Excluir; convite para entrar.
+  await expect(page.getByTestId("excluir-conta")).toHaveCount(0);
+  await expect(page.getByTestId("pref-perfil-publico")).toHaveCount(0);
+  const ligar = async (el: typeof economia, valor: "true" | "false") =>
+    expect(async () => {
+      if ((await el.getAttribute("aria-checked")) !== valor) await el.click();
+      await expect(el).toHaveAttribute("aria-checked", valor, { timeout: 500 });
+    }).toPass({ timeout: 15_000 });
+  await ligar(economia, "true");
+  await ligar(continua, "false");
+  await foto(page, "08-configuracoes", testInfo);
+  await page.reload();
+  await expect(page.getByTestId("pref-economia")).toHaveCount(1);
+  await expect(page.getByTestId("pref-economia")).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByTestId("pref-continua")).toHaveAttribute("aria-checked", "false");
+  const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem("radioon:prefs") ?? "{}"));
+  expect(salvo).toMatchObject({ economia: true, continua: false });
+});

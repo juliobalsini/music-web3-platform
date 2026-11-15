@@ -19,4 +19,12 @@ describe("seguir", () => {
     ]);
     assert.deepEqual(r.map((x) => [x.id, x.nome]), [["2", "Perfil"], ["3", "Perfil"], ["1", "Ana"]]);
   });
+
+  it("conta excluída some da lista de quem eu sigo", () => {
+    const r = paraSeguidos([
+      { followed_id: "1", created_at: "2026-11-01T00:00:00Z", profiles: { display_name: "Ana", deleted_at: null } },
+      { followed_id: "2", created_at: "2026-11-03T00:00:00Z", profiles: { display_name: "Conta excluída", deleted_at: "2026-11-15T00:00:00Z" } },
+    ]);
+    assert.deepEqual(r.map((x) => x.id), ["1"]);
+  });
 });

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { entrarComGoogle, sair } from "@/app/login/actions";
 import { botao } from "@/components/ui";
+import { gravarPreferencias } from "@/lib/preferencias/cliente";
 import type { ResumoConta } from "@/lib/session";
 
 const item = "foco-claro flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-semibold hover:bg-white/10";
@@ -22,6 +23,12 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
     setAnterior(caminho);
     setAberta(false);
   }
+
+  // Preferências da conta valem neste aparelho (a conta vence; mudanças feitas aqui já foram salvas nela).
+  const prefsConta = conta.prefs ? JSON.stringify(conta.prefs) : null;
+  useEffect(() => {
+    if (prefsConta) gravarPreferencias(JSON.parse(prefsConta));
+  }, [prefsConta]);
 
   useEffect(() => {
     if (!aberta) return;
