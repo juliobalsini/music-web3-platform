@@ -19,6 +19,13 @@ const ARTISTAS = [
   { id: id(102), nome: "Maré Alta" },
   { id: id(103), nome: "Duo Vitrola" },
 ];
+/** Perfil público dos artistas demo (story de bio). Duo Vitrola não tem foto: sem story de bio. */
+export const PERFIS_DEMO: Record<string, { foto: string | null; bio: string | null }> = {
+  [id(101)]: { foto: "/demo/artista-lia.svg", bio: "Canções de porto, violão e voz para ouvir devagar." },
+  [id(102)]: { foto: "/demo/artista-mare.svg", bio: null },
+  [id(103)]: { foto: null, bio: "Dois amigos e uma vitrola." },
+};
+
 const CURADORES = [
   { id: id(201), nome: "Clara Sintonia" },
   { id: id(202), nome: "Rádio do Bairro" },

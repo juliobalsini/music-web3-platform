@@ -363,3 +363,16 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (limite de uso, sem ação). #153: PR protegido item-153-uso-distribuido (agendamento a cada 4 h, máx. 2 seguidas, limite de uso sem
   alerta + `scripts/limites-de-uso.sh`; DECISIONS 100) — **aguarda `travas`**; vale como PR protegido semanal da semana de 2026-11-16.
   Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.
+- 2026-11-15 (23ª) — Caixa de entrada: pacote das 15:16 virou a issue #156 (Stories reposicionados e story de bio; `fila`+`urgente`).
+  #153 aguarda a trava (PR #154, alerta #155). #156: Home sem círculos (Player On primeiro), Artistas para conhecer com cards de story
+  de bio, seguido com story novo primeiro, Explorar com stories ordenados, Perfil de artista em Configurações (frase e foto do Google),
+  ocultar o story de bio (DECISIONS 101; migration aditiva `20261115020000` aplicada; RLS testada no PGlite; E2E mobile `stories-bio-mobile-visual`).
+  **Em produção:** PR #157 (commit a5b79ce), issue #156 fechada. E2E da prévia: a ordem do Explorar compara só itens da demonstração (a prévia
+  lê stories reais do banco).
+  Pendência: conferir logado como artista (salvar frase e foto, ver o próprio card; seguir e ver o selo "Novo") no celular real.
+  Fila restante: #153 (trava), #120, #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (24ª) — #154 (trava da #153) teve a trava aprovada, mas o E2E da prévia falhou em "página de login carrega" (strict mode:
+  dois campos E-mail; o branch estava sobre a main anterior ao #157). PR atualizado sobre a main (conflitos em DECISIONS/CONTEXTO resolvidos,
+  mantendo 100 e 101); o novo commit pede a trava de novo. Fila restante: #153 (trava), #120, #122, #125 (resto), #140, #145, #146, #147.
+

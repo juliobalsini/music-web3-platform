@@ -21,6 +21,8 @@ export type Story = {
   trackId: string | null;
   clipStart: number | null;
   createdAt: string;
+  /** Story de bio automático do artista (virtual, sem linha no banco): foto e gênero principal. */
+  bio?: { foto: string; genero: string | null };
 };
 
 export const ativo = (createdAt: string, agora: number) => agora - Date.parse(createdAt) < ATIVO_MS;

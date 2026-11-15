@@ -30,12 +30,10 @@ export function SelecaoRadioOn({ lista }: { lista: Selecao[] }) {
   );
 }
 
-/** Artistas para conhecer: avatar, nome e nº de faixas; leva ao perfil. */
-export function ArtistasParaConhecer({ lista }: { lista: ArtistaResumo[] }) {
+/** Artistas sem story de bio ainda: avatar, nome e nº de faixas; leva ao perfil. */
+export function ListaArtistas({ lista }: { lista: ArtistaResumo[] }) {
   if (lista.length === 0) return null;
   return (
-    <section aria-label="Artistas para conhecer" className="flex flex-col gap-2">
-      <h2 className="text-lg font-bold">Artistas para conhecer</h2>
       <ul className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
         {lista.map((a) => (
           <li key={a.id} className="w-20 shrink-0">
@@ -49,6 +47,5 @@ export function ArtistasParaConhecer({ lista }: { lista: ArtistaResumo[] }) {
           </li>
         ))}
       </ul>
-    </section>
   );
 }

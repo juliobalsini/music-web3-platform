@@ -5,14 +5,23 @@ import { TriangleAlert } from "lucide-react";
 import { useActionState, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
-import { excluir, salvarNome, salvarPreferencias, trocarEmail, type Resultado } from "@/app/ajustes/actions";
+import { excluir, salvarNome, salvarPerfilArtista, salvarPreferencias, trocarEmail, type Resultado } from "@/app/ajustes/actions";
 import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos";
 import { BotaoEntrar } from "@/components/login-contextual";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
 import { PALAVRA_EXCLUIR, type Preferencias } from "@/lib/preferencias/rules";
+import { MAX_BIO } from "@/lib/stories/bio";
 
-export type DadosConta = { nome: string | null; email: string | null; foto: string | null };
+export type DadosConta = {
+  nome: string | null;
+  email: string | null;
+  foto: string | null;
+  /** Perfil de artista: story de bio (frase e foto pública). */
+  artista?: boolean;
+  bio?: string | null;
+  fotoNoPerfil?: boolean;
+};
 
 const grupo = "flex flex-col divide-y divide-[var(--ds-borda)] overflow-hidden rounded-[var(--ds-raio)] bg-[var(--ds-surface)]";
 
@@ -80,10 +89,14 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
       {conta ? (
         <>
           <SecaoConta conta={conta} />
+          {conta.artista && <SecaoArtista conta={conta} />}
           <Secao titulo="Privacidade">
             <div className={grupo}>
               <Interruptor titulo="Perfil público" apoio="Outras pessoas veem seu perfil." ligado={prefs.perfilPublico} aoMudar={(v) => mudar("perfilPublico", v)} testId="pref-perfil-publico" />
               <Interruptor titulo="Mostrar o que estou ouvindo" ligado={prefs.mostrarOuvindo} aoMudar={(v) => mudar("mostrarOuvindo", v)} testId="pref-ouvindo" />
+              {conta.artista && (
+                <Interruptor titulo="Story de bio" apoio="Seu card em Artistas para conhecer." ligado={prefs.storyBio} aoMudar={(v) => mudar("storyBio", v)} testId="pref-story-bio" />
+              )}
             </div>
             <Ajuda>
               Com o perfil privado, quem visita vê só seu nome; suas faixas e playlists publicadas continuam tocando na radioOn.
@@ -133,6 +146,47 @@ function SecaoConta({ conta }: { conta: DadosConta }) {
           <Enviar>Trocar e-mail</Enviar>
         </form>
       </div>
+    </Secao>
+  );
+}
+
+/** Perfil de artista: frase da bio e foto pública. Com foto, nome e uma faixa publicada, o story de bio entra no ar. */
+function SecaoArtista({ conta }: { conta: DadosConta }) {
+  const [estado, acao] = useActionState(salvarPerfilArtista, null);
+  const [bio, setBio] = useState(conta.bio ?? "");
+  return (
+    <Secao titulo="Perfil de artista">
+      <form action={acao} className={`${grupo} divide-y-0 gap-4 p-4`}>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="cfg-bio" className="text-sm font-semibold">Frase da bio</label>
+          <textarea
+            id="cfg-bio"
+            name="bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO))}
+            maxLength={MAX_BIO}
+            rows={2}
+            placeholder="O som que você faz, em uma frase"
+            className={`${campo} min-h-20 resize-none py-3`}
+          />
+          <p aria-live="polite" className="self-end text-xs tabular-nums text-[var(--ds-texto-2)]">{bio.length}/{MAX_BIO}</p>
+        </div>
+        {conta.foto ? (
+          <label className="flex min-h-11 items-center gap-3">
+            <input type="checkbox" name="foto" value="1" defaultChecked={conta.fotoNoPerfil} className="size-5 accent-[var(--ds-destaque)]" />
+            <span className="text-pretty">Usar a foto da minha conta Google no perfil</span>
+          </label>
+        ) : (
+          <p className="text-sm text-pretty text-[var(--ds-texto-2)]">Entre com Google para usar sua foto. Foto própria chega em breve.</p>
+        )}
+        <Retorno estado={estado} />
+        <Enviar>Salvar perfil</Enviar>
+      </form>
+      <Ajuda titulo="Como funciona o story de bio">
+        Com foto, nome e ao menos uma faixa publicada, seu story de bio aparece em Artistas para conhecer e no Explorar: foto,
+        gênero principal, esta frase e 15 s da sua faixa mais ouvida, com Ouvir e Seguir. Ele se atualiza sozinho e não expira.
+        Para tirar do ar, desligue Story de bio em Privacidade.
+      </Ajuda>
     </Secao>
   );
 }
