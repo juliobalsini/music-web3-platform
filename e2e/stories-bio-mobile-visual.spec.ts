@@ -5,7 +5,10 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 // Dados: demonstração das prévias (Lia Norte e Maré Alta com foto; Duo Vitrola sem foto = sem story de bio;
 // Lia tem 1 story postado). "Sigo a Lia" é simulado pelo cookie de teste radioon_demo_segue (só fora de produção).
 
-const rotulos = (page: Page) => page.getByRole("region", { name: "Stories", exact: true }).getByRole("button").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+/** Rótulos dos cards na ordem, só da demonstração (a prévia pode ter stories reais do banco entre eles). */
+const DEMO = /radioOn|Lia Norte|Maré Alta/;
+const rotulos = async (page: Page) =>
+  (await page.getByRole("region", { name: "Stories", exact: true }).getByRole("button").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""))).filter((r) => DEMO.test(r));
 
 const LIA = "00000000-0000-4000-8000-000000000101";
 
