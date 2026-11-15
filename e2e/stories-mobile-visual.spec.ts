@@ -107,7 +107,7 @@ test("Stories: compartilhar em linha de ícones e comentar (visitante é convida
   await visor.getByRole("textbox", { name: "Comentar" }).press("Enter");
   await expect(visor.getByText("Entre com uma conta para comentar.")).toBeVisible({ timeout: 15_000 });
   // O painel de login contextual abre por cima e volta ao story depois de entrar.
-  const login = page.getByRole("dialog", { name: "Entre para continuar" });
+  const login = page.getByRole("dialog", { name: "Entre na radioOn" });
   await expect(login).toBeVisible();
   await expect(login.locator('input[name="next"]')).toHaveValue(/^\/story\//);
   await foto(page, "05-login-contextual", testInfo);

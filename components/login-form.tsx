@@ -4,6 +4,7 @@ import { LogIn, Mail, MailCheck } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { entrarComGoogle, enviarLink, type LoginState } from "@/app/login/actions";
+import { BotaoGoogle } from "@/components/google-gis";
 import { LoginCodigo } from "@/components/login-codigo";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { COOKIE_TESTE_CODIGO, loginPorCodigoLigado } from "@/lib/auth/codigo";
@@ -15,12 +16,18 @@ export function LoginForm({ next = "" }: { next?: string }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- cookie só existe no navegador
     if (document.cookie.split("; ").includes(`${COOKIE_TESTE_CODIGO}=1`)) setCodigo(true);
   }, []);
+  // Botão oficial do Google (GIS); sem o script, o login por redirecionamento de antes.
   const google = (
     <>
       <input type="hidden" name="next" value={next} />
-      <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
-        <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
-      </button>
+      <BotaoGoogle
+        next={next || "/"}
+        reserva={
+          <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
+            <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
+          </button>
+        }
+      />
     </>
   );
   if (codigo) return <LoginCodigo next={next} antes={google} />;

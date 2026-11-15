@@ -290,7 +290,7 @@ test("Stories: linha no Explorar, visor em tela cheia com música, compartilhar 
   await visor.getByRole("button", { name: "Denunciar" }).click({ timeout: 15_000 });
   await expect(visor.getByText(/Entre com uma conta para denunciar/)).toBeVisible({ timeout: 15_000 });
   // Sem conta, o painel de login contextual abre por cima e volta ao story depois de entrar.
-  const login = page.getByRole("dialog", { name: "Entre para continuar" });
+  const login = page.getByRole("dialog", { name: "Entre na radioOn" });
   await expect(login).toBeVisible();
   await expect(login.locator('input[name="next"]')).toHaveValue(/^\/story\//);
   await login.getByRole("button", { name: "Fechar" }).click();
@@ -463,7 +463,7 @@ test("Login contextual: Criar playlist abre o painel inferior (Google primeiro) 
   await expect(page.getByTestId("sessao-lida")).toHaveAttribute("data-conta", "0", { timeout: 20_000 });
   await page.getByRole("navigation", { name: "Principal" }).getByRole("button", { name: "Criar" }).click();
   await page.getByRole("dialog", { name: "Criar" }).getByRole("link", { name: "Playlist" }).click();
-  const painel = page.getByRole("dialog", { name: "Entre para continuar" });
+  const painel = page.getByRole("dialog", { name: "Entre na radioOn" });
   await expect(painel).toBeVisible();
   await expect(painel.getByText("Entre para criar e publicar suas playlists.")).toBeVisible();
   const botoes = painel.getByRole("button");
