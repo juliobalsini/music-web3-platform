@@ -118,6 +118,12 @@ body::after {
 }
 .ds-esqueleto { animation: ds-esqueleto 1.4s ease-in-out infinite; background: var(--ds-surface-2); }
 .ds-subir { animation: ds-subir var(--ds-mov) var(--ds-ease); }
+/* Item recém-adicionado a uma lista (editor de playlist). */
+@keyframes ds-entrar {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.ds-entrar { animation: ds-entrar var(--ds-mov) var(--ds-ease); }
 .ds-anel, .ds-barra { transition: stroke-dashoffset var(--ds-mov) var(--ds-ease), width var(--ds-mov) var(--ds-ease); }
 
 /* Superfícies do navegador que também carregam a marca. */

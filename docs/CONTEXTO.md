@@ -285,7 +285,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
-  **Faltam:** prévia de 15 s, arrastar/deslizar, sugestões (clima/gênero/recentes/curtidas), capa em mosaico no editor e foto própria com recorte (`covers/`),
+  Fatia 2 (2026-11-15, PR item-122-editor-v2; DECISIONS 104): sugestões (clima/gênero/recentes/curtidas), prévia de 15 s, arrastar/deslizar, capa em mosaico no editor.
+  **Faltam:** foto própria com recorte (`covers/`),
   perfil "Playlister" com seguidores, notas/destaque/ocultar no editor (as ações em `app/curador/actions.ts` seguem, sem tela), E2E mobile e prints.
   **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
   Artista ativado no 1º envio (sem escolha de perfil): não feito; `/enviar` ainda exige papel artist.
@@ -381,3 +382,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   em produção: botão do Google carrega sem erro. Pendências: entrar com Google num celular real; ligar o código de 6 dígitos após o item 6
   da Sessão manual (#135). #154 (trava da #153) segue aguardando o Julio.
   Fila restante: #153 (trava), #120 (só ligar o código), #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (26ª) — sem pacote novo na Caixa de entrada; #154 (trava da #153) segue aguardando o Julio (E2E verde). #122 fase 1 fatia 2
+  (editor: sugestões, prévia de 15 s, arrastar/deslizar, capa em mosaico; DECISIONS 104) em PR item-122-editor-v2. Pendência: conferir
+  logado no celular real (arrastar, deslizar, prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (resto), #125 (resto),
+  #140, #145, #146, #147.

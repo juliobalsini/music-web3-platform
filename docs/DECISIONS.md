@@ -526,3 +526,16 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     servidor decide. Curtir/comentar continuam voltando à tela de origem sem concluir sozinhos (próximo passo, se pedido).
     (f) E2E: cookie `radioon_teste_gis` libera o GIS em qualquer origem com o script do Google trocado por um falso; só fora de
     produção o servidor aceita o token `teste.google.ok` sem criar sessão (não chama o Supabase).
+
+104. **Playlists v2, fase 1, fatia 2 — editor (issue #122, 2026-11-15):** (a) **Sugestões** no painel "Adicionar faixas"
+    (`PainelInferior` do design system), com a busca vazia, nesta ordem: "Agora combina com <clima do horário>", "Mais <gênero
+    predominante da playlist>", "Ouvidas recentemente" (histórico local do Continue ouvindo, só neste aparelho) e "Suas curtidas"
+    (reações do player); até 6 por grupo, sem repetir entre grupos nem sugerir o que já está; grupo vazio some; sem nenhum grupo,
+    mostra o catálogo (`lib/playlists/sugestoes.ts`, testado). (b) **Prévia de 15 s:** tocar a capa no painel usa o player global
+    (um só `<audio>`, mesma URL assinada reaproveitada — decisão 22) a partir de ~30% da faixa e pausa sozinha aos 15 s; menos de
+    30 s contínuos nunca vira escuta válida, então não gera pontos. (c) **Arrastar** pela alça reordena (o servidor só recebe a
+    ordem final ao soltar); as setas ↑/↓ com foco na alça fazem o mesmo pelo teclado (substituem os botões Subir/Descer).
+    **Deslizar** a linha ≥ 96 px para a esquerda remove; a lixeira continua. (d) **Capa automática** (`CapaPlaylist`): mosaico 2×2
+    das 4 primeiras; com 1–3 faixas, a capa da primeira; vazia, a arte gerada do título — no editor e na página. (e) Fica para as
+    próximas fatias: foto própria com recorte (`covers/`), mini editor de capa, artista ativado no 1º envio, notas/destaque no editor,
+    E2E logado (a prévia da Vercel não tem sessão de teste) e toda a fase 2.
