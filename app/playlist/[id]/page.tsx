@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { AcoesPlaylist } from "@/components/acoes-playlist";
-import { Capa } from "@/components/capa";
+import { CapaPlaylist } from "@/components/capa-playlist";
 import { EditorPlaylist } from "@/components/editor-playlist";
 import { RegistrarVisita } from "@/components/registrar-visita";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -46,14 +46,13 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
 
   // Dono: rascunho (ou ?editar=1) abre o editor, que é a própria página como será publicada.
   if (playlist.mine && (!playlist.isPublic || sp.editar === "1")) {
-    const slim = (f: FaixaListada) => ({ id: f.id, title: f.title, artistName: f.artistName, hasCover: f.hasCover });
     return (
       <EditorPlaylist
         id={id}
         titulo={playlist.title}
         descricao={playlist.description ?? ""}
-        faixas={playlist.faixas.map((i) => porId.get(i.id)).filter((f): f is FaixaListada => !!f).map(slim)}
-        catalogo={radio.faixas.slice(0, 300).map(slim)}
+        faixas={playlist.faixas.map((i) => porId.get(i.id)).filter((f): f is FaixaListada => !!f)}
+        catalogo={radio.faixas.slice(0, 300)}
         publicada={playlist.isPublic}
       />
     );
@@ -74,9 +73,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
     <>
       <RegistrarVisita tipo="playlist" id={id} titulo={playlist.title} sub={playlist.curator ?? "Playlist"} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex items-start gap-4">
-        <div className="grid size-28 shrink-0 grid-cols-2 gap-0.5 overflow-hidden rounded-xl" aria-hidden="true">
-          {faixas.slice(0, 4).map((f) => <Capa key={f.id} id={f.id} title={f.title} hasCover={f.hasCover} className="size-14 !rounded-none" />)}
-        </div>
+        <CapaPlaylist titulo={playlist.title} faixas={faixas} />
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
           {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
