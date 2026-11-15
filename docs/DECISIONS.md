@@ -473,3 +473,21 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     `profiles.deleted_at` (o cliente não grava a coluna: grant só de `display_name`) e preferências privadas; 4) sessão encerrada. Pontos
     (append-only) e escutas ficam, sem dado pessoal; seguidores deixam de ver a conta em Seguindo. `auth.identities` ainda guarda o e-mail do
     Google até a remoção física, que é **pós-beta** (PLANO.md; escrita destrutiva, só com aprovação e trava).
+101. **Stories reposicionados e story de bio automático (issue #156, 2026-11-15; a 100 está no PR #154):** (a) Home sem os círculos de
+    stories e sem o filtro "Stories": Player On é o primeiro bloco, depois Agora combina, Seleção radioOn e **Artistas para conhecer**,
+    que virou uma linha de cards verticais (o mesmo card dos stories). Nenhum story postado aparece na Home, exceto: o de boas-vindas da
+    radioOn como 1º card para visitante sem conta que ainda não o viu, e os stories dos últimos 7 dias de artistas que a pessoa segue
+    (1º lugar, anel âmbar e selo "Novo"; abrem os stories postados e a bio do artista não se repete). Sem nenhum artista com bio, a
+    seção mostra a lista simples de antes. (b) **Story de bio é virtual:** derivado a cada leitura (`lib/stories/bio.ts`), sem linha no
+    banco nem tabela nova — "regenerar" é automático. Exige foto, nome e ≥ 1 faixa publicada; mostra foto, nome, gênero principal (o
+    mais frequente), a frase e 15 s (a partir de 30 s, ajustado à duração) da faixa mais ouvida (empate/sem escutas: a mais recente),
+    com Ouvir e Seguir; sem comentar/curtir/compartilhar/menu (é o próprio perfil). O id (`bio-<artista>-<hash de foto, frase, faixa>`)
+    muda quando algo muda, então volta a contar como não visto; visto = 1ª visualização (mesmo `localStorage` dos stories). Não expira.
+    (c) Migration aditiva `20261115020000`: `profiles.bio` (≤ 140) e `profiles.avatar_url` (só `https://`), leitura pública como o
+    resto do perfil; **nenhum cliente grava** (o grant de update segue só em `display_name`; testado no PGlite, inclusive anônimo). O
+    servidor grava em Configurações → Perfil de artista (só `role = artist`); a foto vem da conta Google lida no servidor e só é aceita
+    de `*.googleusercontent.com` (nunca um valor do cliente). Foto própria com recorte segue para a fatia `covers/` da #125. (d) Ocultar:
+    preferência `storyBio` (Privacidade, só artistas); perfil privado também oculta. Lidas pelo servidor com service_role (sem ela, nas
+    prévias, ninguém oculto, como em `perfilEhPublico`). Excluir conta limpa bio e foto. (e) Explorar: seção Stories abaixo da busca na
+    ordem postados de quem sigo → postados recentes (radioOn primeiro) → bios não vistas → bios vistas. (f) E2E: o cookie de teste
+    `radioon_demo_segue` (só fora de produção e só com ids da demonstração) simula "sigo este artista", já que o E2E não tem login.

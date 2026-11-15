@@ -1,135 +1,142 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- capas do bucket por URL assinada; sem otimizador (cota). */
+/* eslint-disable @next/next/no-img-element -- capas do bucket e fotos do Google por URL; sem otimizador (cota). */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { CapaArte } from "@/components/capa";
 import { Logo } from "@/components/logo";
 import { useVistos } from "@/components/stories-vistos";
 import { VisualizadorStories } from "@/components/visualizador-stories";
 import { capaGerada } from "@/lib/radio/rules";
-import { agruparPorAutor, type GrupoStories, type Story } from "@/lib/stories/rules";
-import { ordenarGrupos, primeiroNaoVisto, tudoVisto, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
+import { gruposDoExplorar, linhaDaHome, type CardHome } from "@/lib/stories/bio";
+import type { GrupoStories, Story } from "@/lib/stories/rules";
+import { primeiroNaoVisto, tudoVisto, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
 
-
-/** Anel âmbar (não visto) ou cinza (visto) em volta do avatar. */
-function Anel({ visto, children }: { visto: boolean; children: React.ReactNode }) {
-  return <span data-visto={visto ? "sim" : "nao"} className={`rounded-full p-[3px] ${visto ? "bg-white/30" : "bg-gradient-to-br from-brand to-brand-2"}`}>{children}</span>;
-}
-
-function Avatar({ g, tamanho }: { g: GrupoStories; tamanho: string }) {
+function Avatar({ g }: { g: GrupoStories }) {
+  const foto = g.stories[0]?.bio?.foto;
+  if (g.isPlatform) {
+    return (
+      <span aria-hidden="true" className="flex size-9 items-center justify-center rounded-full border-2 border-night-900 bg-night-800">
+        <Logo className="h-5 w-auto" alt="" />
+      </span>
+    );
+  }
+  if (foto) return <img src={foto} alt="" referrerPolicy="no-referrer" className="size-9 rounded-full border-2 border-night-900 object-cover" />;
   return (
-    <span
-      aria-hidden="true"
-      style={g.isPlatform ? undefined : { background: capaGerada(g.authorName).fundo }}
-      className={`flex ${tamanho} items-center justify-center rounded-full border-[3px] border-night-900 font-bold text-white ${g.isPlatform ? "bg-night-800" : ""}`}
-    >
-      {g.isPlatform ? <Logo className="h-8 w-auto" alt="" /> : g.authorName.charAt(0).toUpperCase()}
+    <span aria-hidden="true" style={{ background: capaGerada(g.authorName).fundo }} className="flex size-9 items-center justify-center rounded-full border-2 border-night-900 text-sm font-bold text-white">
+      {g.authorName.charAt(0).toUpperCase()}
     </span>
   );
 }
 
-/** Card vertical de um perfil (grade Rádio > Stories e linha do Explorar): capa da faixa, avatar com anel e estado visto. */
-function CartaoPerfil({ g, vistos, faixas, onAbrir }: { g: GrupoStories; vistos: ReadonlySet<string>; faixas: Record<string, FaixaDoStory>; onAbrir: () => void }) {
+/** Fundo do card: foto do artista (bio), capa da faixa do story, ou o gradiente do perfil. */
+function Fundo({ story, faixa }: { story: Story; faixa: FaixaDoStory | null }) {
+  if (story.bio) return <img src={story.bio.foto} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 size-full object-cover" />;
+  if (!faixa) return null;
+  return faixa.hasCover ? (
+    <img src={`/api/tracks/${faixa.id}/capa`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+  ) : (
+    <CapaArte title={faixa.title} className="absolute inset-0 size-full !rounded-none" />
+  );
+}
+
+/**
+ * Card vertical de story (mesmo componente na Home e no Explorar). Bio: foto do artista em destaque, nome e gênero.
+ * Novidade: story postado por quem a pessoa segue, com anel âmbar e selo "Novo".
+ */
+function CartaoStory({ g, tipo, vistos, faixas, onAbrir }: { g: GrupoStories; tipo: CardHome["tipo"] | "postado"; vistos: ReadonlySet<string>; faixas: Record<string, FaixaDoStory>; onAbrir: () => void }) {
   const visto = tudoVisto(g, vistos);
   const alvo = g.stories.find((s) => !vistos.has(s.id)) ?? g.stories[g.stories.length - 1];
-  const faixa = alvo.trackId ? faixas[alvo.trackId] : null;
-  const tem = g.stories.length;
+  const faixa = alvo.trackId ? (faixas[alvo.trackId] ?? null) : null;
+  const bio = alvo.bio;
+  const linha = bio ? (bio.genero ?? alvo.body ?? faixa?.title ?? "") : (alvo.body?.split("\n")[0] || (faixa ? faixa.title : alvo.hasImage ? "Imagem" : "Story"));
+  const n = g.stories.length;
+  // A novidade já tem o selo "Novo" no topo: embaixo, só a contagem.
+  const status = bio ? (visto ? "Visto" : "Conhecer") : visto ? "Visto" : tipo === "novidade" || n > 1 ? `${n} ${n === 1 ? "story" : "stories"}` : "Novo";
+  const destaque = !visto && (tipo === "novidade" || tipo === "boas-vindas" || tipo === "postado");
   return (
     <button
       type="button"
       onClick={onAbrir}
-      aria-label={`Ver stories de ${g.authorName}`}
+      aria-label={bio ? `Conhecer ${g.authorName}` : `Ver stories de ${g.authorName}`}
       data-visto={visto ? "sim" : "nao"}
-      className={`relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-xl p-2.5 text-left ${visto ? "opacity-75" : ""}`}
-      style={{ background: capaGerada(g.authorName).fundo }}
+      data-tipo={tipo}
+      className={`relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-xl p-2.5 text-left transition-opacity ${visto ? "opacity-75" : ""} ${
+        destaque ? "ring-2 ring-brand ring-offset-2 ring-offset-night-900" : ""
+      }`}
+      style={{ background: g.isPlatform ? undefined : capaGerada(g.authorName).fundo }}
     >
-      {faixa && (faixa.hasCover ? <img src={`/api/tracks/${faixa.id}/capa`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" /> : <CapaArte title={faixa.title} className="absolute inset-0 size-full !rounded-none" />)}
-      <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night-900/85 via-night-900/10 to-night-900/40" />
-      <span className="relative self-start">
-        <Anel visto={visto}><Avatar g={g} tamanho="size-9 text-sm" /></Anel>
+      {g.isPlatform && <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-night-800 to-night-900" />}
+      <Fundo story={alvo} faixa={faixa} />
+      <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night-900/90 via-night-900/15 to-night-900/30" />
+      <span className="relative flex items-start justify-between gap-1">
+        {bio ? <span /> : <Avatar g={g} />}
+        {tipo === "novidade" && !visto && (
+          <span className="rounded-full bg-brand px-2 py-0.5 text-[0.6875rem] font-bold text-night-900">Novo</span>
+        )}
       </span>
       <span className="relative flex flex-col gap-0.5">
         <span className="truncate text-sm font-bold">{g.authorName}</span>
-        <span className="line-clamp-2 text-xs text-white/90">{alvo.body?.split("\n")[0] || (faixa ? faixa.title : alvo.hasImage ? "Imagem" : "Story")}</span>
-        <span className="text-xs font-semibold text-white/80">{visto ? "Visto" : tem > 1 ? `${tem} stories` : "Novo"}</span>
+        {linha && <span className="line-clamp-2 text-xs text-white/90">{linha}</span>}
+        <span className="text-xs font-semibold text-white/80">{status}</span>
       </span>
     </button>
   );
 }
 
 /**
- * Stories recentes: círculos (home), grade (Rádio > Stories) ou linha de cards (Explorar). Todos abrem o mesmo
- * visualizador em tela cheia. A ordem é: radioOn oficial, não vistos, vistos (congelada ao abrir).
+ * Linha horizontal de cards de story. Home ("Artistas para conhecer"): bios de artistas, com o story de boas-vindas
+ * (visitante novo) e os stories novos de quem a pessoa segue no início. Explorar ("Stories"): postados de quem segue,
+ * postados recentes, bios não vistas, bios vistas. Todos abrem o mesmo visualizador em tela cheia.
  */
-export function FaixaStories({
-  stories,
+export function LinhaStories({
+  modo,
+  bios,
+  postados,
+  seguidos: seguidosIds,
+  visitante = false,
   faixas,
   agora,
-  modo = "circulos",
-  usuarioArtista = false,
+  semBios,
 }: {
-  stories: Story[];
+  modo: "home" | "explorar";
+  bios: Story[];
+  /** Stories postados ativos (últimos 7 dias), inclusive o de boas-vindas da radioOn. */
+  postados: Story[];
+  seguidos: string[];
+  /** Sem conta: o story de boas-vindas abre a linha da Home até ser visto. */
+  visitante?: boolean;
   faixas: Record<string, FaixaDoStory>;
   agora: number;
-  modo?: "circulos" | "grade" | "linha";
-  /** Artista/playlister logado: mostra "Seu story +" no início. */
-  usuarioArtista?: boolean;
+  /** Home sem nenhum artista com story de bio (sem foto ainda): a lista simples de artistas. */
+  semBios?: ReactNode;
 }) {
   const vistos = useVistos();
-  const grupos = useMemo(() => ordenarGrupos(agruparPorAutor(stories), vistos), [stories, vistos]);
+  const seguidos = useMemo(() => new Set(seguidosIds), [seguidosIds]);
+  const cards = useMemo<{ grupo: GrupoStories; tipo: CardHome["tipo"] | "postado" }[]>(() => {
+    if (modo === "home") return linhaDaHome({ bios, postados, seguidos, vistos, visitante, agora });
+    return gruposDoExplorar({ bios, postados, seguidos, vistos, agora }).map((g) => ({ grupo: g, tipo: g.stories[0]?.bio ? "bio" : "postado" }));
+  }, [modo, bios, postados, seguidos, vistos, visitante, agora]);
   const [aberto, setAberto] = useState<{ grupos: GrupoStories[]; inicio: Posicao } | null>(null);
 
-  if (grupos.length === 0 && !usuarioArtista) return null;
+  const reserva = bios.length === 0 ? semBios : null;
+  if (cards.length === 0 && !reserva) return null;
+  const grupos = cards.map((c) => c.grupo);
   const abrir = (idx: number) => setAberto({ grupos, inicio: { g: idx, i: primeiroNaoVisto(grupos[idx], vistos) } });
+  const titulo = modo === "home" ? "Artistas para conhecer" : "Stories";
 
   return (
-    <section aria-label="Stories" className="flex flex-col gap-2">
-      {modo === "circulos" && (
-        <ul data-testid="stories-circulos" className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
-          {usuarioArtista && (
-            <li className="w-[4.75rem] shrink-0">
-              <a href="/stories/novo" aria-label="Seu story, publicar" className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
-                <span className="rounded-full border-2 border-dashed border-brand p-[3px]">
-                  <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-night-800 text-3xl font-bold text-brand">+</span>
-                </span>
-                <span className="w-full truncate text-center text-xs font-semibold">Seu story +</span>
-              </a>
-            </li>
-          )}
-          {grupos.map((g, idx) => (
-            <li key={g.authorId} className="w-[4.75rem] shrink-0">
-              <button type="button" onClick={() => abrir(idx)} aria-label={`Ver stories de ${g.authorName}`} className="flex w-full flex-col items-center gap-1 rounded-lg py-1">
-                <Anel visto={tudoVisto(g, vistos)}>
-                  <Avatar g={g} tamanho="size-16 text-xl" />
-                </Anel>
-                <span className="w-full truncate text-center text-xs font-semibold">{g.authorName}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {modo === "grade" && (
-        <>
-          <h2 className="text-lg font-bold">Stories no ar</h2>
-          <ul data-testid="stories-grade" className="grid grid-cols-2 gap-3">
-            {grupos.map((g, idx) => (
-              <li key={g.authorId}><CartaoPerfil g={g} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} /></li>
-            ))}
-          </ul>
-        </>
-      )}
-      {modo === "linha" && (
-        <>
-          <h2 className="text-lg font-bold">Stories</h2>
-          <ul data-testid="stories-linha" className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-            {grupos.map((g, idx) => (
-              <li key={g.authorId} className="w-32 shrink-0"><CartaoPerfil g={g} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} /></li>
-            ))}
-          </ul>
-        </>
-      )}
-      {aberto && <VisualizadorStories grupos={aberto.grupos} faixas={faixas} agora={agora} inicio={aberto.inicio} onFechar={() => setAberto(null)} />}
+    <section aria-label={titulo} className="flex flex-col gap-2">
+      <h2 className="text-lg font-bold">{titulo}</h2>
+      {cards.length > 0 && <ul data-testid={modo === "home" ? "linha-artistas" : "stories-linha"} className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-1">
+        {cards.map((c, idx) => (
+          <li key={c.grupo.authorId} className="w-32 shrink-0 snap-start">
+            <CartaoStory g={c.grupo} tipo={c.tipo} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} />
+          </li>
+        ))}
+      </ul>}
+      {reserva}
+      {aberto && <VisualizadorStories grupos={aberto.grupos} faixas={faixas} agora={agora} inicio={aberto.inicio} seguidos={seguidosIds} onFechar={() => setAberto(null)} />}
     </section>
   );
 }

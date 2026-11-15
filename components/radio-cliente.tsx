@@ -7,10 +7,10 @@ import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { CarrosselFaixas } from "@/components/carrossel-faixas";
 import type { FaixaDoStory } from "@/lib/stories/viewer";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
-import { FaixaStories } from "@/components/faixa-stories";
+import { LinhaStories } from "@/components/faixa-stories";
 import { GradeAlbuns, GradePlaylists } from "@/components/grades";
 import { ListaFaixas } from "@/components/lista-faixas";
-import { ArtistasParaConhecer, SelecaoRadioOn } from "@/components/home-prateleiras";
+import { ListaArtistas, SelecaoRadioOn } from "@/components/home-prateleiras";
 import { EstadoVazio } from "@/components/secoes-radio";
 import { artistasParaConhecer, prateleiraClima, selecaoRadioOn } from "@/lib/radio/home";
 import { rotuloClima } from "@/lib/radio/generos";
@@ -31,7 +31,9 @@ export function RadioCliente({
   continuarServidor,
   validos,
   stories,
-  podePublicar = false,
+  bios,
+  seguidos,
+  visitante,
   faixasDosStories,
   agora,
   filtroInicial,
@@ -42,16 +44,21 @@ export function RadioCliente({
   continuarServidor: FaixaListada[];
   /** Ids de playlists, álbuns e perfis que existem (valida os atalhos locais). */
   validos: string[];
-  /** Stories ativos (últimos 7 dias). */
+  /** Stories postados ativos (últimos 7 dias): na Home só aparecem os de quem a pessoa segue (e as boas-vindas). */
   stories: Story[];
-  /** Artista/playlister logado: círculo "Seu story +". */
-  podePublicar?: boolean;
+  /** Stories de bio automáticos dos artistas. */
+  bios: Story[];
+  /** Ids que a pessoa segue. */
+  seguidos: string[];
+  /** Sem conta (ou sessão anônima). */
+  visitante: boolean;
   faixasDosStories: Record<string, FaixaDoStory>;
   agora: number;
   filtroInicial: Filtro;
   abaInicial: Aba | null;
 }) {
-  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: stories.length > 0 });
+  // Stories saíram da Home (issue #156): ficam no Explorar e, na Home, só em "Artistas para conhecer".
+  const filtros = filtrosVisiveis({ albuns: radio.albuns.length > 0, stories: false });
   const inicial: Filtro = filtros.some((f) => f.id === filtroInicial) ? filtroInicial : "tudo";
   const [filtro, setFiltro] = useState<Filtro>(inicial);
   const [abertos, setAbertos] = useState<Set<Filtro>>(() => new Set<Filtro>([inicial]));
@@ -99,9 +106,6 @@ export function RadioCliente({
 
   return (
     <>
-      <div className={filtro === "tudo" ? "" : "hidden"}>
-        <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} usuarioArtista={podePublicar} />
-      </div>
       <nav aria-label="Filtros" className="sticky top-0 z-20 -mx-4 flex gap-2 overflow-x-auto bg-night-900 px-4 py-2">
         {filtros.map((f) => (
           <button
@@ -128,8 +132,9 @@ export function RadioCliente({
               dica={clima.recentes ? "Ainda sem faixas deste clima: as mais recentes" : undefined}
               faixas={clima.faixas}
             />
-            <ContinueOuvindo faixas={radio.faixas} servidor={continuarServidor} validos={validos} />
             <SelecaoRadioOn lista={selecao} />
+            <LinhaStories modo="home" bios={bios} postados={stories} seguidos={seguidos} visitante={visitante} faixas={faixasDosStories} agora={agora} semBios={<ListaArtistas lista={artistas} />} />
+            <ContinueOuvindo faixas={radio.faixas} servidor={continuarServidor} validos={validos} />
             <section
               aria-label="Faixas"
               className="flex touch-pan-y flex-col gap-1"
@@ -174,7 +179,6 @@ export function RadioCliente({
                 ))}
               {aba === "novidades" && <ListaFaixas rotulo="Novidades" numerar dica="Acabaram de chegar de artistas independentes" faixas={radio.novidades} />}
             </section>
-            <ArtistasParaConhecer lista={artistas} />
           </>
         )}
       </div>
@@ -188,11 +192,6 @@ export function RadioCliente({
       {radio.albuns.length > 0 && (
         <div data-testid="visao-albuns" className={visao("albuns")}>
           {aberta("albuns") && <GradeAlbuns lista={radio.albuns} />}
-        </div>
-      )}
-      {stories.length > 0 && (
-        <div data-testid="visao-stories" className={visao("stories")}>
-          {aberta("stories") && <FaixaStories stories={stories} faixas={faixasDosStories} agora={agora} modo="grade" />}
         </div>
       )}
     </>

@@ -14,6 +14,8 @@ export type Preferencias = {
   perfilPublico: boolean;
   /** Privacidade: outras pessoas podem ver o que estou ouvindo (quando houver tela que mostre). */
   mostrarOuvindo: boolean;
+  /** Artista: story de bio automático visível na Home e no Explorar. */
+  storyBio: boolean;
 };
 
 export const PADRAO: Preferencias = {
@@ -23,6 +25,7 @@ export const PADRAO: Preferencias = {
   economia: false,
   perfilPublico: true,
   mostrarOuvindo: true,
+  storyBio: true,
 };
 
 export const CHAVES = Object.keys(PADRAO) as (keyof Preferencias)[];

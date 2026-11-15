@@ -15,6 +15,9 @@ import { capaGerada } from "@/lib/radio/rules";
 import { CLIP_SEGUNDOS, inicioDoTrecho, type GrupoStories } from "@/lib/stories/rules";
 import { anterior, classificarGesto, duracaoDoStory, proxima, tempoRelativo, trocarPerfil, zonaDoToque, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
 import { BotaoEntrar, useLoginContextual } from "@/components/login-contextual";
+import { SeguirNoStory } from "@/components/seguir-no-story";
+import { ehStoryDeBio } from "@/lib/stories/bio";
+import { STORY_BOAS_VINDAS_ID } from "@/lib/radio/home";
 
 type Painel = null | "compartilhar" | "comentarios" | "menu";
 
@@ -30,6 +33,7 @@ export function VisualizadorStories({
   inicio,
   onFechar,
   convite = false,
+  seguidos = [],
 }: {
   grupos: GrupoStories[];
   faixas: Record<string, FaixaDoStory>;
@@ -38,6 +42,8 @@ export function VisualizadorStories({
   onFechar: () => void;
   /** Link compartilhado: ao fim, em vez de só fechar, convida a entrar na radioOn. */
   convite?: boolean;
+  /** Ids que a pessoa segue (botão Seguir do story de bio). */
+  seguidos?: string[];
 }) {
   const player = usePlayer();
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -105,7 +111,8 @@ export function VisualizadorStories({
     setDono(false);
     /* eslint-enable react-hooks/set-state-in-effect */
     marcarVistoLocal(idStory);
-    if (!/^00000000-0000-4000-8000-0000000000a2$/.test(idStory)) {
+    // Boas-vindas e bio são virtuais (sem linha no banco): sem visualização nem curtida no servidor.
+    if (idStory !== STORY_BOAS_VINDAS_ID && !ehStoryDeBio({ id: idStory })) {
       void fetch(`/api/stories/${idStory}/visualizar`, { method: "POST" }).catch(() => {});
       void fetch(`/api/stories/${idStory}/curtir`).then((r) => r.json()).then((j: { curtiu?: boolean }) => setCurtiu(!!j.curtiu)).catch(() => {});
     }
@@ -276,6 +283,7 @@ export function VisualizadorStories({
   const fundo = useMemo(() => capaGerada(grupo?.authorName ?? "radioOn").fundo, [grupo?.authorName]);
   if (!grupo || !story) return null;
   const apagado = apagados.has(story.id);
+  const bio = story.bio ?? null;
   const nomeGrupo = `Stories de ${grupo.authorName}`;
   const botaoTopo = "flex size-11 items-center justify-center rounded-full bg-night-900/40 hover:bg-night-900/60";
 
@@ -290,7 +298,9 @@ export function VisualizadorStories({
       <div className="relative mx-auto h-full w-full max-w-md overflow-hidden bg-night-900" data-testid="story-palco">
         {/* Fundo: capa desfocada da faixa, ou o gradiente do perfil. */}
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden" style={{ background: fundo }}>
-          {faixa &&
+          {story?.bio ? (
+            <img src={story.bio.foto} alt="" referrerPolicy="no-referrer" className="size-full scale-125 object-cover blur-2xl" />
+          ) : faixa &&
             (faixa.hasCover ? (
               <img src={`/api/tracks/${faixa.id}/capa`} alt="" className="size-full scale-125 object-cover blur-2xl" />
             ) : (
@@ -312,6 +322,35 @@ export function VisualizadorStories({
         <div className="pointer-events-none absolute inset-x-0 top-24 bottom-24 flex flex-col items-center justify-center gap-5 px-6">
           {apagado ? (
             <p className="text-lg font-semibold">Story apagado.</p>
+          ) : bio ? (
+            <div data-testid="story-bio" className="flex w-full flex-col items-center gap-4 text-center">
+              <img src={bio.foto} alt={`Foto de ${grupo.authorName}`} referrerPolicy="no-referrer" className="size-40 rounded-full object-cover shadow-[0_12px_32px_rgba(0,0,0,0.45)] ring-4 ring-white/15" />
+              <div className="flex flex-col items-center gap-1">
+                <h2 className="text-3xl font-bold text-balance drop-shadow">{grupo.authorName}</h2>
+                {bio.genero && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{bio.genero}</span>}
+              </div>
+              {story.body && <p data-testid="story-texto" className="text-lg font-semibold text-pretty drop-shadow">{story.body}</p>}
+              <div className="pointer-events-auto flex w-full flex-col gap-2">
+                {faixa && (
+                  <div className="flex w-full items-center gap-3 rounded-2xl bg-night-900/70 p-3 text-left backdrop-blur" data-testid="story-faixa">
+                    <div className="size-12 shrink-0 overflow-hidden rounded-lg">
+                      {faixa.hasCover ? <img src={`/api/tracks/${faixa.id}/capa`} alt="" className="size-full object-cover" /> : <CapaArte title={faixa.title} className="size-full" />}
+                    </div>
+                    <p className="min-w-0 flex-1 truncate font-bold">{faixa.title}</p>
+                    <Link
+                      href={`/faixa/${faixa.id}`}
+                      onClick={() => audio.current?.pause()}
+                      className="flex min-h-11 shrink-0 items-center rounded-full bg-gradient-to-br from-brand to-brand-2 px-5 text-sm font-bold text-night-900"
+                    >
+                      Ouvir
+                    </Link>
+                  </div>
+                )}
+                <div className="flex justify-center">
+                  <SeguirNoStory key={grupo.authorId} id={grupo.authorId} seguindo={seguidos.includes(grupo.authorId)} />
+                </div>
+              </div>
+            </div>
           ) : (
             <>
               {story.hasImage && !imagemFalhou && (
@@ -358,21 +397,27 @@ export function VisualizadorStories({
             ))}
           </div>
           <header className="flex items-center gap-2">
-            <span aria-hidden="true" style={grupo.isPlatform ? undefined : { background: fundo }} className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${grupo.isPlatform ? "bg-night-800" : ""}`}>
-              {grupo.isPlatform ? <Logo className="h-6 w-auto" alt="" /> : grupo.authorName.charAt(0).toUpperCase()}
-            </span>
+            {bio ? (
+              <img src={bio.foto} alt="" referrerPolicy="no-referrer" className="size-9 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span aria-hidden="true" style={grupo.isPlatform ? undefined : { background: fundo }} className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${grupo.isPlatform ? "bg-night-800" : ""}`}>
+                {grupo.isPlatform ? <Logo className="h-6 w-auto" alt="" /> : grupo.authorName.charAt(0).toUpperCase()}
+              </span>
+            )}
             <div className="flex min-w-0 flex-1 items-baseline gap-2">
               <Link href={`/perfil/${grupo.authorId}`} className="truncate text-sm font-bold underline-offset-2 hover:underline">{grupo.authorName}</Link>
-              <span className="shrink-0 text-xs text-white/80">{tempoRelativo(story.createdAt, agora)}</span>
+              <span className="shrink-0 text-xs text-white/80">{bio ? "Bio" : tempoRelativo(story.createdAt, agora)}</span>
             </div>
             {faixa && (
               <button type="button" onClick={() => setMudo((m) => !m)} aria-label={mudo ? "Ativar som" : "Silenciar"} aria-pressed={mudo} className={botaoTopo}>
                 {mudo ? <VolumeX className="size-5" aria-hidden="true" /> : <Volume2 className="size-5" aria-hidden="true" />}
               </button>
             )}
-            <button type="button" onClick={() => setPainel("menu")} aria-label="Mais opções" aria-haspopup="dialog" className={botaoTopo}>
-              <MoreHorizontal className="size-5" aria-hidden="true" />
-            </button>
+            {!bio && (
+              <button type="button" onClick={() => setPainel("menu")} aria-label="Mais opções" aria-haspopup="dialog" className={botaoTopo}>
+                <MoreHorizontal className="size-5" aria-hidden="true" />
+              </button>
+            )}
             <button type="button" onClick={fechar} aria-label="Fechar stories" className={botaoTopo}>
               <X className="size-5" aria-hidden="true" />
             </button>
@@ -384,8 +429,8 @@ export function VisualizadorStories({
         <button type="button" onClick={avancar} className="sr-only">Próximo story</button>
         <p aria-live="polite" className="sr-only">{`Story ${pos.i + 1} de ${grupo.stories.length}`}</p>
 
-        {/* Barra inferior fina: comentar, curtir, compartilhar. */}
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {/* Barra inferior fina: comentar, curtir, compartilhar (o story de bio não tem: é o próprio perfil). */}
+        {!bio && <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {loginPara && (
             <p role="status" className="rounded-lg bg-night-900/80 px-3 py-2 text-sm text-brand-2">
               Entre com uma conta para comentar. <BotaoEntrar motivo="Entre para comentar e reagir aos stories." destino={`/story/${story.id}`} />
@@ -418,7 +463,7 @@ export function VisualizadorStories({
               <Send className="size-5 -rotate-12" aria-hidden="true" />
             </button>
           </div>
-        </div>
+        </div>}
 
         {painel === "compartilhar" && <PainelCompartilhar story={story} onFechar={() => setPainel(null)} />}
         {painel === "comentarios" && <PainelComentarios story={story} dono={dono} onFechar={() => setPainel(null)} onMudou={() => {}} />}

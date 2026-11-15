@@ -14,7 +14,7 @@ async function foto(page: Page, nome: string, testInfo: import("@playwright/test
 
 async function home(page: Page) {
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Stories" })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
 }
 
 test("telas principais em celular", async ({ page }, testInfo) => {
@@ -24,7 +24,7 @@ test("telas principais em celular", async ({ page }, testInfo) => {
 
   // Rádio: cada filtro.
   const filtros = page.getByRole("navigation", { name: "Filtros" });
-  for (const nome of ["Faixas", "Álbuns", "Playlists", "Stories"]) {
+  for (const nome of ["Faixas", "Álbuns", "Playlists"]) {
     await filtros.getByRole("button", { name: nome }).evaluate((el: HTMLElement) => el.click()); // chips rolam na horizontal: "estável" do Playwright não se aplica
     await page.waitForTimeout(300);
     await foto(page, `filtro-${nome.toLowerCase().replace("á", "a")}`, testInfo);

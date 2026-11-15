@@ -8,9 +8,10 @@ async function foto(page: Page, nome: string, testInfo: TestInfo) {
   await testInfo.attach(`${testInfo.project.name}-${nome}`, { body: await page.screenshot(), contentType: "image/png" });
 }
 
+/** Stories postados ficam no Explorar (issue #156): radioOn primeiro, depois Lia Norte. */
 async function abrirHome(page: Page) {
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/explorar");
   await expect(page.getByRole("region", { name: "Stories", exact: true })).toBeVisible({ timeout: 20_000 });
 }
 
@@ -30,7 +31,7 @@ async function deslizar(page: Page, de: [number, number], para: [number, number]
   await page.mouse.up();
 }
 
-test("Stories em tela cheia: abrir pela home, avanço automático, toque, troca de perfil e fechar", async ({ page }, testInfo) => {
+test("Stories em tela cheia: abrir pelo Explorar, avanço automático, toque, troca de perfil e fechar", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await abrirHome(page);
   await page.getByRole("button", { name: "Ver stories de radioOn" }).click();
@@ -79,8 +80,8 @@ test("Stories em tela cheia: abrir pela home, avanço automático, toque, troca 
   await deslizar(page, [0.5, 0.3], [0.5, 0.8]);
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
-  // Já visto: o anel do círculo fica cinza.
-  await expect(page.getByRole("button", { name: "Ver stories de Lia Norte" }).locator("[data-visto]").first()).toHaveAttribute("data-visto", "sim");
+  // Já visto: o card fica marcado como visto.
+  await expect(page.getByRole("button", { name: "Ver stories de Lia Norte" })).toHaveAttribute("data-visto", "sim");
 });
 
 test("Stories: compartilhar em linha de ícones e comentar (visitante é convidado a entrar)", async ({ page }, testInfo) => {

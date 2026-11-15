@@ -62,7 +62,7 @@ export async function excluirConta(userId: string): Promise<ResultadoConta> {
     const { error } = await admin.from(tabela).update({ deleted_at: agora }).eq(dono, userId).is("deleted_at", null);
     if (error) console.error(`[conta] ocultar ${tabela}:`, error.message);
   }
-  const { error: eP } = await admin.from("profiles").update({ display_name: NOME_EXCLUIDA, deleted_at: agora }).eq("id", userId);
+  const { error: eP } = await admin.from("profiles").update({ display_name: NOME_EXCLUIDA, bio: null, avatar_url: null, deleted_at: agora }).eq("id", userId);
   if (eP) console.error("[conta] perfil:", eP.message);
   await admin.from("user_settings").upsert({ user_id: userId, prefs: { perfilPublico: false, mostrarOuvindo: false }, updated_at: agora });
   return { ok: true };

@@ -5,7 +5,7 @@ import { confirmouExclusao, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
-    assert.deepEqual(PADRAO, { normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true });
+    assert.deepEqual(PADRAO, { normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true });
   });
 
   it("saneia: só chaves conhecidas e booleanas", () => {
