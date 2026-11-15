@@ -105,6 +105,13 @@ test("Stories: compartilhar em linha de ícones e comentar (visitante é convida
   await visor.getByRole("textbox", { name: "Comentar" }).fill("Hino!");
   await visor.getByRole("textbox", { name: "Comentar" }).press("Enter");
   await expect(visor.getByText("Entre com uma conta para comentar.")).toBeVisible({ timeout: 15_000 });
+  // O painel de login contextual abre por cima e volta ao story depois de entrar.
+  const login = page.getByRole("dialog", { name: "Entre para continuar" });
+  await expect(login).toBeVisible();
+  await expect(login.locator('input[name="next"]')).toHaveValue(/^\/story\//);
+  await foto(page, "05-login-contextual", testInfo);
+  await login.getByRole("button", { name: "Fechar" }).click();
+  await expect(login).toBeHidden();
 
   // Painel de comentários: reações rápidas e figurinhas musicais próprias.
   await visor.getByRole("button", { name: "Ver comentários e reações" }).click();
@@ -113,5 +120,8 @@ test("Stories: compartilhar em linha de ícones e comentar (visitante é convida
   for (const f of ["No repeat", "Que solo", "Hino", "Arrepiou"]) await expect(com.getByRole("button", { name: f, exact: true })).toBeVisible();
   await com.getByRole("button", { name: "Hino", exact: true }).click();
   await expect(com.getByText(/Entre com uma conta para comentar/)).toBeVisible({ timeout: 15_000 });
+  await expect(login).toBeVisible();
+  await login.getByRole("button", { name: "Fechar" }).click();
+  await expect(login).toBeHidden();
   await foto(page, "04-comentarios", testInfo);
 });
