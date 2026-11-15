@@ -429,7 +429,8 @@ test("Biblioteca: visitante vê o convite para criar conta", async ({ page }) =>
 test("Seguir: visitante toca Seguir e o painel de login volta ao perfil; /seguindo exige conta", async ({ page }) => {
   const perfil = "/perfil/00000000-0000-4000-8000-000000000201";
   await page.goto(perfil);
-  const seguir = page.getByTestId("botao-seguir");
+  // Só o visível: durante o streaming o conteúdo novo existe por instantes oculto, antes da troca.
+  const seguir = page.locator("[data-testid=botao-seguir]:visible");
   await expect(seguir).toHaveText(/Seguir/, { timeout: 20_000 });
   await expect(seguir).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByTestId("sessao-lida")).toHaveAttribute("data-conta", "0", { timeout: 20_000 });
