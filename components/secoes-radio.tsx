@@ -1,6 +1,7 @@
 import { Play, Upload } from "lucide-react";
 import Link from "next/link";
 
+import { LinkConta } from "@/components/login-contextual";
 import { botao } from "@/components/ui";
 import type { PlaylisterResumo, PlaylistSemana } from "@/lib/radio/queries";
 
@@ -25,9 +26,9 @@ export function EstadoVazio() {
         <h2 id="vazio" className="text-xl font-semibold text-balance">Nenhuma faixa ainda</h2>
         <p className="text-white/70 text-pretty">Artista? Envie a primeira música e abra a rádio.</p>
       </div>
-      <Link href="/enviar" className={botao}>
+      <LinkConta href="/enviar" motivo="Entre para enviar sua música." className={botao}>
         <Upload className="size-5" aria-hidden="true" /> Enviar primeira faixa
-      </Link>
+      </LinkConta>
     </section>
   );
 }

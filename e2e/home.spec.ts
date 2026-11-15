@@ -47,9 +47,13 @@ test("estado vazio: play inerte e convite ao artista (catálogo sem faixas)", as
   await expect(page.getByTestId("play")).toHaveCount(0);
   await expect(vazio).toHaveAttribute("aria-hidden", "true");
   await expect(page.getByText("Nenhuma faixa ainda")).toBeVisible();
+  await expect(page.getByTestId("sessao-lida")).toHaveAttribute("data-conta", "0", { timeout: 20_000 });
   await page.getByRole("link", { name: "Enviar primeira faixa" }).click();
-  // Deslogado, /enviar leva ao login.
-  await expect(page).toHaveURL(/\/login/);
+  // Deslogado: painel de login na própria tela, que volta a /enviar depois de entrar.
+  const painel = page.getByTestId("login-contextual");
+  await expect(painel).toBeVisible();
+  await expect(painel.locator('input[name="next"]')).toHaveValue("/enviar");
+  await expect(page).not.toHaveURL(/\/login/);
 });
 
 test("GET /api/health responde ok com o commit", async ({ request }) => {

@@ -1,12 +1,18 @@
 "use client";
 
 import { Bookmark, ChevronDown, Heart, HeartHandshake, Pause, Play, Share2, SkipBack, SkipForward } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { Capa } from "@/components/capa";
+import { BotaoEntrar, useLoginContextual } from "@/components/login-contextual";
 import { Onda } from "@/components/onda";
 import { usePlayer, useTempo, type TipoReacao } from "@/components/player-provider";
+
+const MOTIVO_REACAO: Record<TipoReacao, string> = {
+  like: "Entre para curtir e guardar suas favoritas.",
+  save: "Entre para salvar faixas na sua Biblioteca.",
+  support: "Entre para apoiar artistas.",
+};
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
@@ -16,6 +22,7 @@ export function PlayerCheio() {
   const { atual: t, duracao } = useTempo();
   const ref = useRef<HTMLDialogElement>(null);
   const [aviso, setAviso] = useState<{ texto: string; login?: boolean } | null>(null);
+  const { pedirLogin } = useLoginContextual();
 
   useEffect(() => {
     const d = ref.current;
@@ -35,7 +42,10 @@ export function PlayerCheio() {
 
   async function reacao(tipo: TipoReacao) {
     const r = await reagir(tipo, atual!.id);
-    if (r === "login") setAviso({ texto: "Entre para usar isto.", login: true });
+    if (r === "login") {
+      setAviso({ texto: "Entre para usar isto.", login: true });
+      pedirLogin(MOTIVO_REACAO[tipo]);
+    }
     else if (r === "erro") setAviso({ texto: "Não deu certo. Tente de novo." });
     else if (tipo === "support" && !reacoes.support.has(atual!.id)) setAviso({ texto: `Você apoia ${atual!.artistName}. Obrigado!` });
     else setAviso(null);
@@ -163,9 +173,7 @@ export function PlayerCheio() {
           <p role="status" className="text-sm text-brand-2">
             {aviso.texto}{" "}
             {aviso.login && (
-              <Link href="/login" onClick={() => abrir(false)} className="font-semibold underline underline-offset-2">
-                Entrar
-              </Link>
+              <BotaoEntrar motivo={MOTIVO_REACAO.like} />
             )}
           </p>
         )}

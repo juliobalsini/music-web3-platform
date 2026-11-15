@@ -281,8 +281,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - [~] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
   Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
-  login contextual em painel inferior (5), Meus envios com editar/apagar lógico + desfazer 30 dias (7),
-  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Issue #116 segue aberta com `fila`.
+  Meus envios com editar/apagar lógico + desfazer 30 dias (7),
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Issue #116 segue aberta com `fila`.
 
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
@@ -343,3 +343,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   (cache em memória da Vercel por instância), ganho percebido via cache do cliente e esqueleto. E2E do Dependabot corrigido
   (PR #142: sem retry do supabase-js para `.invalid`; páginas de 14–28 s para 20–60 ms) e #107 mergeado com gate verde.
   Fila restante: #116 (itens 5, 7, 8, 11), #120, #122, #125, #140.
+
+- 2026-11-14 (19ª) — Caixa de entrada: pacote de 23:33 virou as issues #145 (Descoberta v2), #146 (Recompensas v1 e Fanfest) e #147
+  (Trilha do artista), todas com `fila`. #116 item 5 (login contextual) em PR item-116-login-contextual (DECISIONS 97).
+  Fila restante: #116 (itens 7, 8, 11), #120, #122, #125, #140, #145, #146, #147.

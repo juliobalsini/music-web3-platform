@@ -286,6 +286,12 @@ test("Stories: faixa na home, visor em tela cheia com música, compartilhar e de
   await visor.getByRole("button", { name: "Mais opções" }).click();
   await visor.getByRole("button", { name: "Denunciar" }).click({ timeout: 15_000 });
   await expect(visor.getByText(/Entre com uma conta para denunciar/)).toBeVisible({ timeout: 15_000 });
+  // Sem conta, o painel de login contextual abre por cima e volta ao story depois de entrar.
+  const login = page.getByRole("dialog", { name: "Entre para continuar" });
+  await expect(login).toBeVisible();
+  await expect(login.locator('input[name="next"]')).toHaveValue(/^\/story\//);
+  await login.getByRole("button", { name: "Fechar" }).click();
+  await expect(login).toBeHidden();
   await visor.getByRole("button", { name: "Fechar painel" }).click();
   await visor.getByRole("button", { name: "Fechar stories" }).click();
   await expect(visor).toBeHidden();
@@ -420,14 +426,36 @@ test("Biblioteca: visitante vê o convite para criar conta", async ({ page }) =>
   await expect(page).toHaveURL(/\/login\?next=%2Fmeus-envios/);
 });
 
-test("Seguir: visitante toca Seguir no perfil e vai ao login voltando ao perfil; /seguindo exige conta", async ({ page }) => {
+test("Seguir: visitante toca Seguir e o painel de login volta ao perfil; /seguindo exige conta", async ({ page }) => {
   const perfil = "/perfil/00000000-0000-4000-8000-000000000201";
   await page.goto(perfil);
   const seguir = page.getByTestId("botao-seguir");
   await expect(seguir).toHaveText(/Seguir/, { timeout: 20_000 });
   await expect(seguir).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByTestId("sessao-lida")).toHaveAttribute("data-conta", "0", { timeout: 20_000 });
   await seguir.click();
-  await expect(page).toHaveURL(/\/login\?next=%2Fperfil%2F00000000-0000-4000-8000-000000000201/, { timeout: 20_000 });
+  const painel = page.getByTestId("login-contextual");
+  await expect(painel).toBeVisible();
+  await expect(painel.locator('input[name="next"]')).toHaveValue(perfil);
+  await expect(page).toHaveURL(perfil);
   await page.goto("/seguindo");
   await expect(page).toHaveURL(/\/login\?next=%2Fseguindo/);
+});
+
+test("Login contextual: Criar playlist abre o painel inferior (Google primeiro) e fecha sem sair da tela", async ({ page }) => {
+  await radioCarregada(page);
+  await expect(page.getByTestId("sessao-lida")).toHaveAttribute("data-conta", "0", { timeout: 20_000 });
+  await page.getByRole("navigation", { name: "Principal" }).getByRole("button", { name: "Criar" }).click();
+  await page.getByRole("dialog", { name: "Criar" }).getByRole("link", { name: "Playlist" }).click();
+  const painel = page.getByRole("dialog", { name: "Entre para continuar" });
+  await expect(painel).toBeVisible();
+  await expect(painel.getByText("Entre para criar e publicar suas playlists.")).toBeVisible();
+  const botoes = painel.getByRole("button");
+  await expect(botoes.filter({ hasText: "Entrar com Google" })).toBeVisible();
+  await expect(painel.locator('input[name="next"]')).toHaveValue("/playlist/nova");
+  await expect(painel.getByRole("link", { name: "Termos" })).toBeVisible();
+  await expect(page).toHaveURL("/");
+  await page.keyboard.press("Escape");
+  await expect(painel).toBeHidden();
+  await expect(page).toHaveURL("/");
 });
