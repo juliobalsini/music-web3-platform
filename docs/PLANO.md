@@ -122,7 +122,7 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
   compartilhado, pré-carga) e **Fase 2 — interação** (curtir, comentários ≤ 140, reações e figurinhas, moderação, estatísticas do dono, RLS). *Em PR
   (item-113-stories-v2); DECISIONS 87–88.*
 - **Stories reposicionados e story de bio automático (issue #156, 2026-11-15):** Home sem círculos, Artistas para conhecer com cards de bio,
-  Explorar com stories ordenados, Perfil de artista em Configurações. *Em PR (item-156-stories-bio); DECISIONS 101.* Foto própria com
+  Explorar com stories ordenados, Perfil de artista em Configurações. *Em produção (PR #157, 2026-11-15); DECISIONS 101.* Foto própria com
   recorte para a bio fica com a fatia `covers/` da #125.
 - **Pós-beta (registrado, não implementar agora):** mensagem direta (resposta privada ao dono do story) e story com foto/vídeo capturado na hora
   (vídeo depende de armazenamento maior que a cota grátis do B2).
