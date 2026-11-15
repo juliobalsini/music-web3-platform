@@ -1,12 +1,34 @@
 "use client";
 
 import { LogIn, Mail, MailCheck } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { entrarComGoogle, enviarLink, type LoginState } from "@/app/login/actions";
+import { LoginCodigo } from "@/components/login-codigo";
 import { botao, campo, Mensagem } from "@/components/ui";
+import { COOKIE_TESTE_CODIGO, loginPorCodigoLigado } from "@/lib/auth/codigo";
 
 export function LoginForm({ next = "" }: { next?: string }) {
+  const [codigo, setCodigo] = useState(loginPorCodigoLigado);
+  // Cookie de teste do E2E liga o código na tela (o envio só é simulado fora de produção).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- cookie só existe no navegador
+    if (document.cookie.split("; ").includes(`${COOKIE_TESTE_CODIGO}=1`)) setCodigo(true);
+  }, []);
+  const google = (
+    <>
+      <input type="hidden" name="next" value={next} />
+      <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
+        <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
+      </button>
+    </>
+  );
+  if (codigo) return <LoginCodigo next={next} antes={google} />;
+  return <LoginLink google={google} />;
+}
+
+/** Fluxo anterior (link mágico), mantido até o SMTP e os modelos com código estarem no Supabase. */
+function LoginLink({ google }: { google: React.ReactNode }) {
   const [state, action, pendente] = useActionState<LoginState, FormData>(enviarLink, {});
   if (state.ok) {
     return (
@@ -29,10 +51,7 @@ export function LoginForm({ next = "" }: { next?: string }) {
   }
   return (
     <form action={action} className="flex flex-col gap-4">
-      <input type="hidden" name="next" value={next} />
-      <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
-        <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
-      </button>
+      {google}
       <p aria-hidden="true" className="text-center text-sm text-white/60">ou</p>
       <input
         name="email"

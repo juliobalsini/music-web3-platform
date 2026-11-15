@@ -368,3 +368,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Pendência: conferir logado como artista (salvar frase e foto, ver o próprio card; seguir e ver o selo "Novo") no celular real.
   Fila restante: #153 (trava), #120, #122, #125 (resto), #140, #145, #146, #147.
 
+- 2026-11-15 (24ª) — #154 (trava da #153): trava aprovada, mas o E2E da prévia falhou em "página de login carrega" (strict mode: dois
+  campos E-mail durante o streaming; o branch estava sobre a main anterior ao #157). Atualizado sobre a main; o novo commit pede a trava
+  de novo. #120 (Login v2) fatia 1 em PR item-120-login-codigo (DECISIONS 102): código de 6 dígitos atrás de flag
+  (`LOGIN_CODIGO_POR_PADRAO=false`), modelos de e-mail em `docs/email-templates/`, guia SMTP, item na Sessão manual; teste de login do
+  home.spec só com campo visível. Ligar o código quando o Julio concluir a Sessão manual. Fila restante: #153 (trava), #120 (fatia 2:
+  GIS/One Tap, textos, `/entrar`), #122, #125 (resto), #140, #145, #146, #147.

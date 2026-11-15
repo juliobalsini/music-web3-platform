@@ -1,0 +1,11 @@
+radioOn · Música para os melhores ouvintes.
+
+Confirme seu e-mail
+Use este código para salvar sua conta na radioOn (seus pontos e seu histórico continuam).
+
+Seu código: {{ .Token }}
+
+Vale por 10 minutos.
+Se não foi você, ignore este e-mail.
+
+radioOn · Música para os melhores ouvintes.

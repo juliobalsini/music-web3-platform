@@ -1,0 +1,11 @@
+radioOn · Música para os melhores ouvintes.
+
+Entrar na radioOn
+Use este código para entrar. Sem senha.
+
+Seu código: {{ .Token }}
+
+Vale por 10 minutos.
+Se não foi você, ignore este e-mail.
+
+radioOn · Música para os melhores ouvintes.
