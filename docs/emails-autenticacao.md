@@ -1,5 +1,8 @@
 # E-mails de autenticação (pt-BR) — para colar no Supabase
 
+> **Novo (issue #120):** login por código de 6 dígitos. Modelos com `{{ .Token }}` e guia do SMTP em
+> [`docs/email-templates/`](email-templates/README.md); os modelos abaixo (com link) valem até o código ser ligado.
+
 Onde colar: Supabase → **Authentication → Email Templates** (um modelo por aba).
 Variáveis do Supabase usadas: `{{ .ConfirmationURL }}` (link) e `{{ .Email }}`.
 Fundo marinho `#00112A`, botão âmbar `#E89A3C` com texto marinho (contraste ≥ 8:1).

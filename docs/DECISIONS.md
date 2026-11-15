@@ -501,3 +501,17 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     prévias, ninguém oculto, como em `perfilEhPublico`). Excluir conta limpa bio e foto. (e) Explorar: seção Stories abaixo da busca na
     ordem postados de quem sigo → postados recentes (radioOn primeiro) → bios não vistas → bios vistas. (f) E2E: o cookie de teste
     `radioon_demo_segue` (só fora de produção e só com ids da demonstração) simula "sigo este artista", já que o E2E não tem login.
+102. **Login v2, fatia 1 — código de 6 dígitos (issue #120, 2026-11-15):** (a) Novo fluxo e-mail → "Receber código" → campo único
+    (`inputmode="numeric"`, `autocomplete="one-time-code"`, aceita colar com espaço/traço, verifica sozinho ao completar 6 dígitos,
+    "Reenviar" após 60 s pelo relógio do aparelho, "Trocar e-mail", erros curtos para errado/expirado/excesso). `signInWithOtp` sem
+    `emailRedirectTo` + `verifyOtp` no servidor (server actions); sessão anônima vira conta por `updateUser({ email })` + `verifyOtp`
+    `email_change` (mesmo id, pontos ficam); o tipo nunca vem livre do cliente (`parseTipoCodigo`). Ao entrar, recarrega a página de
+    origem inteira (todos os componentes leem a sessão nova). (b) **Flag:** `LOGIN_CODIGO_POR_PADRAO = false` em `lib/auth/codigo.ts`
+    (sobrescrita `NEXT_PUBLIC_LOGIN_CODIGO`). O pedido era ligar sozinho ao detectar o SMTP configurado, mas o agente não tem como ver
+    o SMTP nem os modelos do Supabase (sem Management API, sem caixa de e-mail) e, sem os modelos com `{{ .Token }}`, o e-mail traria
+    só o link; por isso liga ao concluir o item da Sessão manual (opção reversível e segura). Até lá o link mágico segue igual.
+    (c) E2E sem Supabase: cookie `radioon_teste_codigo` liga o código na tela; **só fora de produção** o servidor simula envio e
+    aceita `123456` (`000000` = expirado), sem criar sessão. (d) Modelos em `docs/email-templates/` (Magic Link, Confirm signup e
+    Change Email, HTML + texto, assunto "Seu código radioOn: {{ .Token }}") e guia do SMTP Gmail (465, remetente "radioOn", 20 e-mails/h,
+    OTP de 600 s). (e) Fatia 2: Google Identity Services (botão oficial + One Tap, `signInWithIdToken` com nonce), textos do painel
+    ("Entre na radioOn"), rota `/entrar`, concluir a ação pendente após entrar, protótipo.

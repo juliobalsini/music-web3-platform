@@ -1,0 +1,11 @@
+radioOn · Música para os melhores ouvintes.
+
+Boas-vindas à radioOn
+Use este código para criar sua conta e dar play.
+
+Seu código: {{ .Token }}
+
+Vale por 10 minutos.
+Se não foi você, ignore este e-mail.
+
+radioOn · Música para os melhores ouvintes.
