@@ -1,4 +1,4 @@
-import { ListMusic, Lock } from "lucide-react";
+import { BadgeCheck, ListMusic, Lock } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -12,7 +12,8 @@ import { presencaEmPlaylists } from "@/lib/playlists/queries";
 import { isUuid, textoPresenca } from "@/lib/playlists/rules";
 import Link from "next/link";
 
-import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
+import { curadoresAtivos, curadorOficial, IDS_OFICIAIS, selecoesDoCurador } from "@/lib/radio/curadores";
+import { PLATAFORMA_ID, selecaoRadioOn, type Selecao } from "@/lib/radio/home";
 import { carregarRadio } from "@/lib/radio/queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
@@ -24,7 +25,7 @@ import { getSessionRole } from "@/lib/session";
 async function seguindoPerfil(id: string): Promise<{ mostrar: boolean; seguindo: boolean; eu: string | null }> {
   const sessao = await getSessionRole().catch(() => null);
   const eu = sessao?.userId ?? null;
-  if (!podeSeguir(eu, id, PLATAFORMA_ID)) return { mostrar: false, seguindo: false, eu };
+  if (!podeSeguir(eu, id, IDS_OFICIAIS)) return { mostrar: false, seguindo: false, eu };
   if (!sessao) return { mostrar: true, seguindo: false, eu };
   const { data } = await sessao.supabase.from("follows").select("followed_id").eq("follower_id", sessao.userId).eq("followed_id", id).maybeSingle();
   return { mostrar: true, seguindo: !!data, eu };
@@ -32,10 +33,86 @@ async function seguindoPerfil(id: string): Promise<{ mostrar: boolean; seguindo:
 
 export const metadata = { title: "Perfil · radioOn" };
 
+/** Lista das playlists da Seleção radioOn (virtuais, recalculadas a cada leitura). */
+function ListaSelecao({ lista, titulo }: { lista: Selecao[]; titulo: string }) {
+  return (
+    <section aria-label={titulo} className="flex flex-col gap-2">
+      <h2 className="text-lg font-bold">{titulo}</h2>
+      <ul className="flex flex-col gap-2">
+        {lista.map((s) => (
+          <li key={s.id}>
+            <Link href={`/playlist/${s.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">
+              <span className="truncate font-semibold">{s.title}</span>
+              <span className="shrink-0 text-sm text-white/70 tabular-nums">{s.faixas.length} {s.faixas.length === 1 ? "faixa" : "faixas"}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** Curador oficial (virtual, criado pela conta radioOn): nome, selo, frase e as playlists da Seleção que assina. */
+async function PerfilCurador({ id }: { id: string }) {
+  const curador = curadorOficial(id);
+  if (!curador) notFound();
+  const radio = await carregarRadio();
+  const lista = selecoesDoCurador(selecaoRadioOn(radio.faixas, new Date().getTime()), id);
+  // Sem playlist no momento (gênero ainda sem faixas suficientes): nada de perfil vazio.
+  if (lista.length === 0) notFound();
+  return (
+    <>
+      <RegistrarVisita tipo="perfil" id={id} titulo={curador.nome} sub="Curador oficial" />
+      <div className="flex items-center gap-4">
+        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900">
+          {curador.nome.split(" ").at(-1)?.charAt(0).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold">{curador.nome}</h1>
+          <p data-testid="selo-curador-oficial" className="flex items-center gap-1 text-sm font-semibold text-brand">
+            <BadgeCheck aria-hidden="true" className="size-4" /> Curador oficial
+          </p>
+          <p className="text-sm text-white/70">{curador.bio}</p>
+        </div>
+      </div>
+      <ListaSelecao titulo="Playlists" lista={lista} />
+      <p className="text-sm text-white/70">
+        Da equipe <Link href={`/perfil/${PLATAFORMA_ID}`} className="font-semibold text-brand underline-offset-2 hover:underline">radioOn</Link>
+      </p>
+    </>
+  );
+}
+
+/** No perfil radioOn: a Seleção e os curadores oficiais criados por ele. */
+function OficialSelecao({ lista }: { lista: Selecao[] }) {
+  const curadores = curadoresAtivos(lista);
+  return (
+    <>
+      <ListaSelecao titulo="Seleção radioOn" lista={lista} />
+      {curadores.length > 0 && (
+        <section aria-label="Curadores oficiais" className="flex flex-col gap-2">
+          <h2 className="text-lg font-bold">Curadores oficiais</h2>
+          <ul className="flex flex-col gap-2">
+            {curadores.map((c) => (
+              <li key={c.id}>
+                <Link href={`/perfil/${c.id}`} className="flex min-h-12 items-center gap-2 rounded-lg bg-white/10 px-4 py-2 font-semibold hover:bg-white/15">
+                  <BadgeCheck aria-hidden="true" className="size-4 shrink-0 text-brand" />
+                  <span className="truncate">{c.nome}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
+
 /** Perfil público de artista e/ou curador: só nome, faixas publicadas e playlists públicas. */
 async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
+  if (curadorOficial(id)) return <PerfilCurador id={id} />;
   const [radio, todosStories, seguir, publico, presenca] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id), perfilEhPublico(id), presencaEmPlaylists(id)]);
   const stories = todosStories.filter((s) => s.authorId === id);
   const agora = new Date().getTime();
@@ -90,21 +167,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
         </section>
       )}
       <PlaylistsDaSemana titulo="Playlists" lista={playlists} />
-      {id === PLATAFORMA_ID && (
-        <section aria-label="Seleção radioOn" className="flex flex-col gap-2">
-          <h2 className="text-lg font-bold">Seleção radioOn</h2>
-          <ul className="flex flex-col gap-2">
-            {selecaoRadioOn(radio.faixas, agora).map((s) => (
-              <li key={s.id}>
-                <Link href={`/playlist/${s.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">
-                  <span className="truncate font-semibold">{s.title}</span>
-                  <span className="shrink-0 text-sm text-white/70 tabular-nums">{s.faixas.length} faixas</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {id === PLATAFORMA_ID && <OficialSelecao lista={selecaoRadioOn(radio.faixas, agora)} />}
       {stories.length > 0 && (
         <section aria-label="Stories do perfil" className="flex flex-col gap-2">
           <h2 className="text-lg font-bold">Stories</h2>

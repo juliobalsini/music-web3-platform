@@ -41,9 +41,11 @@ const TITULOS: [string, number][] = [
   ["Sinal âmbar", 0],
   ["Maré de domingo", 1],
   ["Fio de prata", 0],
+  ["Ponte aérea", 2],
 ];
 
-const GENEROS_DEMO = ["mpb", "indie", "eletronica", "jazz"];
+// 9 faixas em 3 gêneros: 3 por gênero, o mínimo da Seleção por gênero (e de 3 curadores oficiais no hub).
+const GENEROS_DEMO = ["mpb", "indie", "jazz"];
 const CLIMAS_DEMO = ["madrugada", "estrada", "foco", "chuva", "domingo"];
 
 export type DemoDados = {

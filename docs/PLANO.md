@@ -13,8 +13,8 @@ inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou vol
 1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas. Configurações fatia 1 entregue (reprodução, dados,
    conta, privacidade, excluir conta; DECISIONS 99). Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria,
    itens 1–4, 6 e 7.
-2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa. Fase 2: itens 1 (hub; DECISIONS 110), 4 e 5 entregues; faltam
-   curadores oficiais, Tema da semana e E2E logado.
+2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa. Fase 2: itens 1 (hub; DECISIONS 110), 2 (curadores oficiais;
+   DECISIONS 111), 4 e 5 entregues; faltam Tema da semana e E2E logado.
 3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa. Fatia 1 entregue (código atrás de flag,
    modelos de e-mail, guia SMTP; DECISIONS 102). Faltam: GIS + One Tap, textos do painel, `/entrar`, ação pendente, ligar a flag
    depois da Sessão manual.

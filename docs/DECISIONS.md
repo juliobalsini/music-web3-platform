@@ -597,3 +597,15 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     salvamentos de playlists privadas/apagadas são descartados pela lista pública lida com o papel anônimo. **Sem migration.** Regras puras
     em `lib/playlists/hub.ts`, testadas. (d) Explorar mostra o mesmo hub sem a Seleção (já está na Rádio); "Playlisters em destaque"
     substitui "Playlisters em alta" quando tem o mínimo. (e) Tema da semana e curadores oficiais (itens 2–3) ficam para as próximas fatias.
+
+111. **Curadores oficiais (#122, fase 2, item 2; 2026-11-16).** (a) Um curador oficial por gênero ("radioOn Jazz", "radioOn Indie"…;
+    "Outro" fica de fora), criado pela conta oficial no mesmo modelo do perfil radioOn: **perfil virtual** com id fixo
+    (`00000000-0000-4000-8000-0000000001NN`), sem usuário no Auth, sem linha em `profiles` e **sem migration**. Lista única em
+    `lib/radio/curadores.ts`; criar outro curador = acrescentar uma linha por PR (o gate revisa). Criar contas reais no Auth para eles
+    exigiria service_role escrevendo usuários e não daria nada além disso no beta. (b) Cada curador assina a Seleção radioOn do seu
+    gênero ("Jazz na radioOn" → "Seleção de radioOn Jazz ✓"); Novidades e climas seguem com o perfil radioOn. (c) Perfil
+    `/perfil/<id>` com nome, selo "Curador oficial", frase e as playlists que assina; sem playlist no momento → 404 (nada de perfil
+    vazio nem simulado). Perfis oficiais não podem ser seguidos (`podeSeguir` recebe a lista `IDS_OFICIAIS`). (d) Hub: seção
+    "Curadores oficiais" logo após a Seleção, só com ≥ 3 curadores ativos (mesmo mínimo do hub); o perfil radioOn lista os curadores
+    ativos. O selo (`BadgeCheck`) é decorativo (`aria-hidden`); a legenda do carrossel mostra só curador + selo. (e) Demonstração (fora
+    de produção): 9 faixas em 3 gêneros (MPB, Indie, Jazz), 3 por gênero, para o E2E ver a Seleção por gênero e os curadores.

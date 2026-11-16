@@ -394,11 +394,11 @@ test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
 });
 
 // Hub de playlists (#122, fase 2): com a demonstração, cada seção tem o mínimo de 3 itens.
-test("hub de playlists: Seleção, Playlists em alta, Playlisters em destaque, Mais playlistados e Monte sua playlist", async ({ page }) => {
+test("hub de playlists: Seleção, Curadores oficiais, Playlists em alta, Playlisters em destaque, Mais playlistados e Monte sua playlist", async ({ page }) => {
   await page.goto("/?f=playlists");
   const hub = page.getByTestId("hub-playlists").first();
   await expect(hub).toBeVisible({ timeout: 20_000 });
-  const secoes = ["Seleção radioOn", "Playlists em alta", "Playlisters em destaque", "Mais playlistados"];
+  const secoes = ["Seleção radioOn", "Curadores oficiais", "Playlists em alta", "Playlisters em destaque", "Mais playlistados"];
   for (const nome of secoes) await expect(hub.getByRole("region", { name: nome })).toBeVisible();
   const titulos = await hub.getByRole("heading", { level: 2 }).allTextContents();
   expect(titulos).toEqual(secoes);
@@ -415,6 +415,19 @@ test("hub de playlists: Seleção, Playlists em alta, Playlisters em destaque, M
   const hubExplorar = page.getByTestId("hub-playlists");
   await expect(hubExplorar.getByRole("region", { name: "Mais playlistados" })).toBeVisible({ timeout: 20_000 });
   await expect(hubExplorar.getByRole("region", { name: "Seleção radioOn" })).toHaveCount(0);
+});
+
+// Curadores oficiais (#122, fase 2, item 2): perfis virtuais da radioOn que assinam a Seleção de cada gênero.
+test("curador oficial: assina a Seleção do gênero e tem perfil com selo, sem botão Seguir", async ({ page }) => {
+  await page.goto("/playlist/radioon-genero-jazz");
+  const curador = page.getByTestId("selecao-curador");
+  await expect(curador).toContainText("radioOn Jazz", { timeout: 20_000 });
+  await curador.click();
+  await expect(page).toHaveURL(/\/perfil\/00000000-0000-4000-8000-0000000001[0-9a-f]{2}$/, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "radioOn Jazz" })).toBeVisible();
+  await expect(page.getByTestId("selo-curador-oficial")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Jazz na radioOn/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Seguir/ })).toHaveCount(0);
 });
 
 test("gaveta lateral: abre pelo menu, fecha por toque fora e pelo Esc; logo rola ao topo", async ({ page }) => {
