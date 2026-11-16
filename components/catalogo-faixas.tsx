@@ -37,7 +37,7 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
             <li key={f.id} className="w-28 shrink-0 snap-start">
               <button type="button" onClick={() => tocar(f, ultimas)} aria-label={`Tocar ${f.title}, ${f.artistName}`} className="flex w-full flex-col gap-1 rounded-xl text-left">
                 <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="aspect-square w-full !rounded-xl" />
-                <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>
+                <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>{" "}
                 <span className="truncate text-xs text-white/70">{f.artistName}</span>
               </button>
             </li>
@@ -88,7 +88,7 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
           const tags = [rotuloGenero(f.genre), rotuloClima(f.mood)].filter(Boolean).join(" · ");
           return (
             <li key={f.id} className={`flex min-h-16 items-center gap-1 rounded-lg ${naFila ? "bg-white/5" : ""}`}>
-              <button type="button" onClick={() => tocar(f, lista)} aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5">
+              <button type="button" onClick={() => tocar(f, lista)} aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`} data-a11y-nome="cartao" className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5">
                 <span className="relative shrink-0">
                   <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="size-12" />
                   <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center rounded-md bg-night-900/50 opacity-0 hover:opacity-100">

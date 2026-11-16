@@ -74,7 +74,7 @@ export function CartaoNoAr({
           type="button"
           data-testid="play"
           onClick={() => p.tocar(faixa, fila, continuo)}
-          aria-label={tocando ? `Pausar ${faixa.title}` : `Tocar ${faixa.title}`}
+          aria-label={tocando ? `Pausar ${faixa.title}` : `Ouvir agora ${faixa.title}`}
           className="foco-claro flex h-14 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-2 font-bold text-night-900 shadow-[0_8px_16px_-8px_rgba(232,154,60,0.8)]"
         >
           {tocando ? <Pause className="size-6 fill-night-900" aria-hidden="true" /> : <Play className="ml-0.5 size-6 fill-night-900" aria-hidden="true" />}
@@ -104,14 +104,14 @@ export function CartaoNoAr({
                 <button
                   type="button"
                   onClick={() => p.tocar(f, fila, continuo)}
-                  aria-label={`Pular para ${f.title}, ${f.artistName}`}
+                  aria-label={`Pular para ${f.title}, ${f.artistName}, ${formatDuracao(f.durationSec)}`}
                   className="flex min-h-14 w-full items-center gap-3 rounded-xl px-1 py-1.5 text-left hover:bg-white/10"
                 >
                   <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="size-11" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{f.title}</span>
+                    <span className="block truncate text-sm font-semibold">{f.title}</span>{" "}
                     <span className="block truncate text-xs text-white/75">{f.artistName}</span>
-                  </span>
+                  </span>{" "}
                   <span className="text-xs tabular-nums text-white/75">{formatDuracao(f.durationSec)}</span>
                 </button>
               </li>

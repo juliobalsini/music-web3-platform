@@ -152,3 +152,10 @@ Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara
 9. **Stories** (`story-form`, `story-paineis`): painéis próprios → `PainelInferior`.
 10. **Privacidade/Termos**: texto jurídico longo → aceitável; só `Ajuda` nos resumos.
 Telas novas (Stories v2, Navegação v2, Login v2, Playlists v2, Configurações) já nascem com estes componentes.
+
+## Qualidade de interface (issue #185, Julio, 2026-11-16)
+- [x] Skills `web-design-guidelines` (regras locais), `react-best-practices`, `composition-patterns`; uso no CLAUDE.md (DECISIONS 113).
+- [x] axe nos E2E mobile das telas principais, reprovando em serious/critical; violações existentes corrigidas.
+- [x] Lighthouse CI como aviso no resumo do CI (app compilado; DECISIONS 114).
+- [ ] **Desempenho:** baixar LCP (≈ 3–4 s) e TBT da Home (≈ 0,9 s) para o orçamento; depois (a partir de 2026-11-23) o Lighthouse
+  vira bloqueio. Medir na prévia exige o secret de bypass num workflow → entra no PR protegido semanal.

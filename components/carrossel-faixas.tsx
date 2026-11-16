@@ -33,7 +33,7 @@ export function CarrosselFaixas({ titulo, dica, faixas }: { titulo: string; dica
                     {tocando ? <Pause className="size-5 fill-night-900" /> : <Play className="ml-0.5 size-5 fill-night-900" />}
                   </span>
                 </span>
-                <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>
+                <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>{" "}
                 <span className="truncate text-xs text-white/70">{f.artistName}</span>
               </button>
             </li>

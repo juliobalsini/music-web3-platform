@@ -6,10 +6,15 @@ produtores, marcas, tokens on-chain, NFTs (ciclo 6 só quando o Julio liberar).
 ## Stack
 Next.js App Router + TypeScript strict + Tailwind + pnpm · Supabase (Postgres, Auth, RLS)
 via @supabase/ssr · Backblaze B2 (S3-compatível) via @aws-sdk/client-s3 · Vercel pdx1
-(Supabase us-west-2) · GitHub Actions · lucide-react · Playwright. Visual: fundo #0f0f23→#16213e,
-laranja #ff6b35/#f7931e, logo "radio" branco + "On" laranja; flat, pouco texto, foco no play.
+(Supabase us-west-2) · GitHub Actions · lucide-react · Playwright. Visual: marinho #00112A, âmbar #E89A3C,
+logo do gramofone; cores só pelos tokens de `components/ds/` (`--ds-*` em app/globals.css); flat, pouco texto, foco no play.
 **UI:** toda tarefa de UI usa a skill `impeccable` (.claude/skills/impeccable), sem rodar
 o launcher dela (bloqueado; usar o caminho "Launcher unavailable"). Ver UPSTREAM.md.
+**Skills de qualidade** (.claude/skills, vendorizadas; ver UPSTREAM.md de cada): `impeccable` cria e refina telas;
+`composition-patterns` ao criar ou alterar componentes de `components/ds/`; `react-best-practices` em toda tarefa de UI e
+em qualquer lentidão; `web-design-guidelines` (regras locais, sem rede) é revisão obrigatória ao fim de toda tarefa de UI:
+corrigir os achados de acessibilidade e UX antes do PR e listar o restante no resumo. E2E das telas principais rodam o axe
+(`e2e/acessibilidade-mobile-visual.spec.ts`): violação "serious"/"critical" reprova.
 **Design system:** toda tela nova ou alterada usa os componentes de `components/ds/` (docs/design-system.md); textos
 explicativos longos viram ajuda que abre ao tocar (`Ajuda`).
 ## Regras invioláveis
