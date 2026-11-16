@@ -1,11 +1,10 @@
-import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { Capa } from "@/components/capa";
 import { CapaArte } from "@/components/capa";
-import { LinkConta } from "@/components/login-contextual";
-import { PLATAFORMA_NOME, type Selecao } from "@/lib/radio/home";
-import type { PlaylistSemana } from "@/lib/radio/queries";
+import { HubPlaylists } from "@/components/hub-playlists";
+import type { Selecao } from "@/lib/radio/home";
+import type { Hub, PlaylistSemana } from "@/lib/radio/queries";
 import type { AlbumResumo } from "@/lib/radio/rules";
 
 /** Capa quadrada + título + linha de apoio, para playlists em grade. */
@@ -21,27 +20,13 @@ function CartaoPlaylist({ href, titulo, sub, capa }: { href: string; titulo: str
 
 const faixasTxt = (n: number) => `${n} ${n === 1 ? "faixa" : "faixas"}`;
 
-/** Filtro Playlists: Seleção radioOn no topo, depois as dos playlisters; "Criar playlist" (login se preciso). */
-export function GradePlaylists({ selecao, playlists }: { selecao: Selecao[]; playlists: PlaylistSemana[] }) {
+/** Filtro Playlists: o hub (Seleção radioOn, Em alta, destaques, ranking, "Monte sua playlist") e todas as playlists. */
+export function GradePlaylists({ selecao, playlists, hub }: { selecao: Selecao[]; playlists: PlaylistSemana[]; hub: Hub }) {
   return (
-    <div className="flex flex-col gap-5">
-      <LinkConta href="/playlist/nova" motivo="Entre para criar e publicar suas playlists." data-testid="criar-playlist" className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-brand to-brand-2 px-5 font-semibold text-night-900">
-        <Plus className="size-5" aria-hidden="true" /> Criar playlist
-      </LinkConta>
-      {selecao.length > 0 && (
-        <section aria-label="Seleção radioOn" className="flex flex-col gap-2">
-          <h2 className="text-lg font-bold">Seleção radioOn</h2>
-          <ul className="grid grid-cols-2 gap-3">
-            {selecao.map((s) => (
-              <li key={s.id}>
-                <CartaoPlaylist href={`/playlist/${s.id}`} titulo={s.title} sub={`${PLATAFORMA_NOME} · ${faixasTxt(s.faixas.length)}`} capa={null} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <section aria-label="Playlists dos playlisters" className="flex flex-col gap-2">
-        <h2 className="text-lg font-bold">Dos playlisters</h2>
+    <div className="flex flex-col gap-6">
+      <HubPlaylists hub={hub} selecao={selecao} />
+      <section aria-label="Todas as playlists" className="flex flex-col gap-2">
+        <h2 className="text-lg font-bold">Todas as playlists</h2>
         {playlists.length === 0 ? (
           <p className="text-white/70">Nenhuma playlist de playlister ainda.</p>
         ) : (

@@ -187,7 +187,7 @@ export function RadioCliente({
         {aberta("faixas") && <CatalogoFaixas faixas={radio.faixas} />}
       </div>
       <div data-testid="visao-playlists" className={visao("playlists")}>
-        {aberta("playlists") && <GradePlaylists selecao={selecao} playlists={radio.todasPlaylists} />}
+        {aberta("playlists") && <GradePlaylists selecao={selecao} playlists={radio.todasPlaylists} hub={radio.hub} />}
       </div>
       {radio.albuns.length > 0 && (
         <div data-testid="visao-albuns" className={visao("albuns")}>

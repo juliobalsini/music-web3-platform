@@ -9,6 +9,7 @@ import { cache } from "react";
 import { TAG_CATALOGO } from "./cache-catalogo";
 import { dadosDemo, demoAtivo } from "./demo";
 import { totalOuvindo } from "./home";
+import { emAltaPorSalvamentos, maisPlaylistados, playlistersEmDestaque, type PlaylistDoHub } from "@/lib/playlists/hub";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSupabasePublicKey, getSupabaseUrl } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -39,7 +40,17 @@ export type PlaylistSemana = {
   capa: { id: string; title: string; hasCover: boolean } | null;
 };
 
+export type Hub = {
+  /** Mais salvas em 7 dias. */
+  emAlta: (PlaylistSemana & { salvos: number })[];
+  playlisters: { id: string; name: string; salvos: number; seguidores: number; playlists: number; topPlaylistId: string }[];
+  /** Ranking semanal de artistas por playlists em que entraram. */
+  playlistados: { id: string; name: string; posicao: number; playlists: number }[];
+};
+
 export type Radio = {
+  /** Hub de playlists (cada seção só aparece com o mínimo de itens: `secaoVisivel`). */
+  hub: Hub;
   faixas: FaixaListada[];
   emAlta: ItemRanking<FaixaListada>[];
   descobertas: FaixaListada[];
@@ -59,6 +70,7 @@ export type Radio = {
 };
 
 const VAZIO: Radio = {
+  hub: { emAlta: [], playlisters: [], playlistados: [] },
   faixas: [],
   emAlta: [],
   descobertas: [],
@@ -80,7 +92,7 @@ type LinhaTrack = {
 };
 type LinhaPlaylist = {
   id: string; title: string; curator_id: string; created_at: string;
-  playlist_tracks: { track_id: string; note?: string | null; position: number; hidden?: boolean | null; featured?: boolean | null }[];
+  playlist_tracks: { track_id: string; note?: string | null; position: number; hidden?: boolean | null; featured?: boolean | null; added_at?: string | null }[];
 };
 type LinhaPrograma = { id: string; title: string; start_hour: number; end_hour: number; playlist_id: string; curator_id: string };
 
@@ -151,6 +163,7 @@ async function lerNomes(supabase: Cliente, ids: string[]): Promise<Map<string, s
 
 async function lerPlaylists(supabase: Cliente): Promise<LinhaPlaylist[]> {
   for (const colunas of [
+    "id,title,curator_id,created_at,playlist_tracks(track_id,note,position,hidden,featured,added_at)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position,hidden,featured)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,position)",
@@ -190,6 +203,10 @@ type CatalogoPublico = {
   nomes: [string, string][];
   escutas: { track_id: string; started_at: string }[];
   likes: [string, number][];
+  /** Salvamentos de playlists (só playlist e data: nunca quem salvou). */
+  salvamentos: [string, string][];
+  /** Seguidores por perfil (só a contagem). */
+  seguidores: [string, number][];
   /** Batidas dos últimos 3 min (para "N ouvindo"); `null` sem service_role. */
   batidas: { user_id: string; last_beat_at: string | null }[] | null;
 };
@@ -225,6 +242,8 @@ async function catalogoPublico(): Promise<CatalogoPublico> {
   const likes = new Map<string, number>();
   let escutas: CatalogoPublico["escutas"] = [];
   let batidas: CatalogoPublico["batidas"] = null;
+  let salvamentos: CatalogoPublico["salvamentos"] = [];
+  const seguidores = new Map<string, number>();
   try {
     const admin = createAdminClient();
     const [v, l, o] = await Promise.all([
@@ -242,12 +261,21 @@ async function catalogoPublico(): Promise<CatalogoPublico> {
         .limit(2000),
     ]);
     escutas = (v.data ?? []) as typeof escutas;
+    // Hub de playlists: contagens de salvamentos e seguidores, sem ler quem salvou/segue.
+    const [sv, sg] = await Promise.all([
+      admin.from("playlist_saves").select("playlist_id,created_at").order("created_at", { ascending: false }).limit(20000),
+      admin.from("follows").select("followed_id").limit(20000),
+    ]);
+    if (sv.error) console.error("[radio] salvamentos:", sv.error.message);
+    if (sg.error) console.error("[radio] seguidores:", sg.error.message);
+    salvamentos = ((sv.data ?? []) as { playlist_id: string; created_at: string }[]).map((r) => [r.playlist_id, r.created_at]);
+    for (const r of (sg.data ?? []) as { followed_id: string }[]) seguidores.set(r.followed_id, (seguidores.get(r.followed_id) ?? 0) + 1);
     for (const r of (l.data ?? []) as { track_id: string }[]) likes.set(r.track_id, (likes.get(r.track_id) ?? 0) + 1);
     if (!v.error && !o.error) batidas = (o.data ?? []) as NonNullable<CatalogoPublico["batidas"]>;
   } catch {
     /* sem service_role (prévias/testes): contagens zeradas */
   }
-  return { tracks, pls, progs, albuns, nomes: [...nomes], escutas, likes: [...likes], batidas };
+  return { tracks, pls, progs, albuns, nomes: [...nomes], escutas, likes: [...likes], batidas, salvamentos, seguidores: [...seguidores] };
 }
 
 /** Tudo da Rádio numa leitura por requisição. Cada parte falha sozinha: nunca derruba as faixas. */
@@ -356,7 +384,23 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
       noAr = { faixa: fluxo[0], fila: fluxo, continuo: true };
     }
 
+    const doHub: PlaylistDoHub[] = playlists.map((p) => ({
+      id: p.id,
+      curatorId: p.curator_id,
+      itens: p.playlist_tracks.map((i) => ({ trackId: i.track_id, addedAt: i.added_at ?? null })),
+    }));
+    const salvamentos = [...cat.salvamentos, ...(demo?.salvamentos ?? [])].map(([playlistId, createdAt]) => ({ playlistId, createdAt }));
+    const seguidores = new Map(cat.seguidores);
+    for (const [k, n] of demo?.seguidores ?? []) seguidores.set(k, (seguidores.get(k) ?? 0) + n);
+    const plPorId = new Map(playlists.map((p) => [p.id, p]));
+    const hub: Hub = {
+      emAlta: emAltaPorSalvamentos(doHub, salvamentos, agora).map(({ id, salvos }) => ({ ...resumo(plPorId.get(id)!), salvos })),
+      playlisters: playlistersEmDestaque(doHub, salvamentos, seguidores).map((r) => ({ ...r, name: nomeDe(r.id) ?? "Playlister" })),
+      playlistados: maisPlaylistados(doHub, new Map(faixas.map((f) => [f.id, f.artistId])), agora).map((a) => ({ ...a, name: nomeDe(a.id) ?? "Artista" })),
+    };
+
     return {
+      hub,
       faixas,
       noAr,
       emAlta,

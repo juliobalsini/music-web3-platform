@@ -193,9 +193,9 @@ test("perfil público: id inválido ou desconhecido dá 404", async ({ page }) =
   await expect(page.getByText("Página não encontrada")).toBeVisible({ timeout: 20_000 });
 });
 
-test("Playlisters em alta (no Explorar) levam ao perfil público", async ({ page }) => {
+test("Playlisters (no Explorar) levam ao perfil público", async ({ page }) => {
   await page.goto("/explorar");
-  const link = page.getByRole("region", { name: "Playlisters em alta" }).getByRole("link").first();
+  const link = page.getByRole("region", { name: /^Playlisters em (alta|destaque)$/ }).getByRole("link").first();
   await link.click();
   await expect(page).toHaveURL(/\/perfil\/[0-9a-f-]{36}/, { timeout: 20_000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -391,6 +391,30 @@ test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
   // Stories saíram dos filtros da Home (ficam no Explorar).
   await expect(filtros.getByRole("button", { name: "Stories" })).toHaveCount(0);
+});
+
+// Hub de playlists (#122, fase 2): com a demonstração, cada seção tem o mínimo de 3 itens.
+test("hub de playlists: Seleção, Playlists em alta, Playlisters em destaque, Mais playlistados e Monte sua playlist", async ({ page }) => {
+  await page.goto("/?f=playlists");
+  const hub = page.getByTestId("hub-playlists").first();
+  await expect(hub).toBeVisible({ timeout: 20_000 });
+  const secoes = ["Seleção radioOn", "Playlists em alta", "Playlisters em destaque", "Mais playlistados"];
+  for (const nome of secoes) await expect(hub.getByRole("region", { name: nome })).toBeVisible();
+  const titulos = await hub.getByRole("heading", { level: 2 }).allTextContents();
+  expect(titulos).toEqual(secoes);
+  const alta = hub.getByRole("region", { name: "Playlists em alta" });
+  await expect(alta.getByText(/\d+ salvamentos?/).first()).toBeVisible();
+  const ranking = hub.getByRole("list", { name: "Ranking de artistas" });
+  await expect(ranking.getByText("1º").first()).toBeVisible();
+  await expect(ranking.getByText(/entrou em \d+ playlists?/).first()).toBeVisible();
+  await expect(hub.getByTestId("criar-playlist")).toContainText("Monte sua playlist");
+  await alta.getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/playlist\/[0-9a-f-]{36}/, { timeout: 20_000 });
+  // Explorar também mostra o hub (sem repetir a Seleção).
+  await page.goto("/explorar");
+  const hubExplorar = page.getByTestId("hub-playlists");
+  await expect(hubExplorar.getByRole("region", { name: "Mais playlistados" })).toBeVisible({ timeout: 20_000 });
+  await expect(hubExplorar.getByRole("region", { name: "Seleção radioOn" })).toHaveCount(0);
 });
 
 test("gaveta lateral: abre pelo menu, fecha por toque fora e pelo Esc; logo rola ao topo", async ({ page }) => {

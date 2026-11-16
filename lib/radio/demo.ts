@@ -29,6 +29,7 @@ export const PERFIS_DEMO: Record<string, { foto: string | null; bio: string | nu
 const CURADORES = [
   { id: id(201), nome: "Clara Sintonia" },
   { id: id(202), nome: "Rádio do Bairro" },
+  { id: id(203), nome: "Ondas do Sul" },
 ];
 
 const TITULOS: [string, number][] = [
@@ -54,6 +55,9 @@ export type DemoDados = {
   nomes: Map<string, string>;
   escutas: { track_id: string; started_at: string }[];
   curtidas: { track_id: string }[];
+  /** Hub de playlists: salvamentos [playlist, data] e seguidores [perfil, n] (só contagens). */
+  salvamentos: [string, string][];
+  seguidores: [string, number][];
 };
 
 export function dadosDemo(agora: number): DemoDados {
@@ -76,7 +80,7 @@ export function dadosDemo(agora: number): DemoDados {
     mood: CLIMAS_DEMO[i % CLIMAS_DEMO.length],
   }));
   const faixaPl = (n: number[], notas: string[] = []) =>
-    n.map((t, position) => ({ track_id: id(t), note: notas[position] ?? null, position }));
+    n.map((t, position) => ({ track_id: id(t), note: notas[position] ?? null, position, added_at: new Date(agora - (position + 1) * 3600 * 1000).toISOString() }));
   const playlists = [
     {
       id: id(301), title: "Manhã no porto", curator_id: CURADORES[0].id,
@@ -87,6 +91,11 @@ export function dadosDemo(agora: number): DemoDados {
       id: id(302), title: "Madrugada de rádio", curator_id: CURADORES[1].id,
       created_at: new Date(agora - 1 * dia).toISOString(),
       playlist_tracks: faixaPl([5, 6, 7, 8], ["Para quem fica acordado."]),
+    },
+    {
+      id: id(303), title: "Estrada de vitrola", curator_id: CURADORES[2].id,
+      created_at: new Date(agora - 3 * dia).toISOString(),
+      playlist_tracks: faixaPl([2, 3, 4, 6]),
     },
   ];
   const programs = [
@@ -106,5 +115,11 @@ export function dadosDemo(agora: number): DemoDados {
     { id: id(502), author_id: PLATAFORMA_ID, is_platform: true, body: "Bem-vindo à rádio. Música independente, sem cadastro para ouvir.", image_key: null, track_id: null, clip_start: null, hidden: false, created_at: new Date(agora - 5 * 3600 * 1000).toISOString() },
     { id: id(503), author_id: CURADORES[0].id, is_platform: false, body: "Story antigo: já saiu da faixa da home, fica no perfil.", image_key: null, track_id: null, clip_start: null, hidden: false, created_at: new Date(agora - 9 * dia).toISOString() },
   ];
-  return { tracks, albums, stories, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }] };
+  // Salvamentos na semana: Manhã no porto (4), Estrada de vitrola (3), Madrugada de rádio (2).
+  const salvamentos: DemoDados["salvamentos"] = [];
+  for (const [pl, n] of [[301, 4], [303, 3], [302, 2]] as const) {
+    for (let k = 0; k < n; k++) salvamentos.push([id(pl), new Date(agora - (k + 1) * 5 * 3600 * 1000).toISOString()]);
+  }
+  const seguidores: DemoDados["seguidores"] = [[CURADORES[0].id, 3], [CURADORES[1].id, 2], [CURADORES[2].id, 1]];
+  return { tracks, albums, stories, playlists, programs, nomes, escutas, curtidas: [{ track_id: id(2) }, { track_id: id(2) }, { track_id: id(3) }], salvamentos, seguidores };
 }
