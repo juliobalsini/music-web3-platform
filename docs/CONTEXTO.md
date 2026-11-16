@@ -449,3 +449,12 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   em produção, migration `20261116000000` aplicada. Pendência: conferir logado no celular (marcar o tema no editor; ver no hub).
   Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
   fora do sprint: #120 (só ligar o código), #145, #146.
+
+- 2026-11-16 (35ª) — Caixa de entrada: pacote das 14:35 virou a issue #185 (Skills de qualidade de interface e testes de acessibilidade
+  e desempenho; `fila`+`urgente`). #185 entregue no PR #186, em produção (commit e204925; DECISIONS 113–114): skills `web-design-guidelines` (regras locais),
+  `react-best-practices` e `composition-patterns` vendorizadas; uso e identidade atual no CLAUDE.md; axe nos E2E mobile das telas
+  principais (serious/critical reprovam; `label-content-name-mismatch` corrigida, exceção só para cartões ricos); Lighthouse CI como
+  aviso no `ci.yml` (app compilado, sem secrets). Linha de base: LCP 3–4 s e TBT da Home 0,9 s acima do orçamento → item de desempenho
+  no PLANO.md; Lighthouse vira bloqueio a partir de 2026-11-23 e a medição na prévia entra no PR protegido semanal.
+  Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
+  fora do sprint: #120 (só ligar o código), #145, #146.
