@@ -2,6 +2,7 @@
 // Áudio = public/demo/tom.wav (arquivo estático, sem B2 e sem cota). Produção nunca vê estes dados.
 
 import { PLATAFORMA_ID } from "./home";
+import { semanaIso } from "../playlists/tema.ts";
 
 export const DEMO_AUDIO_URL = "/demo/tom.wav";
 export const DEMO_DURACAO = 8;
@@ -86,16 +87,19 @@ export function dadosDemo(agora: number): DemoDados {
   const playlists = [
     {
       id: id(301), title: "Manhã no porto", curator_id: CURADORES[0].id,
+      tema_semana: semanaIso(agora),
       created_at: new Date(agora - 2 * dia).toISOString(),
       playlist_tracks: faixaPl([1, 2, 3, 4], ["Abre o dia com calma.", "Violão e brisa."]),
     },
     {
       id: id(302), title: "Madrugada de rádio", curator_id: CURADORES[1].id,
+      tema_semana: semanaIso(agora),
       created_at: new Date(agora - 1 * dia).toISOString(),
       playlist_tracks: faixaPl([5, 6, 7, 8], ["Para quem fica acordado."]),
     },
     {
       id: id(303), title: "Estrada de vitrola", curator_id: CURADORES[2].id,
+      tema_semana: semanaIso(agora),
       created_at: new Date(agora - 3 * dia).toISOString(),
       playlist_tracks: faixaPl([2, 3, 4, 6]),
     },

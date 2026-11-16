@@ -33,6 +33,8 @@ export type FaixaDaPlaylist = { id: string; note: string | null; featured: boole
 export type PlaylistPagina = {
   id: string; title: string; description: string | null; capa: string | null; curator: string | null; curatorId: string;
   isPublic: boolean; mine: boolean; saves: number; saved: boolean; faixas: FaixaDaPlaylist[];
+  /** Semana ISO do tema com que foi marcada ("2026-47"), ou null. */
+  temaSemana: string | null;
 };
 
 export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> {
@@ -43,13 +45,16 @@ export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> 
     // description vem de migration nova: sem ela cai para a leitura antiga.
     let lido: { data: unknown; error: unknown } = await supabase
       .from("playlists")
-      .select("id,title,description,cover_path,curator_id,is_public,profiles(display_name)")
+      .select("id,title,description,cover_path,tema_semana,curator_id,is_public,profiles(display_name)")
       .eq("id", id)
       .maybeSingle();
     if (lido.error) {
+      lido = await supabase.from("playlists").select("id,title,description,cover_path,curator_id,is_public,profiles(display_name)").eq("id", id).maybeSingle();
+    }
+    if (lido.error) {
       lido = await supabase.from("playlists").select("id,title,curator_id,is_public,profiles(display_name)").eq("id", id).maybeSingle();
     }
-    const p = lido.data as { id: string; title: string; description?: string | null; cover_path?: string | null; curator_id: string; is_public: boolean; profiles: { display_name: string | null } | { display_name: string | null }[] | null } | null;
+    const p = lido.data as { id: string; title: string; description?: string | null; cover_path?: string | null; tema_semana?: string | null; curator_id: string; is_public: boolean; profiles: { display_name: string | null } | { display_name: string | null }[] | null } | null;
     if (!p) return null;
     // hidden/featured vêm de migration nova: sem elas cai para a leitura antiga.
     let lidos: { data: unknown; error: unknown } = await supabase
@@ -87,7 +92,7 @@ export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> 
       const { data: s } = await supabase.from("playlist_saves").select("playlist_id").eq("playlist_id", id).eq("user_id", uid).maybeSingle();
       saved = !!s;
     }
-    return { id: p.id, title: p.title, description: p.description ?? null, capa: urlCapaPlaylist(p.id, p.cover_path), curator: prof?.display_name ?? null, curatorId: p.curator_id, isPublic: !!p.is_public, mine, saves, saved, faixas };
+    return { id: p.id, title: p.title, description: p.description ?? null, capa: urlCapaPlaylist(p.id, p.cover_path), curator: prof?.display_name ?? null, curatorId: p.curator_id, isPublic: !!p.is_public, mine, saves, saved, faixas, temaSemana: p.tema_semana ?? null };
   } catch {
     return null;
   }

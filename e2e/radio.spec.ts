@@ -394,11 +394,11 @@ test("Filtros são visões próprias e lembram a rolagem", async ({ page }) => {
 });
 
 // Hub de playlists (#122, fase 2): com a demonstração, cada seção tem o mínimo de 3 itens.
-test("hub de playlists: Seleção, Curadores oficiais, Playlists em alta, Playlisters em destaque, Mais playlistados e Monte sua playlist", async ({ page }) => {
+test("hub de playlists: Seleção, Curadores oficiais, Tema da semana, Playlists em alta, Playlisters em destaque, Mais playlistados e Monte sua playlist", async ({ page }) => {
   await page.goto("/?f=playlists");
   const hub = page.getByTestId("hub-playlists").first();
   await expect(hub).toBeVisible({ timeout: 20_000 });
-  const secoes = ["Seleção radioOn", "Curadores oficiais", "Playlists em alta", "Playlisters em destaque", "Mais playlistados"];
+  const secoes = ["Seleção radioOn", "Curadores oficiais", "Tema da semana", "Playlists em alta", "Playlisters em destaque", "Mais playlistados"];
   for (const nome of secoes) await expect(hub.getByRole("region", { name: nome })).toBeVisible();
   const titulos = await hub.getByRole("heading", { level: 2 }).allTextContents();
   expect(titulos).toEqual(secoes);
@@ -415,6 +415,19 @@ test("hub de playlists: Seleção, Curadores oficiais, Playlists em alta, Playli
   const hubExplorar = page.getByTestId("hub-playlists");
   await expect(hubExplorar.getByRole("region", { name: "Mais playlistados" })).toBeVisible({ timeout: 20_000 });
   await expect(hubExplorar.getByRole("region", { name: "Seleção radioOn" })).toHaveCount(0);
+});
+
+// Tema da semana (#122, fase 2, item 3): banner do tema e playlists marcadas (a demonstração marca as 3).
+test("Tema da semana: banner, playlists marcadas e link para a playlist", async ({ page }) => {
+  await page.goto("/?f=playlists");
+  const tema = page.getByTestId("hub-tema").first();
+  await expect(tema).toBeVisible({ timeout: 20_000 });
+  await expect(tema.getByTestId("banner-tema")).toBeVisible();
+  await expect(tema.getByRole("link", { name: /Monte a sua/ })).toBeVisible();
+  const marcadas = tema.getByRole("list", { name: "Playlists com o tema" });
+  await expect(marcadas.getByRole("listitem")).toHaveCount(3);
+  await marcadas.getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/playlist\/[0-9a-f-]{36}/, { timeout: 20_000 });
 });
 
 // Curadores oficiais (#122, fase 2, item 2): perfis virtuais da radioOn que assinam a Seleção de cada gênero.

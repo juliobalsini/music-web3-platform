@@ -613,3 +613,39 @@ describe("RLS — story de bio: bio e foto do perfil (migration 20261115020000)"
     assert.match(js.error ?? "", /check/i);
   });
 });
+
+describe("Tema da semana: marca em playlists (migration 20261116000000)", () => {
+  const semana = async () => (await db.query<{ s: string }>(`select to_char(now() at time zone 'utc', 'IYYY-IW') as s`)).rows[0].s;
+
+  it("o dono marca a semana atual e desmarca", async () => {
+    const s = await semana();
+    const r = await como("curador", `update public.playlists set tema_semana = '${s}' where id = '${ids.playlist}'`);
+    assert.equal(r.error, null);
+    assert.equal(r.affected, 1);
+    const d = await como("curador", `update public.playlists set tema_semana = null where id = '${ids.playlist}'`);
+    assert.equal(d.affected, 1);
+  });
+
+  it("ninguém marca outra semana (nem o servidor): o trigger recusa", async () => {
+    for (const quem of ["curador", "service"] as Quem[]) {
+      const r = await como(quem, `update public.playlists set tema_semana = '2020-01' where id = '${ids.playlist}'`);
+      assert.match(r.error ?? "", /tema da semana atual/, quem);
+    }
+    const lixo = await como("service", `update public.playlists set tema_semana = 'abc' where id = '${ids.playlist}'`);
+    assert.match(lixo.error ?? "", /check|tema da semana atual/i);
+  });
+
+  it("marca antiga não impede editar outras colunas; outra conta e a sessão anônima não marcam", async () => {
+    await db.exec(`alter table public.playlists disable trigger playlists_tema_semana_atual`);
+    await db.exec(`update public.playlists set tema_semana = '2020-01' where id = '${ids.playlist}'`);
+    await db.exec(`alter table public.playlists enable trigger playlists_tema_semana_atual`);
+    const r = await como("curador", `update public.playlists set title = 'Lista 2' where id = '${ids.playlist}'`);
+    assert.equal(r.error, null);
+    assert.equal(r.affected, 1);
+    const s = await semana();
+    for (const quem of ["conta", "anon"] as Quem[]) {
+      const o = await como(quem, `update public.playlists set tema_semana = '${s}' where id = '${ids.playlist}'`);
+      assert.equal(o.affected, 0, quem);
+    }
+  });
+});

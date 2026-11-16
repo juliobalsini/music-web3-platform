@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Capa, CapaArte } from "@/components/capa";
 import { CuradoresOficiais, SelecaoRadioOn } from "@/components/home-prateleiras";
 import { LinkConta } from "@/components/login-contextual";
+import { TemaDaSemana } from "@/components/tema-semana";
 import { secaoVisivel, vezes } from "@/lib/playlists/hub";
 import type { Selecao } from "@/lib/radio/home";
 import type { Hub } from "@/lib/radio/queries";
@@ -115,7 +116,7 @@ export function MonteSuaPlaylist() {
 }
 
 /**
- * Hub de playlists (#122, fase 2): Seleção radioOn, Curadores oficiais, Em alta, Playlisters em destaque, Mais playlistados
+ * Hub de playlists (#122, fase 2): Seleção radioOn, Curadores oficiais, Tema da semana, Em alta, Playlisters em destaque, Mais playlistados
  * e "Monte sua playlist". Cada seção só aparece com o mínimo de itens (`secaoVisivel`).
  * `selecao` vazio esconde a Seleção (no Explorar ela já aparece na Rádio).
  */
@@ -124,6 +125,7 @@ export function HubPlaylists({ hub, selecao = [] }: { hub: Hub; selecao?: Seleca
     <div data-testid="hub-playlists" className="flex flex-col gap-6">
       {selecao.length > 0 && <SelecaoRadioOn lista={selecao} />}
       {selecao.length > 0 && <CuradoresOficiais lista={selecao} />}
+      <TemaDaSemana tema={hub.tema} />
       {secaoVisivel(hub.emAlta) && <EmAlta lista={hub.emAlta} />}
       {secaoVisivel(hub.playlisters) && <Playlisters lista={hub.playlisters} />}
       {secaoVisivel(hub.playlistados) && <Playlistados lista={hub.playlistados} />}

@@ -14,7 +14,7 @@ inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou vol
    conta, privacidade, excluir conta; DECISIONS 99). Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria,
    itens 1–4, 6 e 7.
 2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa. Fase 2: itens 1 (hub; DECISIONS 110), 2 (curadores oficiais;
-   DECISIONS 111), 4 e 5 entregues; faltam Tema da semana e E2E logado.
+   DECISIONS 111), 3 (Tema da semana; DECISIONS 112), 4 e 5 entregues; falta só o E2E logado (sem conta de teste na prévia).
 3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa. Fatia 1 entregue (código atrás de flag,
    modelos de e-mail, guia SMTP; DECISIONS 102). Faltam: GIS + One Tap, textos do painel, `/entrar`, ação pendente, ligar a flag
    depois da Sessão manual.
