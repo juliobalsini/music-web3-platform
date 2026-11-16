@@ -292,7 +292,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
   Artista ativado no 1º envio (2026-11-16, PR #171; DECISIONS 107): ouvinte vira artista no servidor ao enviar; playlister confirma; em produção.
   Fase 2, item 5 (2026-11-16, PR #173; DECISIONS 108): "Sua faixa está em N playlists" no perfil e em Meus envios, sem migration; em produção. Item 6 (pós-beta) já no PLANO.md.
-  **Fase 2 restante:** hub, curadores oficiais, Tema da semana, mini editor de capa.
+  Fase 2, item 4 (2026-11-16, PR #175; DECISIONS 109): mini editor de capa (6 fundos, 3 fontes, 12 figurinhas, arrastar/redimensionar, PNG no navegador), sem migration; em produção.
+  **Fase 2 restante:** hub, curadores oficiais, Tema da semana.
 
 ## Correções avulsas
 
@@ -414,3 +415,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   de artista cuja faixa esteja numa playlist pública de outra pessoa. #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
   Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: hub, curadores oficiais, Tema da semana, mini editor
   de capa), #125 (resto), #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (31ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 4 (mini editor de capa; PR #175, DECISIONS 109; sem migration) em produção (commit cbf4031). Pendência: conferir logado
+  no celular (Criar capa → montar → Usar esta capa). #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: hub, curadores oficiais, Tema da semana), #125 (resto),
+  #78 Fase C, #140, #145, #146, #147.
