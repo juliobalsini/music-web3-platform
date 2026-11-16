@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 25
     environment: producao-db   # SUPABASE_* e S3_* só existem neste ambiente (branch main)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { ref: main }
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - uses: pnpm/action-setup@v4
