@@ -585,3 +585,15 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     (720 px) e a imagem final (1000 px): **PNG** gerado no navegador, com JPEG 0,9 só se passar de 2 MB; envio pela mesma rota assinada
     da foto própria (`covers/`, servida pelo proxy). **Sem migration** e sem rota nova. (d) A composição não é salva (só a imagem);
     reabrir o estúdio começa do título atual.
+
+110. **Hub de playlists (#122, fase 2, item 1; 2026-11-16).** (a) Rádio > Playlists passa a ser o hub, na ordem: **Seleção radioOn**
+    (carrossel das playlists automáticas por novidades, gênero e clima), **Playlists em alta** (mais salvas em 7 dias), **Playlisters em
+    destaque** (salvamentos das playlists públicas + seguidores), **Mais playlistados** (artistas cujas faixas entraram em mais playlists
+    públicas **de outras pessoas** na semana, por `playlist_tracks.added_at`; empate divide a posição, 1º–3º com selo âmbar) e o card
+    **Monte sua playlist**; depois, "Todas as playlists". O título "Em alta" virou "Playlists em alta" porque o Explorar já tem o carrossel
+    de faixas "Em alta". (b) Cada seção só aparece com **≥ 3 itens** (`HUB_MINIMO`); sem dados falsos em produção (a demonstração, com
+    uma 3ª playlist, salvamentos e seguidores, só existe fora de produção). (c) Contagens no servidor com service_role, lendo **só**
+    `playlist_saves.playlist_id/created_at` e `follows.followed_id` (nunca quem salvou ou segue), dentro do catálogo em cache de 60 s;
+    salvamentos de playlists privadas/apagadas são descartados pela lista pública lida com o papel anônimo. **Sem migration.** Regras puras
+    em `lib/playlists/hub.ts`, testadas. (d) Explorar mostra o mesmo hub sem a Seleção (já está na Rádio); "Playlisters em destaque"
+    substitui "Playlisters em alta" quando tem o mínimo. (e) Tema da semana e curadores oficiais (itens 2–3) ficam para as próximas fatias.

@@ -189,12 +189,18 @@ nav button.on{color:#fff}nav button.on svg{stroke:#ff6b35}
         <div id="list"></div>
       </div>
       <div data-g="tudo playlisters">
-        <div class="sec"><h3>Playlisters em alta</h3><span>ver todos</span></div>
+        <div class="sec"><h3>Playlisters em destaque</h3><span>ver todos</span></div>
         <div class="hrow" id="pls"></div>
       </div>
       <div data-g="tudo playlists">
-        <div class="sec"><h3>Playlists da semana</h3><span>ver todas</span></div>
+        <div class="sec"><h3>Playlists em alta</h3><span>mais salvas em 7 dias</span></div>
         <div class="hrow" id="plw"></div>
+      </div>
+      <!-- Hub de playlists (#122, fase 2): ranking semanal de artistas e convite final. -->
+      <div data-g="playlists">
+        <div class="sec"><h3>Mais playlistados</h3><span>nesta semana</span></div>
+        <div id="rank"></div>
+        <div class="card" style="margin-top:12px;background:linear-gradient(135deg,#e89a3c,#f4b562);color:#00112a;padding:14px" onclick="toast('Abre o editor de playlist')"><p style="font-weight:700">Monte sua playlist</p><small style="color:#00112a">Junte faixas e publique na radioOn</small></div>
       </div>
     </section>
     <section class="scr" id="s-explorar">
@@ -352,6 +358,7 @@ $('wave').innerHTML=Array.from({length:40},(_,j)=>`<i style="animation-delay:${(
 $('quick').innerHTML=PL.slice(0,4).map(p=>`<div class="qt" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<span>${p.t}</span></div>`).join('');
 $('pls').innerHTML=CU.map(c=>`<div class="pl" onclick="toast('Abre o perfil do playlister')"><div class="av" style="background:radial-gradient(circle at 30% 30%,${c[1]}66,#15122b)">${c[0].split(' ').map(w=>w[0]).join('').slice(0,2)}</div><p>${c[0]}</p><small>${num(c[2])} seguidores</small></div>`).join('');
 $('plw').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
+$('rank').innerHTML=[['Lia Norte',3],['Maré Alta',3],['Duo Vitrola',2]].map((a,i,l)=>`<div class="card" style="display:flex;gap:12px;align-items:center;padding:10px" onclick="toast('Abre o perfil do artista')"><b style="min-width:36px;height:36px;border-radius:50%;background:#e89a3c;color:#00112a;display:grid;place-items:center">${i&&a[1]===l[i-1][1]?i:i+1}º</b><span><p>${a[0]}</p><small>entrou em ${a[1]} playlists</small></span></div>`).join('');
 $('grid').innerHTML=PL.map(p=>`<div class="card" onclick="toast('Abre a playlist')">${cv(p.c,p.t[0])}<p>${p.t}</p><small>por ${p.n}</small></div>`).join('');
 $('mine').innerHTML=`<div class="row2" style="border:none">${cv(T[0].c,'B')}<div class="tx"><p>Brisa Blues</p><small>0 escutas de ouvintes · enviada hoje</small></div></div><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Suas próprias escutas não contam pontos nem métricas.</p>`;
 // selo "No ar" removido do topo; "Ao vivo · N ouvindo" fica no card Player On (só com N >= 10).

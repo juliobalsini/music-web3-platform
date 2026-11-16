@@ -5,6 +5,7 @@ import { Busca } from "@/components/busca";
 import { LinhaStories } from "@/components/faixa-stories";
 import { Artistas, CartoesColoridos } from "@/components/cartoes-explorar";
 import { CarrosselFaixas } from "@/components/carrossel-faixas";
+import { HubPlaylists } from "@/components/hub-playlists";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { EstadoVazio, PlaylistersEmAlta, PlaylistsDaSemana } from "@/components/secoes-radio";
 import { Tela } from "@/components/ui";
@@ -16,6 +17,7 @@ import { carregarBios } from "@/lib/stories/bio-queries";
 import { faixasDosStories as mapaFaixas } from "@/lib/stories/faixas";
 import { carregarStories } from "@/lib/stories/queries";
 import { storiesAtivos } from "@/lib/stories/rules";
+import { secaoVisivel } from "@/lib/playlists/hub";
 import { buscar, contarCampo, lerBusca, recomendar } from "@/lib/radio/rules";
 
 export const metadata = { title: "Explorar · radioOn" };
@@ -75,8 +77,10 @@ async function Conteudo({ q, genero, clima }: { q: string; genero: string | null
       />
       <CarrosselFaixas titulo="Novidades" dica="Acabaram de chegar" faixas={radio.novidades} />
       <Artistas lista={artistas} />
-      <PlaylistersEmAlta lista={radio.playlisters} />
+      {/* Hub de playlists (#122): "Playlisters em destaque" substitui "Playlisters em alta" quando tem o mínimo. */}
+      {!secaoVisivel(radio.hub.playlisters) && <PlaylistersEmAlta lista={radio.playlisters} />}
       <PlaylistsDaSemana titulo="Playlists" lista={radio.playlists} />
+      <HubPlaylists hub={radio.hub} />
       <CartoesColoridos titulo="Gêneros" itens={generos} />
       <CartoesColoridos titulo="Climas" itens={climas} />
       <section aria-label="Todas as faixas" className="flex flex-col gap-1">
