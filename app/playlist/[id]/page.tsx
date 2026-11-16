@@ -1,3 +1,4 @@
+import { BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -10,24 +11,33 @@ import { ListaFaixas } from "@/components/lista-faixas";
 import { Tela } from "@/components/ui";
 import { obterPlaylist } from "@/lib/playlists/queries";
 import { isUuid } from "@/lib/playlists/rules";
-import { ehSelecao, PLATAFORMA_ID, PLATAFORMA_NOME, selecaoRadioOn } from "@/lib/radio/home";
+import { curadorDaSelecao } from "@/lib/radio/curadores";
+import { ehSelecao, selecaoRadioOn } from "@/lib/radio/home";
 import { getSessionRole } from "@/lib/session";
 import { carregarRadio } from "@/lib/radio/queries";
 import type { FaixaListada } from "@/lib/radio/rules";
 
-/** Playlist automática da Seleção radioOn (virtual, dono: perfil oficial radioOn; recalculada a cada leitura). */
+/** Playlist automática da Seleção radioOn (virtual; assina o curador oficial do gênero ou o perfil radioOn; recalculada a cada leitura). */
 async function SelecaoPagina({ id }: { id: string }) {
   const radio = await carregarRadio();
   const sel = selecaoRadioOn(radio.faixas, new Date().getTime()).find((s) => s.id === id);
   if (!sel) notFound();
   const porId = new Map(radio.faixas.map((f) => [f.id, f]));
   const faixas = sel.faixas.map((i) => porId.get(i)).filter((f): f is FaixaListada => !!f);
+  const curador = curadorDaSelecao(sel);
   return (
     <>
-      <RegistrarVisita tipo="playlist" id={sel.id} titulo={sel.title} sub={PLATAFORMA_NOME} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
+      <RegistrarVisita tipo="playlist" id={sel.id} titulo={sel.title} sub={curador.nome} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold text-balance">{sel.title}</h1>
-        <p className="text-white/70">Seleção de <Link href={`/perfil/${PLATAFORMA_ID}`} className="font-semibold text-brand underline-offset-2 hover:underline">{PLATAFORMA_NOME}</Link> · atualizada sozinha</p>
+        <p className="text-white/70">
+          Seleção de{" "}
+          <Link data-testid="selecao-curador" href={`/perfil/${curador.id}`} className="inline-flex items-center gap-1 font-semibold text-brand underline-offset-2 hover:underline">
+            {curador.nome}
+            <BadgeCheck aria-hidden="true" className="size-4" />
+          </Link>{" "}
+          · atualizada sozinha
+        </p>
       </div>
       <ListaFaixas rotulo="Faixas da playlist" faixas={faixas} />
     </>
