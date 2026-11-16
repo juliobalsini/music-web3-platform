@@ -238,7 +238,7 @@ export function EditorPlaylist({
   return (
     <div className="flex flex-col gap-4" data-testid="editor-playlist">
       <div className="flex items-start gap-4">
-        <CapaEditor id={id} capa={capa} aoMudar={setCapa}>
+        <CapaEditor id={id} capa={capa} titulo={titulo || tituloInicial} aoMudar={setCapa}>
           <CapaPlaylist titulo={titulo || tituloInicial} faixas={faixas} capa={capa} />
         </CapaEditor>
         <div className="flex min-w-0 flex-1 flex-col gap-2">

@@ -1,10 +1,11 @@
 "use client";
 
-import { Camera, ImagePlus, LayoutGrid, Move, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, ImagePlus, LayoutGrid, Move, Palette, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
 import { definirCapa } from "@/app/playlist/actions";
 import { PainelInferior } from "@/components/ds/interativos";
+import { EstudioCapa } from "@/components/estudio-capa";
 import { Mensagem, botao } from "@/components/ui";
 import { LADO_CAPA, limitarEnquadramento, recorteQuadrado, urlCapaPlaylist, ZOOM_MAX, type Enquadramento } from "@/lib/playlists/capa";
 import { dimensoesCapa, MAX_CAPA_ORIGINAL } from "@/lib/storage/formatos";
@@ -36,10 +37,24 @@ async function gerarJpeg({ bmp, w, h }: Foto, e: Enquadramento): Promise<Blob | 
 
 /**
  * Capa do editor: toque abre o painel "Capa da playlist" com foto própria (recorte quadrado com zoom e arrastar,
- * gerada no navegador e enviada direto ao bucket em covers/) ou volta ao mosaico automático.
+ * gerada no navegador e enviada direto ao bucket em covers/), capa criada no mini editor (fundo, título, figurinhas;
+ * PNG gerado no navegador) ou volta ao mosaico automático.
  */
-export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: string | null; aoMudar: (url: string | null) => void; children: React.ReactNode }) {
+export function CapaEditor({
+  id,
+  capa,
+  titulo,
+  aoMudar,
+  children,
+}: {
+  id: string;
+  capa: string | null;
+  titulo: string;
+  aoMudar: (url: string | null) => void;
+  children: React.ReactNode;
+}) {
   const [aberto, setAberto] = useState(false);
+  const [estudio, setEstudio] = useState(false);
   const [foto, setFoto] = useState<Foto | null>(null);
   const [enq, setEnq] = useState<Enquadramento>(INICIO);
   const [erro, setErro] = useState<string | null>(null);
@@ -70,6 +85,7 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
   const fechar = () => {
     if (enviando) return;
     setAberto(false);
+    setEstudio(false);
     trocarFoto(null);
     setErro(null);
   };
@@ -111,30 +127,37 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
     if (!r.ok) return setErro(r.erro);
     aoMudar(urlCapaPlaylist(id, key));
     setAberto(false);
+    setEstudio(false);
     trocarFoto(null);
   };
 
-  const usar = async () => {
-    if (!foto) return;
+  /** Pede a URL assinada, envia a imagem direto ao bucket (covers/) e grava a capa. */
+  const enviar = async (img: Blob) => {
     setEnviando(true);
     setErro(null);
     try {
-      const jpeg = await gerarJpeg(foto, enq);
-      if (!jpeg) return setErro("Não deu para preparar a imagem. Tente outra.");
+      const tipo = img.type || "image/jpeg";
       const res = await fetch(`/api/playlists/${id}/capa`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: "image/jpeg", size: jpeg.size }),
+        body: JSON.stringify({ contentType: tipo, size: img.size }),
       });
       const dados = (await res.json().catch(() => ({}))) as { url?: string; key?: string; error?: string };
       if (!res.ok || !dados.url || !dados.key) return setErro(erroDaRotaDeUpload(res.status, dados.error));
-      const put = await fetch(dados.url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: jpeg }).catch(() => null);
+      const put = await fetch(dados.url, { method: "PUT", headers: { "Content-Type": tipo }, body: img }).catch(() => null);
       if (!put) return setErro("Sem conexão com o armazenamento. Tente de novo em instantes.");
       if (!put.ok) return setErro(erroDoBucket(put.status));
       await salvar(dados.key);
     } finally {
       setEnviando(false);
     }
+  };
+
+  const usar = async () => {
+    if (!foto) return;
+    const jpeg = await gerarJpeg(foto, enq);
+    if (!jpeg) return setErro("Não deu para preparar a imagem. Tente outra.");
+    await enviar(jpeg);
   };
 
   const voltarAoMosaico = async () => {
@@ -165,7 +188,9 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
       <PainelInferior aberto={aberto} aoFechar={fechar} titulo="Capa da playlist">
         <input ref={arquivo} type="file" accept="image/jpeg,image/png,image/webp,image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => { escolher(e.target.files?.[0]); e.target.value = ""; }} />
 
-        {foto ? (
+        {estudio ? (
+          <EstudioCapa titulo={titulo} enviando={enviando} erro={erro} aoUsar={enviar} aoVoltar={() => { setEstudio(false); setErro(null); }} />
+        ) : foto ? (
           <div className="flex flex-col gap-4">
             <div
               ref={quadro}
@@ -226,6 +251,9 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
           <div className="flex flex-col gap-2">
             <button type="button" onClick={() => arquivo.current?.click()} className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--ds-surface)] px-4 text-left font-semibold transition-colors hover:bg-[var(--ds-surface-2)]" data-testid="escolher-foto">
               <ImagePlus className="size-5 shrink-0 text-brand" aria-hidden="true" /> Escolher foto
+            </button>
+            <button type="button" onClick={() => { setErro(null); setEstudio(true); }} className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--ds-surface)] px-4 text-left font-semibold transition-colors hover:bg-[var(--ds-surface-2)]" data-testid="criar-capa">
+              <Palette className="size-5 shrink-0 text-brand" aria-hidden="true" /> Criar capa
             </button>
             {capa && (
               <button type="button" onClick={voltarAoMosaico} disabled={enviando} className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--ds-surface)] px-4 text-left font-semibold transition-colors hover:bg-[var(--ds-surface-2)] disabled:opacity-60" data-testid="voltar-mosaico">

@@ -575,3 +575,13 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     N playlists" / "Suas faixas estão em…"; quem visita vê "Em N playlists" (dado público). Meus envios: frase sob "Faixas" e chip
     "Em N playlists" em cada faixa publicada. Zero → nada aparece. (d) Item 6 da fase 2 (pós-beta: colaborativas e notificações) já
     estava no PLANO.md.
+
+109. **Mini editor de capa (#122, fase 2, item 4; 2026-11-16).** (a) No painel "Capa da playlist", a opção **Criar capa** abre o
+    estúdio: 6 fundos da marca desenhados no canvas (Noite, Âmbar, Entardecer, Sulcos, Ondas, Faixas), título com 3 fontes
+    (Clássica = Geist, Editorial = Fraunces, Cartaz = Bebas Neue, self-hosted pelo `next/font` com `preload: false`, só no editor) e
+    12 figurinhas musicais (traços dos ícones Lucide, ISC, copiados para `lib/playlists/estudio-capa.ts` como `Path2D`). (b) Título e
+    figurinhas se arrastam sobre a prévia (alças acessíveis: setas movem, + e − mudam o tamanho, Delete remove) e se redimensionam
+    pelo controle "Tamanho"; no máx. 8 figurinhas; cada nova vai para uma vaga da borda. (c) O mesmo `desenharCapa` gera a prévia
+    (720 px) e a imagem final (1000 px): **PNG** gerado no navegador, com JPEG 0,9 só se passar de 2 MB; envio pela mesma rota assinada
+    da foto própria (`covers/`, servida pelo proxy). **Sem migration** e sem rota nova. (d) A composição não é salva (só a imagem);
+    reabrir o estúdio começa do título atual.
