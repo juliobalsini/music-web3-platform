@@ -275,7 +275,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - [x] **Fase B — Worker validado e proxy religado (issue #101, 2026-11-14; DECISIONS 93):** redeploy ok, 200/206, KV HIT, CORS, `tracks/` bloqueado;
   `PROXY_LIGADO_POR_PADRAO = true`. CPU exata só no painel da Cloudflare (tempo de parede do HIT 10–21 ms). 3 faixas com original ausente
   no bucket (`Key not found`) ficaram como falha definitiva da transcodificação.
-- [ ] **Fase C — verificação após 48 h em produção** — a partir de 2026-11-16 (contadores do KV `ctl`, B2 Classe B, reprodução real).
+- [ ] **Fase C — verificação após 48 h em produção** — a partir da noite de 2026-11-16 (tentativa 2026-11-16 manhã: cedo demais) (contadores do KV `ctl`, B2 Classe B, reprodução real).
 
 - [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
 
@@ -287,7 +287,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
   Fatia 2 (2026-11-15, PR item-122-editor-v2; DECISIONS 104): sugestões (clima/gênero/recentes/curtidas), prévia de 15 s, arrastar/deslizar, capa em mosaico no editor.
   Fatia 3 (2026-11-15, PRs #164 e #165; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration; em produção.
-  Fatia 4 (2026-11-16, PR item-122-curadoria-editor; DECISIONS 106): nota, destacar e ocultar por faixa no editor (botão ⋯), sem migration.
+  Fatia 4 (2026-11-16, PR #169; DECISIONS 106): nota, destacar e ocultar por faixa no editor (botão ⋯), sem migration; em produção.
   **Faltam:**
   perfil "Playlister" com seguidores, E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
   **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
@@ -397,6 +397,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 
 - 2026-11-16 (28ª) — segunda-feira: Sprint 2026-47 aberto (#167; aguarda "aprovado"; as issues `fila` já valem). Auditoria semanal:
   sem crítico; os 4 "alto" e 2 "médio" eram falsos positivos (variáveis públicas do login; denúncias de stories só do servidor),
-  corrigidos na auditoria (PR #168). #122 fase 1 fatia 4 (curadoria por faixa no editor; DECISIONS 106) em PR item-122-curadoria-editor.
+  corrigidos na auditoria (PR #168). #122 fase 1 fatia 4 (curadoria por faixa no editor; DECISIONS 106) em produção (PR #169).
+  #78 Fase C adiada para a próxima execução: a janela de 48 h com o proxy religado fecha na noite de 2026-11-16, e os contadores do
+  KV `ctl` só são lidos com o token da Cloudflare do ambiente `producao-db` (workflow protegido; avaliar um passo de leitura no PR semanal).
   Pendência: conferir logado no celular (destacar, ocultar, nota). #154 (trava da #153) segue aguardando o Julio, sem conflito com a main.
   Fila restante: #153 (trava), #120 (só ligar o código), #122 (perfil Playlister, E2E; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
