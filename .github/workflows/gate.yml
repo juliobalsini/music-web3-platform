@@ -3,6 +3,8 @@ name: gate
 # Portão de merge dos PRs do agente (arquivo PROTEGIDO).
 # travas → validar (lint, typecheck, testes, build) → e2e na prévia da Vercel
 # → gate-ok (check obrigatório na main) → merge automático.
+# Caminho rápido (#188): PR que só altera .md fora de .github/, .claude/, scripts/ci/ e supabase/
+# pula validar e e2e (sem build nem prévia); travas, workflows (R1–R4) e docs continuam.
 # PR que altera arquivos protegidos só passa após aprovação do Julio no
 # ambiente "travas" (Settings → Environments), e vira "⚠️ Ação necessária".
 
@@ -33,9 +35,10 @@ jobs:
     outputs:
       protegido: ${{ steps.classificar.outputs.protegido }}
       migracoes: ${{ steps.classificar.outputs.migracoes }}
+      so_docs: ${{ steps.docs.outputs.so_docs }}
     steps:
       # Scripts de trava SEMPRE da main (base), nunca do PR.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
@@ -64,7 +67,25 @@ jobs:
           node scripts/ci/travas.mjs
           cat "$MOTIVOS" >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - id: docs
+        name: Detectar PR só de documentação (caminho rápido)
+        run: |
+          set -euo pipefail
+          # Nomes vêm de arquivo (dados), nunca interpolados. Renomeação conta o nome anterior também.
+          nomes="$(jq -r '.filename, (.previous_filename // empty)' "$RUNNER_TEMP/arquivos.jsonl")"
+          so_docs=true
+          [ -n "$nomes" ] || so_docs=false
+          while IFS= read -r f; do
+            case "$f" in
+              .github/*|.claude/*|scripts/ci/*|supabase/*) so_docs=false ;;
+              *.md) ;;
+              *) so_docs=false ;;
+            esac
+          done <<< "$nomes"
+          echo "so_docs=$so_docs" >> "$GITHUB_OUTPUT"
+          echo "Só documentação (caminho rápido): $so_docs" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
         with:
           name: motivos
           path: ${{ runner.temp }}/motivos.md
@@ -79,12 +100,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
           path: base
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
@@ -110,11 +131,43 @@ jobs:
           fi
           node "$script" pr/.github/workflows
 
+  # Checagem de markdown (todo PR): limites do contexto fixo (#188) e marcadores de conflito.
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Conferir markdown
+        run: |
+          set -uo pipefail
+          falha=0
+          limite() {
+            [ -f "$1" ] || return 0
+            n="$(wc -c < "$1")"
+            if [ "$n" -gt "$2" ]; then
+              echo "::error file=$1::$1 tem $n bytes (limite $2; mover histórico para docs/historico/)."
+              falha=1
+            fi
+          }
+          limite docs/CONTEXTO.md 8192
+          limite docs/DECISIONS.md 10240
+          if git grep -nE '^(<<<<<<<|>>>>>>>)( |$)' -- '*.md'; then
+            echo "::error::Marcadores de conflito em arquivos .md."
+            falha=1
+          fi
+          exit "$falha"
+
   validar:
+    needs: travas
+    if: needs.travas.outputs.so_docs != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-node@v5
@@ -133,14 +186,15 @@ jobs:
         run: pnpm build
 
   e2e:
-    needs: validar
+    needs: [travas, validar]
+    if: needs.travas.outputs.so_docs != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
       statuses: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-node@v5
@@ -233,7 +287,7 @@ jobs:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm e2e
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -275,7 +329,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: motivos
           path: ${{ runner.temp }}
@@ -303,7 +357,7 @@ jobs:
 
   # Check obrigatório da main (ruleset). Resume o resultado de tudo.
   gate-ok:
-    needs: [travas, workflows, validar, e2e, aprovacao]
+    needs: [travas, workflows, docs, validar, e2e, aprovacao]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -311,13 +365,21 @@ jobs:
         env:
           TRAVAS: ${{ needs.travas.result }}
           WORKFLOWS: ${{ needs.workflows.result }}
+          DOCS: ${{ needs.docs.result }}
           VALIDAR: ${{ needs.validar.result }}
           E2E: ${{ needs.e2e.result }}
           APROVACAO: ${{ needs.aprovacao.result }}
           PROTEGIDO: ${{ needs.travas.outputs.protegido }}
+          SO_DOCS: ${{ needs.travas.outputs.so_docs }}
         run: |
-          echo "travas=$TRAVAS workflows=$WORKFLOWS validar=$VALIDAR e2e=$E2E aprovacao=$APROVACAO protegido=$PROTEGIDO"
-          [ "$TRAVAS" = success ] && [ "$WORKFLOWS" = success ] && [ "$VALIDAR" = success ] && [ "$E2E" = success ] || exit 1
+          echo "travas=$TRAVAS workflows=$WORKFLOWS docs=$DOCS validar=$VALIDAR e2e=$E2E aprovacao=$APROVACAO protegido=$PROTEGIDO so_docs=$SO_DOCS"
+          [ "$TRAVAS" = success ] && [ "$WORKFLOWS" = success ] && [ "$DOCS" = success ] || exit 1
+          if [ "$SO_DOCS" = true ]; then
+            # Caminho rápido: validar e e2e têm de ter sido pulados (nunca falhado).
+            [ "$VALIDAR" = skipped ] && [ "$E2E" = skipped ] || exit 1
+          else
+            [ "$VALIDAR" = success ] && [ "$E2E" = success ] || exit 1
+          fi
           if [ "$PROTEGIDO" = true ]; then
             [ "$APROVACAO" = success ] || exit 1
           elif [ "$PROTEGIDO" != false ]; then
