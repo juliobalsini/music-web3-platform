@@ -286,7 +286,7 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
   Fatia 2 (2026-11-15, PR item-122-editor-v2; DECISIONS 104): sugestões (clima/gênero/recentes/curtidas), prévia de 15 s, arrastar/deslizar, capa em mosaico no editor.
-  Fatia 3 (2026-11-15, PR item-122-capa-propria; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration.
+  Fatia 3 (2026-11-15, PRs #164 e #165; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration; em produção.
   **Faltam:**
   perfil "Playlister" com seguidores, notas/destaque/ocultar no editor (as ações em `app/curador/actions.ts` seguem, sem tela), E2E mobile e prints.
   **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
@@ -390,6 +390,6 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   #140, #145, #146, #147.
 
 - 2026-11-15 (27ª) — sem pacote novo na Caixa de entrada; #154 (trava da #153) segue aguardando o Julio. #122 fase 1 fatia 3 (capa
-  própria da playlist com recorte quadrado, zoom e arrastar; DECISIONS 105) em PR item-122-capa-propria. Pendência: conferir logado no
+  própria da playlist com recorte quadrado, zoom e arrastar; DECISIONS 105) em produção (PR #164; #165 trocou a prévia por canvas após alerta alto do CodeQL). Pendência: conferir logado no
   celular real (escolher foto, enquadrar, usar; voltar ao mosaico). Fila restante: #153 (trava), #120 (só ligar o código), #122 (resto),
   #125 (resto), #140, #145, #146, #147. Próxima execução (segunda 2026-11-16): abrir o Sprint 2026-47 e a auditoria semanal.
