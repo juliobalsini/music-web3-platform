@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseDescricao, parseTitle, podePublicar, tituloPadrao } from "@/lib/playlists/rules";
 import { loginPath } from "@/lib/auth/roles";
 import { apagarEnvio } from "@/lib/envios/apagar";
+import { chaveCapaValida } from "@/lib/playlists/capa";
+import { isStorageConfigured, objetoExiste } from "@/lib/storage/client";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 
@@ -104,6 +106,27 @@ export async function reordenarFaixas(id: string, ordem: string[]): Promise<Resu
   }
   catalogoMudou();
   revalidatePath(`/playlist/${id}`);
+  return { ok: true };
+}
+
+/**
+ * Capa própria (chave em covers/<conta>/, enviada pelo navegador) ou `null` para voltar ao mosaico automático.
+ * Confere com 1 HEAD que o arquivo chegou ao bucket antes de gravar (nunca aponta para capa inexistente).
+ */
+export async function definirCapa(id: string, key: string | null): Promise<Resultado> {
+  const d = await donoDe(id);
+  if (!d) return { ok: false, erro: "Playlist não encontrada." };
+  if (key !== null) {
+    if (!chaveCapaValida(key, d.userId)) return { ok: false, erro: "Capa inválida." };
+    if (!isStorageConfigured()) return { ok: false, erro: "Envio de imagens indisponível agora." };
+    const existe = await objetoExiste(key).catch(() => false);
+    if (!existe) return { ok: false, erro: "A imagem não chegou. Tente de novo." };
+  }
+  const { error } = await d.supabase.from("playlists").update({ cover_path: key }).eq("id", id).eq("curator_id", d.userId);
+  if (error) return { ok: false, erro: "Não foi possível trocar a capa." };
+  catalogoMudou();
+  revalidatePath(`/playlist/${id}`);
+  revalidatePath("/biblioteca");
   return { ok: true };
 }
 

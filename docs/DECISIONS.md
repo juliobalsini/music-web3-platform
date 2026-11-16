@@ -539,3 +539,14 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     das 4 primeiras; com 1–3 faixas, a capa da primeira; vazia, a arte gerada do título — no editor e na página. (e) Fica para as
     próximas fatias: foto própria com recorte (`covers/`), mini editor de capa, artista ativado no 1º envio, notas/destaque no editor,
     E2E logado (a prévia da Vercel não tem sessão de teste) e toda a fase 2.
+105. **Playlists v2, fase 1, fatia 3 — capa própria com recorte (issue #122, 2026-11-15):** (a) No editor, a capa vira botão
+    (selo de câmera) que abre o painel "Capa da playlist": **Escolher foto** → quadro quadrado com grade de terços, **arrastar**
+    (ou setas) para enquadrar e **zoom** 1–3× (controle deslizante ou +/−); "Usar esta capa" gera no navegador (canvas) um JPEG
+    quadrado de até 1000 px (qualidade 0,86 → 0,6 até caber em 2 MB) e envia direto ao bucket. "Usar o mosaico das faixas" volta à
+    capa automática. (b) Servidor: `POST /api/playlists/[id]/capa` só para conta dona (sem anônimo), valida tipo/tamanho e assina o
+    PUT (10 min) em `covers/<conta>/<uuid>` (servido pelo proxy); a action `definirCapa` só aceita chave `covers/<própria conta>/<uuid>`
+    e confere com 1 HEAD que o arquivo chegou antes de gravar `playlists.cover_path` (coluna da migration `20261113020000`, grant de
+    update já existente: **sem migration**). (c) `GET /api/playlists/[id]/capa?v=<8 primeiros do uuid>` redireciona à imagem; a RLS
+    só mostra playlist pública ou do dono; cache de 15 min (público só se a playlist é pública) e `v` muda a cada capa nova.
+    (d) Trocar a capa não apaga o arquivo antigo no bucket (sem escrita destrutiva; limpeza física fica com a remoção pós-beta do
+    PLANO.md). (e) O cartão 9:16 e as listas seguem com a capa da 1ª faixa; usar a capa própria neles fica para a fase 2.
