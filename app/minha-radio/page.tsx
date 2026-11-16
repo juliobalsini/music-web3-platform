@@ -173,9 +173,9 @@ async function Conteudo() {
           </section>
 
           <section aria-label="Minhas faixas" className="flex flex-col gap-2">
-            <SecaoTitulo titulo="Minhas faixas" href={role === "artist" ? "/enviar" : "/onboarding"} rotulo={role === "artist" ? "Enviar música" : "Escolher perfil de artista"} />
+            <SecaoTitulo titulo="Minhas faixas" href="/enviar" rotulo="Enviar música" />
             {role !== "artist" ? (
-              <p className="text-white/70 text-pretty">Artista? Escolha esse perfil e publique sua música.</p>
+              <p className="text-white/70 text-pretty">Artista? Envie sua primeira música: o perfil de artista é ativado na hora.</p>
             ) : minhasFaixas === null ? (
               <Mensagem>Suas faixas estão indisponíveis agora. Tente de novo em instantes.</Mensagem>
             ) : minhasFaixas.length === 0 ? (

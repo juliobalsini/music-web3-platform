@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { ativarArtista } from "@/lib/auth/ativar-artista";
+import { papelNoEnvio } from "@/lib/auth/roles";
 import { getSessionRole } from "@/lib/session";
 import { isStorageConfigured, signUpload } from "@/lib/storage/client";
 import { coverKey, parseUploadInput, trackKey } from "@/lib/storage/rules";
@@ -15,8 +17,10 @@ export async function POST(request: Request) {
   }
   const sessao = await getSessionRole();
   if (!sessao) return Response.json({ error: "login necessário" }, { status: 401, headers: noStore });
+  // Ouvinte vira artista no 1º envio (no servidor); playlister confirma antes em /enviar.
   if (sessao.role !== "artist") {
-    return Response.json({ error: "apenas artistas enviam faixas" }, { status: 403, headers: noStore });
+    const ativou = papelNoEnvio(sessao.role) === "ativa" && (await ativarArtista(sessao.userId));
+    if (!ativou) return Response.json({ error: "apenas artistas enviam faixas" }, { status: 403, headers: noStore });
   }
 
   const body: unknown = await request.json().catch(() => null);

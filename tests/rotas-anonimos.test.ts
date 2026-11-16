@@ -56,6 +56,18 @@ describe("rotas de servidor recusam anônimos", () => {
     assert.match(ler("app/curador/actions.ts"), /role !== "curator"/);
   });
 
+  it("artista é ativado no 1º envio só no servidor: ouvinte direto, playlister com confirmação", () => {
+    for (const f of ["app/api/tracks/upload/route.ts", "app/api/albums/upload/route.ts"]) {
+      assert.match(ler(f), /papelNoEnvio\(sessao\.role\) === "ativa" && \(await ativarArtista\(sessao\.userId\)\)/, f);
+    }
+    const acao = ler("app/enviar/actions.ts");
+    assert.match(acao, /const s = await getSessionRole\(\);\s+if \(!s\) redirect/);
+    assert.match(acao, /ativarArtista\(s\.userId, \["curator"\]\)/);
+    const lib = ler("lib/auth/ativar-artista.ts");
+    assert.match(lib, /import "server-only"/);
+    assert.match(lib, /\.eq\("id", userId\)\.in\("role", \[\.\.\.de\]\)/);
+  });
+
   it("nenhum cliente de escrita do usuário fora das rotas auditadas", () => {
     // Toda escrita com service_role precisa estar numa rota/ação já coberta acima ou nas de escuta/reação.
     const permitidos = new Set([
@@ -78,6 +90,7 @@ describe("rotas de servidor recusam anônimos", () => {
       "app/curador/actions.ts",
       "app/playlist/actions.ts",
       "app/onboarding/actions.ts",
+      "lib/auth/ativar-artista.ts", // só chamada das rotas de envio e de app/enviar/actions.ts, depois de getSessionRole; id da sessão
       "app/seguindo/actions.ts", // getSessionRole (anônimo = null) + RLS restritiva de follows
       "app/ajustes/actions.ts", // cada ação começa com getSessionRole (anônimo = null); o dono vem da sessão
       "lib/preferencias/conta.ts", // só chamada de app/ajustes/actions.ts, depois de getSessionRole; filtra pelo dono
