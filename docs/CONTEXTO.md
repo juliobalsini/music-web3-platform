@@ -289,9 +289,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Fatia 3 (2026-11-15, PRs #164 e #165; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration; em produção.
   Fatia 4 (2026-11-16, PR #169; DECISIONS 106): nota, destacar e ocultar por faixa no editor (botão ⋯), sem migration; em produção.
   **Faltam:**
-  perfil "Playlister" com seguidores, E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
+  E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
   **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
-  Artista ativado no 1º envio (sem escolha de perfil): não feito; `/enviar` ainda exige papel artist.
+  Artista ativado no 1º envio (2026-11-16, PR #171; DECISIONS 107): ouvinte vira artista no servidor ao enviar; playlister confirma; em produção.
 
 ## Correções avulsas
 
@@ -402,3 +402,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   KV `ctl` só são lidos com o token da Cloudflare do ambiente `producao-db` (workflow protegido; avaliar um passo de leitura no PR semanal).
   Pendência: conferir logado no celular (destacar, ocultar, nota). #154 (trava da #153) segue aguardando o Julio, sem conflito com a main.
   Fila restante: #153 (trava), #120 (só ligar o código), #122 (perfil Playlister, E2E; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (29ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122: perfil de artista ativado no 1º envio (PR #171, DECISIONS 107; sem migration) em produção. Pendência: conferir com conta de
+  ouvinte no celular (enviar a 1ª faixa). #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
