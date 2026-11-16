@@ -68,3 +68,40 @@ describe("playlists v2 (regras)", () => {
     assert.deepEqual(reordenar(l, 5, 0), l);
   });
 });
+
+import { contarPresenca, rotuloEmPlaylists, textoPresenca } from "../lib/playlists/rules.ts";
+
+describe("presença do artista em playlists", () => {
+  const A = "artista";
+  const l = (playlist_id: string, track_id: string, o: { curator?: string; publica?: boolean; artista?: string; status?: string; hidden?: boolean | null; arr?: boolean } = {}) => {
+    const p = { curator_id: o.curator ?? "outro", is_public: o.publica ?? true };
+    const t = { artist_id: o.artista ?? A, status: o.status ?? "published" };
+    return { playlist_id, track_id, hidden: o.hidden ?? null, playlists: o.arr ? [p] : p, tracks: o.arr ? [t] : t };
+  };
+  it("conta playlists distintas no total e por faixa", () => {
+    const r = contarPresenca([l("p1", "t1"), l("p1", "t2"), l("p2", "t1", { arr: true }), l("p3", "t2")], A);
+    assert.equal(r.total, 3);
+    assert.equal(r.porFaixa.get("t1"), 2);
+    assert.equal(r.porFaixa.get("t2"), 2);
+  });
+  it("ignora playlist própria, privada, item oculto, faixa não publicada e de outro artista", () => {
+    const r = contarPresenca([
+      l("p1", "t1", { curator: A }),
+      l("p2", "t1", { publica: false }),
+      l("p3", "t1", { hidden: true }),
+      l("p4", "t1", { status: "processing" }),
+      l("p5", "t9", { artista: "x" }),
+      { playlist_id: "p6", track_id: "t1", playlists: null, tracks: null },
+    ], A);
+    assert.equal(r.total, 0);
+    assert.equal(r.porFaixa.size, 0);
+  });
+  it("textos no singular e no plural", () => {
+    assert.equal(textoPresenca(0, 3), null);
+    assert.equal(textoPresenca(1, 1), "Sua faixa está em 1 playlist");
+    assert.equal(textoPresenca(4, 2), "Suas faixas estão em 4 playlists");
+    assert.equal(rotuloEmPlaylists(0), undefined);
+    assert.equal(rotuloEmPlaylists(1), "Em 1 playlist");
+    assert.equal(rotuloEmPlaylists(5), "Em 5 playlists");
+  });
+});

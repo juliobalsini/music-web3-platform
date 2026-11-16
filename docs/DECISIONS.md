@@ -567,3 +567,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     testada. (c) Playlister (`curator`) **confirma** antes ("Usar como artista"), porque criar ou mudar a Programação por horário é só
     de curator (RLS de `programs`); a opção mais segura é não tirar esse acesso sem um toque explícito. (d) `/onboarding` continua
     existindo (stories e links antigos); "Minha rádio" passa a levar direto a "Enviar música". Sem migration.
+
+108. **"Sua faixa está em N playlists" (#122, fase 2, item 5; 2026-11-16).** (a) Conta só playlists **públicas de outras pessoas**
+    (as do próprio artista não inflam o número), ignora itens ocultos pelo playlister e faixas não publicadas; apagadas já somem pela
+    policy restritiva. (b) Lida com o cliente da sessão (RLS: anônimo/visitante só vê playlists públicas), sem service_role nem migration;
+    `presencaEmPlaylists` em `lib/playlists/queries.ts`, regra pura `contarPresenca` testada. (c) Perfil: o dono vê "Sua faixa está em
+    N playlists" / "Suas faixas estão em…"; quem visita vê "Em N playlists" (dado público). Meus envios: frase sob "Faixas" e chip
+    "Em N playlists" em cada faixa publicada. Zero → nada aparece. (d) Item 6 da fase 2 (pós-beta: colaborativas e notificações) já
+    estava no PLANO.md.
