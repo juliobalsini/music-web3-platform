@@ -11,6 +11,7 @@ export function MiniPlayer() {
   const { atual: t, duracao } = useTempo();
   if (!atual) return null;
   const tocando = estado === "tocando";
+  const apoio = estado === "limite" ? "Limite diário atingido" : estado === "erro" ? "Não foi possível tocar" : atual.artistName;
   const pct = duracao > 0 ? Math.min(100, (t / duracao) * 100) : 0;
   return (
     <div
@@ -21,15 +22,13 @@ export function MiniPlayer() {
         <button
           type="button"
           onClick={() => abrir(true)}
-          aria-label={`Abrir player: ${atual.title}`}
+          aria-label={`Abrir player: ${atual.title}, ${apoio}`}
           className="flex min-h-14 min-w-0 flex-1 items-center gap-3 p-2 text-left"
         >
           <Capa id={atual.id} title={atual.title} hasCover={atual.hasCover} className="size-10" />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">{atual.title}</span>
-            <span className="block truncate text-xs text-white/70">
-              {estado === "limite" ? "Limite diário atingido" : estado === "erro" ? "Não foi possível tocar" : atual.artistName}
-            </span>
+            <span className="block truncate text-sm font-semibold">{atual.title}</span>{" "}
+            <span className="block truncate text-xs text-white/70">{apoio}</span>
           </span>
         </button>
         <button

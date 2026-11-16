@@ -50,6 +50,7 @@ export function ListaFaixas({
               type="button"
               onClick={() => tocar(f, itens)}
               aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`}
+              data-a11y-nome="cartao"
               className={`flex min-h-16 w-full items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5 ${naFila ? "bg-white/5" : ""}`}
             >
               {!item && numerar && (

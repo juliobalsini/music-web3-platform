@@ -38,3 +38,43 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # Lighthouse em perfil de celular (issue #185): começa como aviso no resumo da execução (não reprova).
+  # Roda contra o app compilado aqui mesmo (Supabase fictício, catálogo de demonstração), sem secrets nem prévia.
+  lighthouse:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Habilitar pnpm (corepack)
+        run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build e start
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://e2e.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: e2e-publishable-key
+        run: |
+          pnpm build
+          (pnpm start > /tmp/start.log 2>&1 &)
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:3000/ && break; sleep 2; done
+
+      - name: Lighthouse CI
+        run: npx -y @lhci/cli@0.16.1 autorun
+
+      - name: Resumo
+        if: always()
+        run: node scripts/lighthouse-resumo.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse
+          path: .lighthouseci/relatorios
+          retention-days: 7

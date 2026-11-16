@@ -633,3 +633,25 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     (d) Editor: banner do tema com o interruptor "Tema da semana" (rascunho pode marcar; só aparece no hub depois de publicada).
     Página pública: chip "Tema da semana: …" (ou "Tema: …" de semanas passadas). (e) Demonstração (fora de produção) marca as 3
     playlists com a semana atual para o E2E ver a seção.
+113. **Skills de qualidade e acessibilidade automática (#185; 2026-11-16).** (a) `web-design-guidelines`, `react-best-practices`
+    e `composition-patterns` vendorizadas de vercel-labs/agent-skills (MIT) no commit `1a2c79d`, lidas por inteiro antes (sem
+    scripts, sem instruções sobre regras/permissões/credenciais). A `web-design-guidelines` buscava as regras numa URL a cada uso:
+    as regras foram copiadas para `guidelines.md` (vercel-labs/web-interface-guidelines `434b7f9`) e o SKILL.md lê só o arquivo
+    local. Uso registrado no CLAUDE.md. (b) `@axe-core/playwright` em `e2e/acessibilidade-mobile-visual.spec.ts` (iPhone e
+    Android emulados): Home, filtro Faixas, stories, mini player e player cheio (quando há faixa), Explorar, Biblioteca, Perfil,
+    Configurações, Enviar (→ login) e Login; reprova em "serious"/"critical" (WCAG 2.0–2.2 A/AA + boas práticas). Única regra
+    violada: `label-content-name-mismatch` (2.5.3). Corrigida de verdade onde o nome podia conter o texto visível: "Ouvir agora"
+    (nome começava por "Tocar"), mini player e "A seguir" (subtítulo/duração no nome) e cartões de carrossel (espaço entre título
+    e artista: o axe junta o texto visível de spans em bloco sem separador). **Exceção** (`data-a11y-nome="cartao"`, vira aviso
+    no anexo): linhas de faixa e cards de story, cujo nome curto ("Tocar X, Artista", "Ver stories de X") contém o rótulo
+    principal visível, mas não os metadados (duração, escutas, gênero, "Novo"); repetir tudo no nome pioraria o leitor de tela.
+    Os nomes existentes não mudaram (os E2E seguem iguais). (c) Cores antigas (`#0f0f23`, `#ff6b35`…) só existiam no CLAUDE.md:
+    descrição trocada por marinho/âmbar/gramofone/tokens; o código já usava os tokens.
+114. **Lighthouse CI como aviso, no app compilado do CI (#185; 2026-11-16).** A issue pede a prévia, mas a prévia exige o secret
+    `VERCEL_AUTOMATION_BYPASS_SECRET`, e usar secret num workflow é alteração protegida (trava). Opção segura e reversível: job
+    `lighthouse` no `ci.yml` (sem secrets nem mudança de permissões) com `@lhci/cli@0.16.1` via `npx` (sem dependência no
+    projeto), contra `next build && start` com Supabase fictício (catálogo de demonstração), perfil celular com throttling simulado,
+    1 execução por página (`/`, `/explorar`, `/faixa/<demo>`). Orçamento LCP ≤ 2,5 s, CLS ≤ 0,1, TBT ≤ 300 ms como `warn`
+    (`lighthouserc.json`), job com `continue-on-error` e tabela no resumo da execução (`scripts/lighthouse-resumo.mjs`). Linha de
+    base local (2026-11-16): `/` LCP 3,7 s, TBT 907 ms; `/explorar` LCP 4,1 s; faixa LCP 3,1 s; CLS 0 nas três. Virar bloqueio
+    a partir de 2026-11-23 se não houver regressão (exige corrigir LCP/TBT antes); medir na prévia fica para o PR protegido semanal.
