@@ -435,5 +435,5 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - 2026-11-16 (33ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
   #122 fase 2, item 2 (curadores oficiais; PR #179, DECISIONS 111; sem migration) em produção (commit 5c86792). 1ª tentativa do gate
   falhou no E2E mobile (legenda `sr-only` do carrossel criava rolagem horizontal); corrigido no mesmo PR. Demo passou a ter 9 faixas
-  em 3 gêneros. Fila restante: #153 (trava), #120 (só ligar o código), #122 (Tema da semana; E2E logado), #125 (resto), #78 Fase C,
+  em 3 gêneros; E2E do curador com `.first()` (duplicação momentânea do streaming na prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (Tema da semana; E2E logado), #125 (resto), #78 Fase C,
   #140, #145, #146, #147.
