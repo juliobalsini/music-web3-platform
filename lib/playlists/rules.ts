@@ -71,3 +71,35 @@ export function reordenar<T>(lista: T[], de: number, para: number): T[] {
   c.splice(para, 0, x);
   return c;
 }
+
+/** Curadoria de uma faixa na playlist: nota curta, destaque e ocultar (só o público deixa de ver). */
+export type Curadoria = { note: string | null; featured: boolean; hidden: boolean };
+export const NOTA_MAX = 280;
+
+/**
+ * Valida uma mudança de curadoria vinda do cliente. Devolve só os campos válidos presentes;
+ * `null` se houver campo inválido ou nenhum campo (nada a gravar).
+ */
+export function parseCuradoria(value: unknown): Partial<Curadoria> | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  const out: Partial<Curadoria> = {};
+  for (const k of Object.keys(v)) if (k !== "note" && k !== "featured" && k !== "hidden") return null;
+  if ("featured" in v) {
+    if (typeof v.featured !== "boolean") return null;
+    out.featured = v.featured;
+  }
+  if ("hidden" in v) {
+    if (typeof v.hidden !== "boolean") return null;
+    out.hidden = v.hidden;
+  }
+  if ("note" in v) {
+    if (v.note === null) out.note = null;
+    else if (typeof v.note === "string") {
+      const t = v.note.trim();
+      if (t.length > NOTA_MAX) return null;
+      out.note = t === "" ? null : t;
+    } else return null;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}

@@ -28,7 +28,7 @@ export async function listarPlaylistsPublicas(limite = 12): Promise<PlaylistResu
   }
 }
 
-export type FaixaDaPlaylist = { id: string; note: string | null; featured: boolean };
+export type FaixaDaPlaylist = { id: string; note: string | null; featured: boolean; hidden: boolean };
 
 export type PlaylistPagina = {
   id: string; title: string; description: string | null; capa: string | null; curator: string | null; curatorId: string;
@@ -73,7 +73,7 @@ export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> 
       // Oculta só para o público; o dono (editor) vê tudo.
       if (i.hidden && !mine) continue;
       const t = Array.isArray(i.tracks) ? i.tracks[0] : i.tracks;
-      if (t && t.status === "published") faixas.push({ id: t.id, note: i.note ?? null, featured: !!i.featured });
+      if (t && t.status === "published") faixas.push({ id: t.id, note: i.note ?? null, featured: !!i.featured, hidden: !!i.hidden });
     }
     const prof = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
     // Contagem pública sem expor quem salvou: só o número, lido no servidor.

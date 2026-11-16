@@ -79,3 +79,22 @@ describe("editor de playlist (#122)", () => {
     assert.equal(deveRemoverAoDeslizar(150), false);
   });
 });
+
+describe("parseCuradoria", async () => {
+  const { parseCuradoria, NOTA_MAX } = await import("../lib/playlists/rules.ts");
+  it("aceita destaque, ocultar e nota (vazia vira null, com trim)", () => {
+    assert.deepEqual(parseCuradoria({ featured: true }), { featured: true });
+    assert.deepEqual(parseCuradoria({ hidden: false, note: "  ouça no fone  " }), { hidden: false, note: "ouça no fone" });
+    assert.deepEqual(parseCuradoria({ note: "   " }), { note: null });
+    assert.deepEqual(parseCuradoria({ note: null }), { note: null });
+  });
+  it("recusa campos estranhos, tipos errados, nota longa e mudança vazia", () => {
+    assert.equal(parseCuradoria({ featured: "1" }), null);
+    assert.equal(parseCuradoria({ position: 3 }), null);
+    assert.equal(parseCuradoria({ featured: true, curator_id: "x" }), null);
+    assert.equal(parseCuradoria({ note: "a".repeat(NOTA_MAX + 1) }), null);
+    assert.equal(parseCuradoria({}), null);
+    assert.equal(parseCuradoria(null), null);
+    assert.equal(parseCuradoria("featured"), null);
+  });
+});

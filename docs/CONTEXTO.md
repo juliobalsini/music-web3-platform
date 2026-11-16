@@ -287,8 +287,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
   Fatia 2 (2026-11-15, PR item-122-editor-v2; DECISIONS 104): sugestões (clima/gênero/recentes/curtidas), prévia de 15 s, arrastar/deslizar, capa em mosaico no editor.
   Fatia 3 (2026-11-15, PRs #164 e #165; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration; em produção.
+  Fatia 4 (2026-11-16, PR item-122-curadoria-editor; DECISIONS 106): nota, destacar e ocultar por faixa no editor (botão ⋯), sem migration.
   **Faltam:**
-  perfil "Playlister" com seguidores, notas/destaque/ocultar no editor (as ações em `app/curador/actions.ts` seguem, sem tela), E2E mobile e prints.
+  perfil "Playlister" com seguidores, E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
   **Fase 2 (hub, curadores oficiais, Tema da semana, mini editor de capa, "Sua faixa está em N playlists") ainda não iniciada.**
   Artista ativado no 1º envio (sem escolha de perfil): não feito; `/enviar` ainda exige papel artist.
 
@@ -393,3 +394,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   própria da playlist com recorte quadrado, zoom e arrastar; DECISIONS 105) em produção (PR #164; #165 trocou a prévia por canvas após alerta alto do CodeQL). Pendência: conferir logado no
   celular real (escolher foto, enquadrar, usar; voltar ao mosaico). Fila restante: #153 (trava), #120 (só ligar o código), #122 (resto),
   #125 (resto), #140, #145, #146, #147. Próxima execução (segunda 2026-11-16): abrir o Sprint 2026-47 e a auditoria semanal.
+
+- 2026-11-16 (28ª) — segunda-feira: Sprint 2026-47 aberto (#167; aguarda "aprovado"; as issues `fila` já valem). Auditoria semanal:
+  sem crítico; os 4 "alto" e 2 "médio" eram falsos positivos (variáveis públicas do login; denúncias de stories só do servidor),
+  corrigidos na auditoria (PR #168). #122 fase 1 fatia 4 (curadoria por faixa no editor; DECISIONS 106) em PR item-122-curadoria-editor.
+  Pendência: conferir logado no celular (destacar, ocultar, nota). #154 (trava da #153) segue aguardando o Julio, sem conflito com a main.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (perfil Playlister, E2E; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
