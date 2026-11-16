@@ -297,7 +297,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   em destaque, Mais playlistados, Monte sua playlist; seções só com ≥ 3 itens), sem migration; em produção.
   Fase 2, item 2 (2026-11-16, PR #179; DECISIONS 111): curadores oficiais por gênero ("radioOn Jazz"…), perfis virtuais com selo que
   assinam a Seleção do gênero; seção no hub (≥ 3); sem migration; em produção (commit 5c86792).
-  **Fase 2 restante:** Tema da semana (precisa de migration aditiva para marcar playlists com o tema).
+  Fase 2, item 3 (2026-11-16, PR #183; DECISIONS 112): Tema da semana (tema no código pela conta oficial, coluna `tema_semana` +
+  trigger só da semana atual na migration aditiva `20261116000000`, aplicada; seção no hub, interruptor no editor, chip na página);
+  em produção (commit 7f6a018). **Fase 2 concluída.** Resta só o E2E logado (a prévia não tem conta de teste).
 
 ## Correções avulsas
 
@@ -441,3 +443,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   falhou no E2E mobile (legenda `sr-only` do carrossel criava rolagem horizontal); corrigido no mesmo PR. Demo passou a ter 9 faixas
   em 3 gêneros; E2E do curador com `.first()` (duplicação momentânea do streaming na prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (Tema da semana; E2E logado), #125 (resto), #78 Fase C,
   #140, #145, #146, #147.
+
+- 2026-11-16 (34ª) — Sprint 2026-47 (#167) **aprovado** pelo Julio. #154 mergeado: #153 fechada; alertas #155 e #181 (limite de 5 h
+  do plano) fechados. Dependabot #182 (minor/patch, gate verde) mergeado. #122 fase 2, item 3 (Tema da semana; PR #183, DECISIONS 112)
+  em produção, migration `20261116000000` aplicada. Pendência: conferir logado no celular (marcar o tema no editor; ver no hub).
+  Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
+  fora do sprint: #120 (só ligar o código), #145, #146.
