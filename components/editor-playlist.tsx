@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from
 
 import { adicionarFaixaA, publicar, removerFaixaDe, reordenarFaixas, salvarDetalhes } from "@/app/playlist/actions";
 import { Capa } from "@/components/capa";
+import { CapaEditor } from "@/components/capa-editor";
 import { CapaPlaylist } from "@/components/capa-playlist";
 import { PainelInferior } from "@/components/ds/interativos";
 import { usePlayer, useTempo } from "@/components/player-provider";
@@ -58,6 +59,7 @@ export function EditorPlaylist({
   faixas: faixasIniciais,
   catalogo,
   publicada,
+  capa: capaInicial = null,
 }: {
   id: string;
   titulo: string;
@@ -65,10 +67,12 @@ export function EditorPlaylist({
   faixas: FaixaEditor[];
   catalogo: FaixaEditor[];
   publicada: boolean;
+  capa?: string | null;
 }) {
   const router = useRouter();
   const player = usePlayer();
   const [titulo, setTitulo] = useState(tituloInicial);
+  const [capa, setCapa] = useState(capaInicial);
   const [descricao, setDescricao] = useState(descricaoInicial);
   const [faixas, setFaixas] = useState(faixasIniciais);
   const [estado, setEstado] = useState<"salvo" | "salvando" | "erro">("salvo");
@@ -204,7 +208,9 @@ export function EditorPlaylist({
   return (
     <div className="flex flex-col gap-4" data-testid="editor-playlist">
       <div className="flex items-start gap-4">
-        <CapaPlaylist titulo={titulo || tituloInicial} faixas={faixas} />
+        <CapaEditor id={id} capa={capa} aoMudar={setCapa}>
+          <CapaPlaylist titulo={titulo || tituloInicial} faixas={faixas} capa={capa} />
+        </CapaEditor>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <input
             value={titulo}

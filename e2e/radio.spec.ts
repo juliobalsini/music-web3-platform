@@ -166,6 +166,10 @@ test("página de faixa inexistente dá 404 e as rotas novas de API respondem sem
   expect([401, 503]).toContain(reacao.status());
   const lista = await request.get("/api/reacoes");
   expect(lista.status()).toBe(401);
+  // Capa própria da playlist: sem capa/uuid inválido = 404; upload sem conta nunca assina URL.
+  expect((await request.get("/api/playlists/not-a-uuid/capa")).status()).toBe(404);
+  const up = await request.post("/api/playlists/123e4567-e89b-42d3-a456-426614174000/capa", { data: { contentType: "image/jpeg", size: 1000 } });
+  expect([401, 503]).toContain(up.status());
 });
 
 test("ícone, manifesto e logo da marca são servidos", async ({ request }) => {

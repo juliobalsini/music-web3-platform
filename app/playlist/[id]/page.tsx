@@ -54,6 +54,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
         faixas={playlist.faixas.map((i) => porId.get(i.id)).filter((f): f is FaixaListada => !!f)}
         catalogo={radio.faixas.slice(0, 300)}
         publicada={playlist.isPublic}
+        capa={playlist.capa}
       />
     );
   }
@@ -73,7 +74,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
     <>
       <RegistrarVisita tipo="playlist" id={id} titulo={playlist.title} sub={playlist.curator ?? "Playlist"} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex items-start gap-4">
-        <CapaPlaylist titulo={playlist.title} faixas={faixas} />
+        <CapaPlaylist titulo={playlist.title} faixas={faixas} capa={playlist.capa} />
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
           {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
