@@ -1,13 +1,15 @@
-import { Lock } from "lucide-react";
+import { ListMusic, Lock } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { BotaoSeguir } from "@/components/botao-seguir";
+import { ChipStatus } from "@/components/ds";
 import { ListaFaixas } from "@/components/lista-faixas";
 import { PlaylistsDaSemana } from "@/components/secoes-radio";
 import { RegistrarVisita } from "@/components/registrar-visita";
 import { Tela } from "@/components/ui";
-import { isUuid } from "@/lib/playlists/rules";
+import { presencaEmPlaylists } from "@/lib/playlists/queries";
+import { isUuid, textoPresenca } from "@/lib/playlists/rules";
 import Link from "next/link";
 
 import { PLATAFORMA_ID, selecaoRadioOn } from "@/lib/radio/home";
@@ -34,7 +36,7 @@ export const metadata = { title: "Perfil · radioOn" };
 async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const [radio, todosStories, seguir, publico] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id), perfilEhPublico(id)]);
+  const [radio, todosStories, seguir, publico, presenca] = await Promise.all([carregarRadio(), carregarStories().catch(() => []), seguindoPerfil(id), perfilEhPublico(id), presencaEmPlaylists(id)]);
   const stories = todosStories.filter((s) => s.authorId === id);
   const agora = new Date().getTime();
   const faixas = radio.faixas.filter((f) => f.artistId === id);
@@ -71,6 +73,13 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
           <p className="text-sm text-white/70">
             {[faixas.length > 0 && `${faixas.length} ${faixas.length === 1 ? "faixa" : "faixas"}`, faixas.length > 0 && `${plays} escutas`, playlists.length > 0 && `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}`].filter(Boolean).join(" · ")}
           </p>
+          {faixas.length > 0 && presenca.total > 0 && (
+            <p data-testid="presenca-playlists" className="mt-1">
+              <ChipStatus tom="destaque" icone={<ListMusic aria-hidden="true" className="size-3.5" />}>
+                {seguir.eu === id ? textoPresenca(presenca.total, faixas.length) : `Em ${presenca.total} ${presenca.total === 1 ? "playlist" : "playlists"}`}
+              </ChipStatus>
+            </p>
+          )}
         </div>
       </div>
       {seguir.mostrar && <BotaoSeguir id={id} seguindo={seguir.seguindo} />}

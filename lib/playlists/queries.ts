@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import { urlCapaPlaylist } from "./capa";
-import { rankPlaylists, type PlaylistResumo } from "./rules";
+import { contarPresenca, rankPlaylists, type LinhaPresenca, type PlaylistResumo, type Presenca } from "./rules";
 
 type Linha = { id: string; title: string; created_at: string; playlist_tracks: { count: number }[] };
 
@@ -90,5 +90,28 @@ export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> 
     return { id: p.id, title: p.title, description: p.description ?? null, capa: urlCapaPlaylist(p.id, p.cover_path), curator: prof?.display_name ?? null, curatorId: p.curator_id, isPublic: !!p.is_public, mine, saves, saved, faixas };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Em quantas playlists públicas (de outras pessoas) estão as faixas publicadas do artista. Lê com o
+ * cliente da sessão: RLS só deixa ver playlists públicas e esconde apagadas. Falha → zero (a tela não quebra).
+ */
+export async function presencaEmPlaylists(artistId: string): Promise<Presenca> {
+  const vazio: Presenca = { total: 0, porFaixa: new Map() };
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("playlist_tracks")
+      .select("playlist_id,track_id,hidden,playlists!inner(curator_id,is_public),tracks!inner(artist_id,status)")
+      .eq("tracks.artist_id", artistId)
+      .eq("tracks.status", "published")
+      .eq("playlists.is_public", true)
+      .neq("playlists.curator_id", artistId)
+      .limit(2000);
+    if (error || !data) return vazio;
+    return contarPresenca(data as unknown as LinhaPresenca[], artistId);
+  } catch {
+    return vazio;
   }
 }

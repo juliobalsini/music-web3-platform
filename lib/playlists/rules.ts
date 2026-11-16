@@ -103,3 +103,51 @@ export function parseCuradoria(value: unknown): Partial<Curadoria> | null {
   }
   return Object.keys(out).length > 0 ? out : null;
 }
+
+/** Linha de playlist_tracks com a playlist e a faixa embutidas (consulta de presença do artista). */
+export type LinhaPresenca = {
+  playlist_id: string;
+  track_id: string;
+  hidden?: boolean | null;
+  playlists: { curator_id: string; is_public: boolean } | { curator_id: string; is_public: boolean }[] | null;
+  tracks: { artist_id: string; status: string } | { artist_id: string; status: string }[] | null;
+};
+
+export type Presenca = { total: number; porFaixa: Map<string, number> };
+
+const primeiro = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+
+/**
+ * "Sua faixa está em N playlists": conta playlists públicas de outras pessoas que contêm faixas publicadas
+ * do artista. Ignora itens ocultos pelo playlister e as playlists do próprio artista. `total` = playlists
+ * distintas; `porFaixa` = playlists distintas por faixa.
+ */
+export function contarPresenca(linhas: LinhaPresenca[], artistId: string): Presenca {
+  const todas = new Set<string>();
+  const porFaixa = new Map<string, Set<string>>();
+  for (const l of linhas) {
+    const p = primeiro(l.playlists);
+    const t = primeiro(l.tracks);
+    if (!p || !t || l.hidden === true) continue;
+    if (!p.is_public || p.curator_id === artistId) continue;
+    if (t.artist_id !== artistId || t.status !== "published") continue;
+    todas.add(l.playlist_id);
+    const s = porFaixa.get(l.track_id) ?? new Set<string>();
+    s.add(l.playlist_id);
+    porFaixa.set(l.track_id, s);
+  }
+  return { total: todas.size, porFaixa: new Map([...porFaixa].map(([k, s]) => [k, s.size])) };
+}
+
+/** Texto curto da presença: "Sua faixa está em 1 playlist" / "Suas faixas estão em 3 playlists". */
+export function textoPresenca(total: number, faixas: number): string | null {
+  if (total <= 0) return null;
+  const pl = total === 1 ? "1 playlist" : `${total} playlists`;
+  return faixas > 1 ? `Suas faixas estão em ${pl}` : `Sua faixa está em ${pl}`;
+}
+
+/** Rótulo do chip por faixa: "Em 1 playlist" / "Em 4 playlists". */
+export function rotuloEmPlaylists(n: number): string | undefined {
+  if (n <= 0) return undefined;
+  return n === 1 ? "Em 1 playlist" : `Em ${n} playlists`;
+}

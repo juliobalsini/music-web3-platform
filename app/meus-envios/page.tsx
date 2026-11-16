@@ -9,21 +9,23 @@ import { Tela } from "@/components/ui";
 import { loginPath } from "@/lib/auth/roles";
 import { listarApagados } from "@/lib/envios/apagar";
 import { DIAS_DESFAZER, isTipoEnvio, ROTULO_TIPO, type TipoEnvio } from "@/lib/envios/rules";
-import { isUuid } from "@/lib/playlists/rules";
+import { presencaEmPlaylists } from "@/lib/playlists/queries";
+import { isUuid, rotuloEmPlaylists, textoPresenca } from "@/lib/playlists/rules";
 import { getSessionRole } from "@/lib/session";
 import { reconciliarEnvios } from "@/lib/tracks/reconciliar";
 import { rotuloStatus } from "@/lib/tracks/envios";
 
 export const metadata = { title: "Meus envios · radioOn" };
 
-type Item = { id: string; titulo: string; href: string; info?: string; tom?: "neutro" | "aviso" | "erro" };
+type Item = { id: string; titulo: string; href: string; info?: string; tom?: "neutro" | "aviso" | "erro" | "destaque" };
 
 const linhaItem = "flex min-h-12 items-center gap-1 rounded-[var(--ds-raio)] bg-[var(--ds-surface)] pl-4 pr-1";
 
-function Secao({ titulo, tipo, itens, vazio }: { titulo: string; tipo: TipoEnvio; itens: Item[]; vazio: string }) {
+function Secao({ titulo, tipo, itens, vazio, apoio }: { titulo: string; tipo: TipoEnvio; itens: Item[]; vazio: string; apoio?: string | null }) {
   return (
     <section aria-label={titulo} className="flex flex-col gap-2">
       <h2 className="text-lg font-bold">{titulo}</h2>
+      {apoio && <p data-testid="presenca-playlists" className="text-sm font-semibold text-[var(--ds-destaque)]">{apoio}</p>}
       {itens.length === 0 ? (
         <p className="text-[var(--ds-texto-2)] text-pretty">{vazio}</p>
       ) : (
@@ -57,13 +59,15 @@ async function Conteudo({ searchParams }: { searchParams: Promise<Record<string,
   // Toda faixa em processamento termina: publicada (arquivo no bucket) ou falhou (com motivo).
   await reconciliarEnvios(userId).catch(() => {});
   // Leituras comuns já não veem itens apagados (policy restritiva); os apagados vêm do servidor.
-  const [faixas, albuns, playlists, stories, apagados] = await Promise.all([
+  const [faixas, albuns, playlists, stories, apagados, presenca] = await Promise.all([
     supabase.from("tracks").select("id,title,status,failure_reason").eq("artist_id", userId).neq("status", "removed").order("created_at", { ascending: false }).limit(100),
     supabase.from("albums").select("id,title,kind").eq("artist_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("playlists").select("id,title").eq("curator_id", userId).order("created_at", { ascending: false }).limit(50),
     supabase.from("stories").select("id,body").eq("author_id", userId).order("created_at", { ascending: false }).limit(50),
     listarApagados(userId),
+    presencaEmPlaylists(userId),
   ]);
+  const publicadas = (faixas.data ?? []).filter((t) => t.status === "published").length;
   const nada = [faixas, albuns, playlists, stories].every((r) => (r.data ?? []).length === 0) && apagados.length === 0;
   return (
     <>
@@ -72,7 +76,11 @@ async function Conteudo({ searchParams }: { searchParams: Promise<Record<string,
         <EstadoVazio titulo="Nada enviado ainda" texto="Suas faixas, álbuns, playlists e stories aparecem aqui." acao={<Link href="/enviar" className="font-semibold text-[var(--ds-destaque)]">Enviar música</Link>} />
       ) : (
         <>
-          <Secao titulo="Faixas" tipo="faixa" vazio="Nenhuma faixa enviada." itens={(faixas.data ?? []).map((t) => ({ id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: rotuloStatus(t.status, t.failure_reason), tom: t.status === "failed" ? "erro" : "aviso" }))} />
+          <Secao titulo="Faixas" tipo="faixa" vazio="Nenhuma faixa enviada." apoio={textoPresenca(presenca.total, publicadas)} itens={(faixas.data ?? []).map((t) => {
+            const status = rotuloStatus(t.status, t.failure_reason);
+            if (status) return { id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: status, tom: t.status === "failed" ? "erro" : "aviso" };
+            return { id: t.id, titulo: t.title, href: `/faixa/${t.id}`, info: rotuloEmPlaylists(presenca.porFaixa.get(t.id) ?? 0), tom: "destaque" };
+          })} />
           <Secao titulo="Álbuns e EPs" tipo="album" vazio="Nenhum álbum ou EP." itens={(albuns.data ?? []).map((a) => ({ id: a.id, titulo: a.title, href: `/album/${a.id}`, info: a.kind === "ep" ? "EP" : undefined }))} />
           <Secao titulo="Playlists" tipo="playlist" vazio="Nenhuma playlist." itens={(playlists.data ?? []).map((p) => ({ id: p.id, titulo: p.title, href: `/playlist/${p.id}` }))} />
           <Secao titulo="Stories" tipo="story" vazio="Nenhum story." itens={(stories.data ?? []).map((s) => ({ id: s.id, titulo: s.body || "Story sem texto", href: `/story/${s.id}` }))} />
