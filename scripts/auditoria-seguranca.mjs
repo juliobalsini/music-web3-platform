@@ -41,15 +41,18 @@ if (sh("git", ["ls-files", ".env*"]).split("\n").some((x) => x && !/\.example$/.
 const publicas = new Set();
 for (const f of andar(".", (p) => /\.(tsx?|mjs)$/.test(p) && !p.startsWith("tests") && !p.startsWith("e2e")))
   for (const m of ler(f).matchAll(/NEXT_PUBLIC_[A-Z0-9_]+/g)) publicas.add(m[0]);
-const OK_PUBLICAS = /^NEXT_PUBLIC_(SUPABASE_URL|SUPABASE_PUBLISHABLE_KEY|SUPABASE_ANON_KEY|AUDIO_BASE_URL|GOOGLE_LOGIN)$/;
+const OK_PUBLICAS = /^NEXT_PUBLIC_(SUPABASE_URL|SUPABASE_PUBLISHABLE_KEY|SUPABASE_ANON_KEY|AUDIO_BASE_URL|GOOGLE_LOGIN|GOOGLE_CLIENT_ID|GOOGLE_ORIGENS|LOGIN_GIS|LOGIN_CODIGO)$/;
+// GOOGLE_CLIENT_ID é público por natureza (vai no botão do Google); os demais são flags/listas de origem, não segredos.
 for (const v of publicas) if (!OK_PUBLICAS.test(v) || /SECRET|SERVICE|PRIVATE|PASSWORD|S3_/.test(v)) add("alto", "env-publicas", `${v} é exposta ao navegador; confirmar que não é sensível.`);
 
 // 2. RLS: toda tabela criada nas migrations precisa de ENABLE RLS e ao menos uma policy.
 const mig = readdirSync("supabase/migrations").sort().map((n) => ler(join("supabase/migrations", n))).join("\n").replace(/--[^\n]*/g, "");
 const tabelas = [...mig.matchAll(/create table (?:if not exists )?(?:public\.)?"?(\w+)"?/gi)].map((m) => m[1]);
+// Tabelas sem policy por desenho (só o servidor, via service_role, lê e grava; ver comentário na migration).
+const SO_SERVIDOR = new Set(["story_reports", "story_comment_reports"]);
 for (const t of new Set(tabelas)) {
   if (!new RegExp(`alter table\\s+(?:public\\.)?"?${t}"?\\s+enable\\s+row\\s+level\\s+security`, "i").test(mig)) add("crítico", "rls", `Tabela ${t} sem ENABLE ROW LEVEL SECURITY nas migrations.`);
-  if (!new RegExp(`create policy[^;]*on (?:public\\.)?"?${t}"?\\b`, "i").test(mig)) add("médio", "rls", `Tabela ${t} sem policy (acesso só via service_role; confirmar que é intencional).`);
+  if (!SO_SERVIDOR.has(t) && !new RegExp(`create policy[^;]*on (?:public\\.)?"?${t}"?\\b`, "i").test(mig)) add("médio", "rls", `Tabela ${t} sem policy (acesso só via service_role; confirmar que é intencional).`);
   if (new RegExp(`grant[^;]*\\bto\\s+anon\\b[^;]*\\bon\\b[^;]*${t}|grant[^;]*on[^;]*\\b${t}\\b[^;]*to\\s+anon`, "i").test(mig)) add("baixo", "rls", `Tabela ${t} com GRANT explícito a anon; revisar contra a auditoria do PR #61 (tests/rls-anonimos.test.ts).`);
 }
 
