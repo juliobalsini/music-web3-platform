@@ -55,6 +55,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
         catalogo={radio.faixas.slice(0, 300)}
         publicada={playlist.isPublic}
         capa={playlist.capa}
+        curadoria={Object.fromEntries(playlist.faixas.map((i) => [i.id, { note: i.note, featured: i.featured, hidden: i.hidden }]))}
       />
     );
   }

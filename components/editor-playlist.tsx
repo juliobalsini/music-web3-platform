@@ -1,17 +1,17 @@
 "use client";
 
-import { GripVertical, Pause, Play, Plus, Search, Trash2 } from "lucide-react";
+import { EyeOff, GripVertical, MoreHorizontal, Pause, Play, Plus, Search, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 
-import { adicionarFaixaA, publicar, removerFaixaDe, reordenarFaixas, salvarDetalhes } from "@/app/playlist/actions";
+import { adicionarFaixaA, curarFaixa, publicar, removerFaixaDe, reordenarFaixas, salvarDetalhes } from "@/app/playlist/actions";
 import { Capa } from "@/components/capa";
 import { CapaEditor } from "@/components/capa-editor";
 import { CapaPlaylist } from "@/components/capa-playlist";
-import { PainelInferior } from "@/components/ds/interativos";
+import { Interruptor, PainelInferior } from "@/components/ds/interativos";
 import { usePlayer, useTempo } from "@/components/player-provider";
 import { campo, botao } from "@/components/ui";
-import { MIN_FAIXAS_PUBLICAR, podePublicar, reordenar } from "@/lib/playlists/rules";
+import { MIN_FAIXAS_PUBLICAR, NOTA_MAX, podePublicar, reordenar, type Curadoria } from "@/lib/playlists/rules";
 import {
   destinoArraste,
   deveRemoverAoDeslizar,
@@ -60,6 +60,7 @@ export function EditorPlaylist({
   catalogo,
   publicada,
   capa: capaInicial = null,
+  curadoria: curadoriaInicial = {},
 }: {
   id: string;
   titulo: string;
@@ -68,6 +69,7 @@ export function EditorPlaylist({
   catalogo: FaixaEditor[];
   publicada: boolean;
   capa?: string | null;
+  curadoria?: Record<string, Curadoria>;
 }) {
   const router = useRouter();
   const player = usePlayer();
@@ -85,6 +87,10 @@ export function EditorPlaylist({
   const primeira = useRef(true);
   const recentes = useRecentes();
   const [agora] = useState(() => Date.now());
+  const [curadoria, setCuradoria] = useState(curadoriaInicial);
+  const [curando, setCurando] = useState<FaixaEditor | null>(null);
+  const [nota, setNota] = useState("");
+  const [salvandoNota, setSalvandoNota] = useState(false);
 
   // Salvamento automático (rascunho): espera 800 ms sem digitar.
   useEffect(() => {
@@ -150,6 +156,30 @@ export function EditorPlaylist({
     setFaixas(nova);
     void salvarOrdem(antes, nova);
   }
+  const curaDe = (trackId: string): Curadoria => curadoria[trackId] ?? { note: null, featured: false, hidden: false };
+  function abrirCuradoria(f: FaixaEditor) {
+    setCurando(f);
+    setNota(curaDe(f.id).note ?? "");
+  }
+  /** Aplica na hora (otimista) e desfaz se o servidor recusar. */
+  async function curar(trackId: string, mudanca: Partial<Curadoria>) {
+    const antes = curaDe(trackId);
+    setCuradoria((c) => ({ ...c, [trackId]: { ...antes, ...mudanca } }));
+    const r = await curarFaixa(id, trackId, mudanca);
+    if (!r.ok) {
+      setCuradoria((c) => ({ ...c, [trackId]: antes }));
+      setAviso(r.erro);
+    }
+    return r.ok;
+  }
+  async function salvarNota() {
+    if (!curando) return;
+    setSalvandoNota(true);
+    const ok = await curar(curando.id, { note: nota.trim() === "" ? null : nota.trim() });
+    setSalvandoNota(false);
+    if (ok) setCurando(null);
+  }
+
   function alternarPrevia(f: FaixaEditor) {
     if (previa?.id === f.id) {
       if (player.estado === "tocando") player.alternar();
@@ -240,7 +270,7 @@ export function EditorPlaylist({
       {faixas.length === 0 ? (
         <p className="text-[var(--ds-texto-2)] text-pretty">Playlist vazia. Toque em &quot;Adicionar faixas&quot; para começar.</p>
       ) : (
-        <ListaEditavel faixas={faixas} novas={novas} setFaixas={setFaixas} mover={mover} salvarOrdem={salvarOrdem} remover={remover} />
+        <ListaEditavel faixas={faixas} novas={novas} setFaixas={setFaixas} mover={mover} salvarOrdem={salvarOrdem} remover={remover} curaDe={curaDe} abrirCuradoria={abrirCuradoria} />
       )}
 
       <button type="button" onClick={() => setPainel(true)} className={botao} data-testid="adicionar-faixas">
@@ -259,6 +289,45 @@ export function EditorPlaylist({
       )}
 
       <FimDaPrevia previa={previa} aoFim={fimDaPrevia} />
+
+      <PainelInferior aberto={!!curando} aoFechar={() => setCurando(null)} titulo={curando ? curando.title : "Curadoria"}>
+        {curando && (
+          <div className="flex flex-col gap-4" data-testid="painel-curadoria">
+            <div className="divide-y divide-white/10 rounded-xl bg-white/5">
+              <Interruptor
+                titulo="Destacar"
+                apoio="Aparece em Em destaque, no topo da playlist."
+                ligado={curaDe(curando.id).featured}
+                aoMudar={(v) => void curar(curando.id, { featured: v })}
+                testId="curadoria-destacar"
+              />
+              <Interruptor
+                titulo="Ocultar"
+                apoio="Só você continua vendo esta faixa aqui."
+                ligado={curaDe(curando.id).hidden}
+                aoMudar={(v) => void curar(curando.id, { hidden: v })}
+                testId="curadoria-ocultar"
+              />
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-semibold">Sua nota</span>
+              <textarea
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+                maxLength={NOTA_MAX}
+                rows={3}
+                placeholder="Por que esta faixa está aqui?"
+                className={`${campo} resize-none`}
+                data-testid="curadoria-nota"
+              />
+              <span className="self-end text-xs tabular-nums text-[var(--ds-texto-2)]">{nota.length}/{NOTA_MAX}</span>
+            </label>
+            <button type="button" onClick={salvarNota} disabled={salvandoNota || nota.trim() === (curaDe(curando.id).note ?? "")} className={`${botao} disabled:opacity-50`} data-testid="curadoria-salvar-nota">
+              {salvandoNota ? "Salvando…" : "Salvar nota"}
+            </button>
+          </div>
+        )}
+      </PainelInferior>
 
       <PainelInferior aberto={painel} aoFechar={fecharPainel} titulo="Adicionar faixas">
         <div className="relative">
@@ -299,6 +368,8 @@ function ListaEditavel({
   mover,
   salvarOrdem,
   remover,
+  curaDe,
+  abrirCuradoria,
 }: {
   faixas: FaixaEditor[];
   novas: Set<string>;
@@ -306,6 +377,8 @@ function ListaEditavel({
   mover: (de: number, para: number) => void;
   salvarOrdem: (antes: FaixaEditor[], nova: FaixaEditor[]) => Promise<void>;
   remover: (f: FaixaEditor) => void;
+  curaDe: (trackId: string) => Curadoria;
+  abrirCuradoria: (f: FaixaEditor) => void;
 }) {
   const arraste = useRef<{ id: string; y0: number; altura: number; inicial: FaixaEditor[]; atual: FaixaEditor[] } | null>(null);
   const [arrastando, setArrastando] = useState<string | null>(null);
@@ -363,6 +436,7 @@ function ListaEditavel({
     <ol aria-label="Faixas da playlist" className="flex flex-col overflow-x-hidden">
       {faixas.map((f, i) => {
         const desloc = dx?.id === f.id ? dx.v : 0;
+        const c = curaDe(f.id);
         return (
           <li
             key={f.id}
@@ -375,11 +449,18 @@ function ListaEditavel({
             data-testid="faixa-editor"
           >
             <span className="w-5 shrink-0 text-center text-sm tabular-nums text-[var(--ds-texto-2)]">{i + 1}</span>
-            <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="size-12" />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate font-medium">{f.title}</span>
-              <span className="block truncate text-sm text-[var(--ds-texto-2)]">{f.artistName}</span>
+            <Capa id={f.id} title={f.title} hasCover={f.hasCover} className={`size-12 ${c.hidden ? "opacity-40" : ""}`} />
+            <span className={`min-w-0 flex-1 ${c.hidden ? "opacity-60" : ""}`}>
+              <span className="flex items-center gap-1.5">
+                {c.featured && <Star className="size-3.5 shrink-0 fill-brand text-brand" aria-label="Em destaque" />}
+                {c.hidden && <EyeOff className="size-3.5 shrink-0 text-[var(--ds-texto-2)]" aria-label="Oculta para o público" />}
+                <span className="truncate font-medium">{f.title}</span>
+              </span>
+              <span className="block truncate text-sm text-[var(--ds-texto-2)]">{c.note ? <span className="italic">“{c.note}”</span> : f.artistName}</span>
             </span>
+            <button type="button" onClick={() => abrirCuradoria(f)} aria-label={`Curadoria de ${f.title}: nota, destacar, ocultar`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-white/10" data-testid="abrir-curadoria">
+              <MoreHorizontal className="size-5" aria-hidden="true" />
+            </button>
             <button type="button" onClick={() => remover(f)} aria-label={`Remover ${f.title}`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-white/10">
               <Trash2 className="size-4" aria-hidden="true" />
             </button>

@@ -3,13 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseDescricao, parseTitle, podePublicar, tituloPadrao } from "@/lib/playlists/rules";
+import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseCuradoria, parseDescricao, parseTitle, podePublicar, tituloPadrao } from "@/lib/playlists/rules";
 import { loginPath } from "@/lib/auth/roles";
 import { apagarEnvio } from "@/lib/envios/apagar";
 import { chaveCapaValida } from "@/lib/playlists/capa";
 import { isStorageConfigured, objetoExiste } from "@/lib/storage/client";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function conta() {
   const s = await getSessionRole();
@@ -106,6 +107,24 @@ export async function reordenarFaixas(id: string, ordem: string[]): Promise<Resu
   }
   catalogoMudou();
   revalidatePath(`/playlist/${id}`);
+  return { ok: true };
+}
+
+/**
+ * Curadoria da faixa (nota, destaque, ocultar). O usuário só tem UPDATE em `position` (grants), então grava com
+ * service_role — só depois de o RLS do cliente do usuário confirmar que a playlist é dele (mesma regra de /curador).
+ */
+export async function curarFaixa(id: string, trackId: string, mudanca: unknown): Promise<Resultado> {
+  const d = await donoDe(id);
+  const m = parseCuradoria(mudanca);
+  if (!d || !isUuid(trackId)) return { ok: false, erro: "Playlist não encontrada." };
+  if (!m) return { ok: false, erro: "Confira a nota (até 280 caracteres)." };
+  const { data, error } = await createAdminClient().from("playlist_tracks").update(m).eq("playlist_id", id).eq("track_id", trackId).select("track_id");
+  if (error || !data?.length) return { ok: false, erro: "Não foi possível salvar." };
+  catalogoMudou();
+  revalidatePath(`/playlist/${id}`);
+  revalidatePath("/");
+  revalidatePath("/explorar");
   return { ok: true };
 }
 

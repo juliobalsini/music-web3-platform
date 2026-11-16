@@ -550,3 +550,12 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     só mostra playlist pública ou do dono; cache de 15 min (público só se a playlist é pública) e `v` muda a cada capa nova.
     (d) Trocar a capa não apaga o arquivo antigo no bucket (sem escrita destrutiva; limpeza física fica com a remoção pós-beta do
     PLANO.md). (e) O cartão 9:16 e as listas seguem com a capa da 1ª faixa; usar a capa própria neles fica para a fase 2.
+
+106. **Curadoria por faixa no editor da playlist (#122, fase 1, fatia 4; 2026-11-16).** (a) Cada faixa do editor ganha o botão ⋯
+    que abre um painel inferior com **Destacar**, **Ocultar** (interruptores, aplicados na hora e desfeitos se o servidor recusar) e
+    **Sua nota** (até 280 caracteres, salvar explícito). (b) Grava pela ação `curarFaixa`, que valida a mudança com `parseCuradoria`
+    (só `note`/`featured`/`hidden`, tipos exatos) e usa service_role **só depois** de o RLS do cliente do usuário confirmar que a
+    playlist é dele — mesma regra de `/curador`, porque o usuário só tem UPDATE em `position`. **Sem migration.** (c) Na lista, a
+    faixa destacada mostra estrela, a oculta fica esmaecida com o ícone de olho cortado, e a nota substitui o nome do artista na 2ª
+    linha. (d) As ações antigas de `app/curador/actions.ts` (alternarMarca, salvarNota, moverFaixa) seguem para a página de
+    Programação; a tela de curadoria agora é o editor.
