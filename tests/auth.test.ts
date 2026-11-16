@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
-import { loginPath, parseEmail, parseRole, safeNext } from "../lib/auth/roles.ts";
+import { loginPath, papelNoEnvio, parseEmail, parseRole, safeNext } from "../lib/auth/roles.ts";
 
 describe("auth", () => {
   it("parseRole só aceita os 3 perfis do MVP", () => {
@@ -39,5 +39,15 @@ describe("RLS (análise estática da migration)", () => {
   });
   it("só curador cria playlist", () => {
     assert.match(sql, /current_user_role\(\)\) = 'curator'/);
+  });
+});
+
+describe("papelNoEnvio", () => {
+  it("artista envia; playlister confirma; ouvinte (ou sem perfil) é ativado no 1º envio", () => {
+    assert.equal(papelNoEnvio("artist"), "envia");
+    assert.equal(papelNoEnvio("curator"), "confirma");
+    assert.equal(papelNoEnvio("listener"), "ativa");
+    assert.equal(papelNoEnvio(null), "ativa");
+    assert.equal(papelNoEnvio("admin"), "ativa");
   });
 });

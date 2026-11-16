@@ -559,3 +559,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     faixa destacada mostra estrela, a oculta fica esmaecida com o ícone de olho cortado, e a nota substitui o nome do artista na 2ª
     linha. (d) As ações antigas de `app/curador/actions.ts` (alternarMarca, salvarNota, moverFaixa) seguem para a página de
     Programação; a tela de curadoria agora é o editor.
+
+107. **Artista ativado no 1º envio (#122, ajuste da #116; 2026-11-16).** (a) `/enviar` deixa de mandar quem não é artista para
+    `/onboarding`: ouvinte vê o formulário com a linha "Seu perfil de artista é ativado no primeiro envio". (b) A troca acontece **só no
+    servidor**, nas rotas `/api/tracks/upload` e `/api/albums/upload`, por `ativarArtista` (`lib/auth/ativar-artista.ts`, service_role,
+    id da sessão, `update ... where role in ('listener')`), antes de criar a faixa; regra pura `papelNoEnvio` (envia/ativa/confirma)
+    testada. (c) Playlister (`curator`) **confirma** antes ("Usar como artista"), porque criar ou mudar a Programação por horário é só
+    de curator (RLS de `programs`); a opção mais segura é não tirar esse acesso sem um toque explícito. (d) `/onboarding` continua
+    existindo (stories e links antigos); "Minha rádio" passa a levar direto a "Enviar música". Sem migration.

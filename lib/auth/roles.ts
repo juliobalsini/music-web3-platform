@@ -28,3 +28,14 @@ export function parseEmail(value: unknown): string | null {
   const v = value.trim().toLowerCase();
   return v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : null;
 }
+
+/**
+ * Papel no envio de música (#122): artista envia; ouvinte vira artista no 1º envio, sem tela de escolha;
+ * playlister (curator) confirma antes, porque deixar o papel curator tira a Programação por horário.
+ */
+export type PapelNoEnvio = "envia" | "ativa" | "confirma";
+export function papelNoEnvio(role: string | null | undefined): PapelNoEnvio {
+  if (role === "artist") return "envia";
+  if (role === "curator") return "confirma";
+  return "ativa";
+}
