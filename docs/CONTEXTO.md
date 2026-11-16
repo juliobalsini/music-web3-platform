@@ -293,7 +293,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Artista ativado no 1º envio (2026-11-16, PR #171; DECISIONS 107): ouvinte vira artista no servidor ao enviar; playlister confirma; em produção.
   Fase 2, item 5 (2026-11-16, PR #173; DECISIONS 108): "Sua faixa está em N playlists" no perfil e em Meus envios, sem migration; em produção. Item 6 (pós-beta) já no PLANO.md.
   Fase 2, item 4 (2026-11-16, PR #175; DECISIONS 109): mini editor de capa (6 fundos, 3 fontes, 12 figurinhas, arrastar/redimensionar, PNG no navegador), sem migration; em produção.
-  **Fase 2 restante:** hub, curadores oficiais, Tema da semana.
+  Fase 2, item 1 (2026-11-16, PR #177; DECISIONS 110): hub de playlists na Rádio > Playlists e no Explorar (Playlists em alta, Playlisters
+  em destaque, Mais playlistados, Monte sua playlist; seções só com ≥ 3 itens), sem migration; em produção.
+  **Fase 2 restante:** curadores oficiais, Tema da semana.
 
 ## Correções avulsas
 
@@ -420,4 +422,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   #122 fase 2, item 4 (mini editor de capa; PR #175, DECISIONS 109; sem migration) em produção (commit cbf4031). Pendência: conferir logado
   no celular (Criar capa → montar → Usar esta capa). #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
   Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: hub, curadores oficiais, Tema da semana), #125 (resto),
+  #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (32ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 1 (hub de playlists; PR #177, DECISIONS 110; sem migration) em produção (commit ab1bc00); E2E local 32/32 e gate verde.
+  Pendência: com dados reais, as seções só aparecem quando houver ≥ 3 playlists salvas na semana / playlisters / artistas playlistados.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: curadores oficiais, Tema da semana), #125 (resto),
   #78 Fase C, #140, #145, #146, #147.
