@@ -20,7 +20,7 @@ export function SelecaoRadioOn({ lista }: { lista: Selecao[] }) {
       <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">
         {lista.map((s) => (
           <li key={s.id} className="w-36 shrink-0 snap-start">
-            <Link href={`/playlist/${s.id}`} className="flex flex-col gap-1.5 rounded-xl">
+            <Link href={`/playlist/${s.id}`} className="relative flex flex-col gap-1.5 rounded-xl">
               <CapaArte title={s.title} className="aspect-square w-full !rounded-xl" />
               <span className="line-clamp-2 text-sm font-semibold leading-tight">{s.title}</span>
               <span className="flex items-center gap-1 text-xs text-white/70">
