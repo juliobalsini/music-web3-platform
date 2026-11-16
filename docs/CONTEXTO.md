@@ -194,8 +194,8 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
 - **Dois projetos Vercel** estão ligados a este repo: `radioon` (o oficial) e o
   antigo `music-web3-platform` (gera deploys duplicados; o gate o ignora).
 
-- **Agendamento:** `.github/workflows/autonomo.yml`, 08:00 e 20:00 de Brasília
-  (STRATEX OS usa 02:00 e 14:00) + disparo manual. **O agendamento do GitHub
+- **Agendamento:** `.github/workflows/autonomo.yml`, a cada 4 h (03, 07, 11, 15, 19, 23 UTC; issue #153)
+  + disparo manual; no máximo 2 execuções seguidas; limite de uso do plano encerra sem alerta. **O agendamento do GitHub
   pode atrasar horas ou pular execuções** em horários de pico; não é falha.
   Repositórios públicos sem atividade por 60 dias têm o cron desativado.
 - **Agente:** Claude Code com `CLAUDE_CODE_OAUTH_TOKEN` e `AGENT_GH_TOKEN`
@@ -368,6 +368,10 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   preferências no aparelho e na conta (`user_settings`, RLS testada no PGlite). #116 fechada. Pendência: conferir logado no celular
   (trocar nome/e-mail; excluir uma conta de teste). Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.
 
+- 2026-11-15 (22ª) — Caixa de entrada: pacote de 15:12 virou a issue #153 (Distribuir o uso do agente; `fila`+`urgente`); #152 fechada
+  (limite de uso, sem ação). #153: PR protegido item-153-uso-distribuido (agendamento a cada 4 h, máx. 2 seguidas, limite de uso sem
+  alerta + `scripts/limites-de-uso.sh`; DECISIONS 100) — **aguarda `travas`**; vale como PR protegido semanal da semana de 2026-11-16.
+  Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.
 - 2026-11-15 (23ª) — Caixa de entrada: pacote das 15:16 virou a issue #156 (Stories reposicionados e story de bio; `fila`+`urgente`).
   #153 aguarda a trava (PR #154, alerta #155). #156: Home sem círculos (Player On primeiro), Artistas para conhecer com cards de story
   de bio, seguido com story novo primeiro, Explorar com stories ordenados, Perfil de artista em Configurações (frase e foto do Google),
