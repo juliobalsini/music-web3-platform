@@ -295,7 +295,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Fase 2, item 4 (2026-11-16, PR #175; DECISIONS 109): mini editor de capa (6 fundos, 3 fontes, 12 figurinhas, arrastar/redimensionar, PNG no navegador), sem migration; em produção.
   Fase 2, item 1 (2026-11-16, PR #177; DECISIONS 110): hub de playlists na Rádio > Playlists e no Explorar (Playlists em alta, Playlisters
   em destaque, Mais playlistados, Monte sua playlist; seções só com ≥ 3 itens), sem migration; em produção.
-  **Fase 2 restante:** curadores oficiais, Tema da semana.
+  Fase 2, item 2 (2026-11-16, PR #179; DECISIONS 111): curadores oficiais por gênero ("radioOn Jazz"…), perfis virtuais com selo que
+  assinam a Seleção do gênero; seção no hub (≥ 3); sem migration; em produção (commit 5c86792).
+  **Fase 2 restante:** Tema da semana (precisa de migration aditiva para marcar playlists com o tema).
 
 ## Correções avulsas
 
@@ -429,3 +431,9 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   Pendência: com dados reais, as seções só aparecem quando houver ≥ 3 playlists salvas na semana / playlisters / artistas playlistados.
   Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: curadores oficiais, Tema da semana), #125 (resto),
   #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (33ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 2 (curadores oficiais; PR #179, DECISIONS 111; sem migration) em produção (commit 5c86792). 1ª tentativa do gate
+  falhou no E2E mobile (legenda `sr-only` do carrossel criava rolagem horizontal); corrigido no mesmo PR. Demo passou a ter 9 faixas
+  em 3 gêneros; E2E do curador com `.first()` (duplicação momentânea do streaming na prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (Tema da semana; E2E logado), #125 (resto), #78 Fase C,
+  #140, #145, #146, #147.

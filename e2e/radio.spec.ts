@@ -420,13 +420,13 @@ test("hub de playlists: Seleção, Curadores oficiais, Playlists em alta, Playli
 // Curadores oficiais (#122, fase 2, item 2): perfis virtuais da radioOn que assinam a Seleção de cada gênero.
 test("curador oficial: assina a Seleção do gênero e tem perfil com selo, sem botão Seguir", async ({ page }) => {
   await page.goto("/playlist/radioon-genero-jazz");
-  const curador = page.getByTestId("selecao-curador");
+  const curador = page.getByTestId("selecao-curador").first(); // streaming pode duplicar por instantes
   await expect(curador).toContainText("radioOn Jazz", { timeout: 20_000 });
   await curador.click();
   await expect(page).toHaveURL(/\/perfil\/00000000-0000-4000-8000-0000000001[0-9a-f]{2}$/, { timeout: 20_000 });
-  await expect(page.getByRole("heading", { level: 1, name: "radioOn Jazz" })).toBeVisible();
-  await expect(page.getByTestId("selo-curador-oficial")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Jazz na radioOn/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "radioOn Jazz" }).first()).toBeVisible();
+  await expect(page.getByTestId("selo-curador-oficial").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Jazz na radioOn/ }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Seguir/ })).toHaveCount(0);
 });
 
