@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- prévia local (blob:) do recorte; sem otimizador de imagem. */
-
 import { Camera, ImagePlus, LayoutGrid, Move, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
@@ -9,17 +7,18 @@ import { definirCapa } from "@/app/playlist/actions";
 import { PainelInferior } from "@/components/ds/interativos";
 import { Mensagem, botao } from "@/components/ui";
 import { LADO_CAPA, limitarEnquadramento, recorteQuadrado, urlCapaPlaylist, ZOOM_MAX, type Enquadramento } from "@/lib/playlists/capa";
-import { MAX_CAPA_ORIGINAL } from "@/lib/storage/formatos";
+import { dimensoesCapa, MAX_CAPA_ORIGINAL } from "@/lib/storage/formatos";
 import { erroDaRotaDeUpload, erroDoBucket } from "@/lib/storage/messages";
 import { MAX_COVER_BYTES } from "@/lib/storage/rules";
 
-type Foto = { url: string; img: HTMLImageElement };
+/** Foto decodificada em memória (sem URL: nada do arquivo vira atributo do DOM). */
+type Foto = { bmp: ImageBitmap; w: number; h: number };
 
 const INICIO: Enquadramento = { zoom: 1, x: 0, y: 0 };
 
 /** Gera o JPEG quadrado no navegador; reduz a qualidade se passar do limite do bucket. */
-async function gerarJpeg(img: HTMLImageElement, e: Enquadramento): Promise<Blob | null> {
-  const { sx, sy, lado } = recorteQuadrado(img.naturalWidth, img.naturalHeight, e);
+async function gerarJpeg({ bmp, w, h }: Foto, e: Enquadramento): Promise<Blob | null> {
+  const { sx, sy, lado } = recorteQuadrado(w, h, e);
   const canvas = document.createElement("canvas");
   const saida = Math.min(LADO_CAPA, Math.round(lado)) || LADO_CAPA;
   canvas.width = saida;
@@ -27,7 +26,7 @@ async function gerarJpeg(img: HTMLImageElement, e: Enquadramento): Promise<Blob 
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, sx, sy, lado, lado, 0, 0, saida, saida);
+  ctx.drawImage(bmp, sx, sy, lado, lado, 0, 0, saida, saida);
   for (const q of [0.86, 0.72, 0.6]) {
     const b = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", q));
     if (b && b.size <= MAX_COVER_BYTES) return b;
@@ -49,12 +48,29 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
   const arraste = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
   const arquivo = useRef<HTMLInputElement>(null);
 
-  useEffect(() => () => { if (foto) URL.revokeObjectURL(foto.url); }, [foto]);
+  const previa = useRef<HTMLCanvasElement>(null);
+
+  // Prévia: desenha a foto (reduzida a ≤ 1600 px) no canvas do quadro.
+  useEffect(() => {
+    const c = previa.current;
+    if (!foto || !c) return;
+    const d = dimensoesCapa(foto.w, foto.h, 1600);
+    c.width = d.w;
+    c.height = d.h;
+    c.getContext("2d")?.drawImage(foto.bmp, 0, 0, d.w, d.h);
+  }, [foto]);
+
+  /** Troca a foto em edição e libera a memória da anterior. */
+  const trocarFoto = (nova: Foto | null) =>
+    setFoto((velha) => {
+      if (velha && velha !== nova) velha.bmp.close();
+      return nova;
+    });
 
   const fechar = () => {
     if (enviando) return;
     setAberto(false);
-    setFoto(null);
+    trocarFoto(null);
     setErro(null);
   };
 
@@ -63,14 +79,13 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
     if (!f) return;
     if (!f.type.startsWith("image/")) return setErro("Escolha uma imagem (JPG, PNG ou WebP).");
     if (f.size > MAX_CAPA_ORIGINAL) return setErro("Imagem grande demais. Use uma de até 15 MB.");
-    const url = URL.createObjectURL(f);
-    const img = new Image();
-    img.onload = () => { setEnq(INICIO); setFoto({ url, img }); };
-    img.onerror = () => { URL.revokeObjectURL(url); setErro("Não deu para abrir essa imagem. Tente JPG ou PNG."); };
-    img.src = url;
+    createImageBitmap(f).then(
+      (bmp) => { setEnq(INICIO); trocarFoto({ bmp, w: bmp.width, h: bmp.height }); },
+      () => setErro("Não deu para abrir essa imagem. Tente JPG ou PNG."),
+    );
   };
 
-  const ajustar = (e: Enquadramento) => foto && setEnq(limitarEnquadramento(foto.img.naturalWidth, foto.img.naturalHeight, e));
+  const ajustar = (e: Enquadramento) => foto && setEnq(limitarEnquadramento(foto.w, foto.h, e));
 
   const aoTocar = (e: PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -96,7 +111,7 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
     if (!r.ok) return setErro(r.erro);
     aoMudar(urlCapaPlaylist(id, key));
     setAberto(false);
-    setFoto(null);
+    trocarFoto(null);
   };
 
   const usar = async () => {
@@ -104,7 +119,7 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
     setEnviando(true);
     setErro(null);
     try {
-      const jpeg = await gerarJpeg(foto.img, enq);
+      const jpeg = await gerarJpeg(foto, enq);
       if (!jpeg) return setErro("Não deu para preparar a imagem. Tente outra.");
       const res = await fetch(`/api/playlists/${id}/capa`, {
         method: "POST",
@@ -128,8 +143,8 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
     try { await salvar(null); } finally { setEnviando(false); }
   };
 
-  const w = foto?.img.naturalWidth ?? 1;
-  const h = foto?.img.naturalHeight ?? 1;
+  const w = foto?.w ?? 1;
+  const h = foto?.h ?? 1;
   const menor = Math.min(w, h);
 
   return (
@@ -165,10 +180,9 @@ export function CapaEditor({ id, capa, aoMudar, children }: { id: string; capa: 
               className="relative mx-auto aspect-square w-full max-w-72 cursor-grab touch-none select-none overflow-hidden rounded-xl bg-black/40 active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
               data-testid="quadro-capa"
             >
-              <img
-                src={foto.url}
-                alt=""
-                draggable={false}
+              <canvas
+                ref={previa}
+                aria-hidden="true"
                 className="pointer-events-none absolute max-w-none"
                 style={{
                   width: `${(w / menor) * enq.zoom * 100}%`,
