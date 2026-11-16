@@ -1,5 +1,6 @@
 # radioOn — instruções permanentes
-Responder sempre em português. Estado e fila: docs/CONTEXTO.md · decisões: docs/DECISIONS.md. Next 16: ler AGENTS.md.
+Responder sempre em português. Estado e fila: docs/CONTEXTO.md · decisões: docs/DECISIONS.md (índice; texto completo em
+docs/historico/decisoes.md, ler só o tema da tarefa). Next 16: ler AGENTS.md.
 **Produto.** Streaming de música independente global: o público entra e dá play já; o entendimento
 vem depois. MVP com 3 perfis: listener, artist, curator. Fora do MVP: gravadoras,
 produtores, marcas, tokens on-chain, NFTs (ciclo 6 só quando o Julio liberar).
@@ -40,25 +41,36 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
 - Ao iniciar: ler docs/CONTEXTO.md, pegar o próximo item livre e executar; seguir até
   acabar a fila ou o limite de uso. Nunca esperar resposta humana.
 - Ciclo por item: branch → código → lint + typecheck + testes + build → PR → E2E na
-  prévia da Vercel (gate) → merge se passar → confirmar deploy de produção → marcar
-  concluído no CONTEXTO.md. Tentativas e bloqueios também ficam no CONTEXTO.md.
+  prévia da Vercel (gate) → merge se passar → confirmar deploy de produção. A atualização do CONTEXTO.md
+  (concluído, tentativas, bloqueios, próximo passo) vai **no último PR de código da execução** (ver "Eficiência").
 - Escopo: decidir pelo CONTEXTO.md e registrar em DECISIONS.md; na dúvida, a opção
   mais segura e reversível. Testes e prévias nunca usam produção (mocks ou prefixo test/).
 - Execução sem item livre: não abrir branch nem PR e não alterar arquivos; registrar só no resumo do
   workflow (`$GITHUB_STEP_SUMMARY`) e rodar `bash scripts/painel.sh`.
 - Deploy de produção quebrado: rollback na Vercel e registrar.
 - Canal único (modelo v2): **um resumo diário** (feito, próximo, links dos prints mobile) via
-  `bash scripts/notify.sh resumo <arq>` (comentário na issue do Sprint + e-mail). Relatório em
-  docs/reports/AAAA-MM-DD-<assunto>.md só para entrega grande em produção ou fim de fase (`notify.sh report`).
-  Ao fim de cada execução: `bash scripts/painel.sh`.
+  `bash scripts/notify.sh resumo <arq>` (comentário na issue do Sprint + e-mail). Relatório de entrega grande ou fim
+  de fase: só na issue (`notify.sh report <arq>`, arquivo em `$RUNNER_TEMP`); não criar mais `docs/reports/*.md`
+  (os existentes ficam). Ao fim de cada execução: `bash scripts/painel.sh`.
+## Eficiência (issue #188; gargalo = limite de uso do plano; métrica = entregas por hora de uso)
+- **Sem PR só de docs:** CONTEXTO.md, DECISIONS e PLANO.md vão no último PR de código da execução. PR só de `.md` é exceção
+  (execução sem entrega de código) e passa pelo caminho rápido do gate (sem build, E2E nem prévia), quando existir.
+- **Contexto enxuto:** CONTEXTO.md ≤ 8 KB (estado, fila, pendências, próximo passo); concluídos e execuções antigas vão para
+  `docs/historico/CONTEXTO-AAAA-MM.md` (não lido por padrão). DECISIONS.md é índice ≤ 10 KB (uma linha por decisão); texto
+  completo no fim de `docs/historico/decisoes.md`. Ao iniciar, ler só CONTEXTO.md; o resto quando a tarefa tocar o tema.
+- **Lotes e fatias maiores:** um PR por entrega com valor visível; juntar passos do mesmo item e itens pequenos do mesmo tema
+  (UI, correções, textos) num só PR, se couber na cota e os testes cobrirem. Fatiar só com migration ou risco de quebrar produção.
+- **Arranque rápido:** ao fim de cada execução, a seção "Próximo passo" do CONTEXTO.md diz arquivos e o que mudar.
+- **Métrica semanal** no resumo de segunda: execuções, entregas (PRs de código mergeados), entregas por execução, execuções
+  interrompidas por limite de uso e tamanho do contexto fixo (CONTEXTO + DECISIONS + CLAUDE.md, em KB).
 ## Autoplanejamento
-- Ao iniciar cada execução, ler os comentários do Julio na issue do Sprint e nas issues de relatório abertas
-  (`gh api repos/{owner}/{repo}/issues/<n>/comments`) para colher aprovações.
-- Quando a fila do CONTEXTO.md acabar, propor a próxima fase (até 5 itens) com base em
-  docs/PLANO.md, registrando-a no CONTEXTO.md como "proposto" e no relatório.
-- Itens de qualidade (bugs, testes, acessibilidade, desempenho, UI, textos) são executados direto.
-- Funcionalidade nova ou mudança de escopo ficam "proposto" até o comentário "aprovado" do Julio
-  na issue do relatório ou do Sprint (aceitar "aprovado g, h" ou "recusado j"). Sem aprovação, não executar.
+- Ao iniciar, ler os comentários do Julio na issue do Sprint e nas de relatório abertas (`gh api repos/{owner}/{repo}/issues/<n>/comments`).
+- `docs/PLANO.md` é a fonte única de prioridades (atualizar ao propor, aprovar e concluir). Fila vazia → propor até 5 itens
+  dele como "proposto" (CONTEXTO.md e relatório), cada um com objetivo, escopo, arquivos, risco, se toca protegidos e execuções.
+- **Executar direto** (sempre por PR e gate; protegidos seguem exigindo a trava): qualidade (bugs, testes, acessibilidade,
+  desempenho, UI, textos), segurança de risco baixo que não amplie acesso, dependências com testes verdes, testes instáveis, docs.
+- Funcionalidade nova ou mudança de escopo: "proposto" até o "aprovado" do Julio (issue do relatório ou do Sprint; aceitar
+  "aprovado g, h" / "recusado j"). Ao ler a aprovação, criar a issue do trabalho e executar.
 - Nunca propor: serviço pago, credencial nova, mudança de provedor, nada do Ciclo 6.
 ## Reduzir ações manuais do Julio (regra permanente)
 1. Nunca pedir ao Julio para rodar workflows: o PAT tem *Actions: Read and write*; disparar com `gh workflow run`
@@ -76,16 +88,8 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
    substituídas; deixar aberta só a do dia, se houver pendência real.
 8. Erro do Supabase: (a) antes de abrir "Ação necessária", consultar status.supabase.com; com incidente ativo, registrar
    no CONTEXTO.md e tentar na próxima execução, sem alertar; (b) consultar o Supabase Knowledge Base antes de tentar soluções.
-- **Endurecimento de segurança próprio:** o que o agente identificar e que não amplie acesso é risco baixo e se executa sem
-  pedir aprovação (por PR e gate; protegidos seguem exigindo a trava). **Antes de pedir qualquer secret ao Julio**, verificar se
-  um secret/conexão já existente resolve (ex.: `SUPABASE_DB_URL` em vez de `SUPABASE_SECRET_KEY`).
-- **Aprovação (Fase A):** o Julio aprova respondendo "aprovado <itens>" na issue/e-mail do relatório. Ao ler a
-  aprovação, criar a issue do trabalho e executar sem precisar de "Instrução extra". Cada relatório propõe 1–3
-  tarefas com objetivo, escopo, arquivos, risco (baixo/médio/alto), se toca arquivos protegidos e execuções estimadas.
-- **Sem aprovação prévia só:** correções de segurança de risco baixo, atualizações de dependências com testes verdes,
-  correção de testes instáveis e documentação. Sempre por PR e gate; arquivos protegidos seguem exigindo a trava.
-- Preferir tarefas maiores e completas por execução (várias fases) sem enfraquecer o gate. `docs/PLANO.md` é a fonte
-  única de prioridades: atualizar ao propor, receber aprovação e concluir.
+- **Antes de pedir qualquer secret ao Julio**, verificar se um secret/conexão já existente resolve (ex.: `SUPABASE_DB_URL`
+  em vez de `SUPABASE_SECRET_KEY`).
 ## Segurança contínua (defensiva, só no próprio projeto)
 - **Dependabot** (`.github/dependabot.yml`): PR patch/minor com todo o gate verde pode ser mergeado pelo agente;
   **major nunca** — vai para proposta no relatório. Não existe `codeql.yml` (CodeQL em modo Default; um avançado conflita).
@@ -140,10 +144,9 @@ configurável; mesma faixa pontua no máx. 3x/dia por usuário; artista não pon
   **uma linha** no resumo diário.
 - **Autocorreção:** falhas de Dependabot, testes instáveis, gate ou workflows auxiliares: até 3 tentativas do agente antes
   de qualquer aviso (registrar as tentativas no CONTEXTO.md).
-- **Canal único:** um resumo diário por dia (o da última execução do dia, ou o da 1ª execução do dia seguinte se não houve
-  resumo): `bash scripts/notify.sh resumo <arq>`; antes de enviar, conferir na issue do Sprint se já há resumo do dia
-  (título "Resumo radioOn — AAAA-MM-DD") e, havendo, não repetir. "⚠️ Ação necessária" só para trava pendente ou
-  ação impossível ao agente.
+- **Canal único:** o resumo diário é o da última execução do dia (ou da 1ª do dia seguinte, se faltou); antes de enviar,
+  conferir na issue do Sprint se já há "Resumo radioOn — AAAA-MM-DD" e não repetir. "⚠️ Ação necessária" só para trava
+  pendente ou ação impossível ao agente.
 - **Sessão manual:** uma única issue aberta "Sessão manual" (label `sessao-manual`) lista o que depende do Julio, cada item
   com passo a passo e por que o agente não pode; atualizar ao surgir/resolver item (editar o corpo, nunca abrir outra).
 - **Feedback:** issue do `juliobalsini` com label `feedback` (texto livre, prints) é triada: correção pequena (bug, texto,

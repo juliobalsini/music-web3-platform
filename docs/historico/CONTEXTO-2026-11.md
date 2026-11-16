@@ -1,0 +1,460 @@
+# Contexto do radioOn
+
+Fonte de verdade do agente autônomo. Ao iniciar: ler este arquivo, pegar o
+próximo item livre da fila e executar. Atualizar ao fim de cada item (via PR).
+
+## Estado atual
+
+- **Fundação concluída** (ciclo 0): Next.js 16 + Supabase + CI.
+- **Produção:** https://radioon-ten.vercel.app (Vercel `radioon`, pdx1; deploy a cada push na `main`).
+- **Banco:** Supabase `radioon` (us-west-2), 6 tabelas com RLS (`profiles`, `tracks`,
+  `playlists`, `playlist_tracks`, `listen_events`, `points_ledger`); migration
+  `20261105000000` aplicada; `supabase link` confirmado no Codespace.
+- **Redesenho mobile-first** em produção desde 2026-11-10 (r1–r2): Rádio/Explorar/Minha rádio,
+  player global; migration `20261110000000` aplicada.
+- **CI verde** na `main`. Modo autônomo configurado em 2026-11-05 (ver abaixo).
+
+## Fila
+
+- [~] **Fila por issues (PR #100, protegido, aguarda trava do Julio):** `autonomo.yml` dispara em label `fila` e comentário
+  "aprovado/recusado" (só `juliobalsini`), sem cancelamento (guarda de execução única). Labels `fila` e `urgente` criados.
+  Pendência aprovada do PLANO.md virou a issue #101 (label `fila`); depende do PR #97 mergeado.
+- [~] **Gate: verificação de segurança dos workflows (issue #102, PR protegido, aguarda trava do Julio):** job `workflows`
+  + `scripts/ci/verificar-workflows.mjs` + testes; `autonomo.yml` já mergeado passa (R1–R3). Decisão 85.
+
+Legenda: `[ ]` livre · `[~]` em andamento (tentativas: n) · `[x]` concluído · `[!]` bloqueado.
+
+- [x] **a) Suíte E2E mínima (Playwright)** — concluído em 2026-11-07 (PR #10:
+  `e2e/`, `playwright.config.ts`, `app/api/health/route.ts`). O #10 também corrigiu
+  o `gate.yml`: o status da prévia do projeto `radioon` tem contexto `Vercel` e
+  agora é identificado pelo `target_url` (`/juliobalsinis-projects/radioon/`).
+- [x] **a2) PR #11 (hook de Notification só em `permission_prompt`)** — mergeado
+  em 2026-11-07; issue #9 fechada.
+- [x] **b) Ciclo 1 — armazenamento S3 (Backblaze B2) + upload de faixa + player real.**
+  **Concluído em 2026-11-08** (PR item-b-storage-upload: `lib/storage/`, rotas
+  `/api/tracks/upload`, `/[id]/publish`, `/[id]/play`, `components/player.tsx`, `/enviar`).
+  Pendências: o `Player` ainda não está montado em nenhuma página (sem listagem de
+  faixas até o ciclo 3/5); upload exige login de artista (ciclo 2); CORS segue pendente
+  do Julio se não aplicado. Liberado em 2026-11-08 (R2 trocado por B2; decisões 22–25 no DECISIONS.md).
+  Credenciais já na Vercel (**só Production**): `S3_ENDPOINT`, `S3_REGION`,
+  `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`. Escopo:
+  - `lib/storage/` (só servidor, `import "server-only"`): cliente
+    `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` com `forcePathStyle`,
+    `requestChecksumCalculation`/`responseChecksumValidation: "WHEN_REQUIRED"`
+    (o B2 não aceita os checksums padrão do SDK). Sem as variáveis (prévias,
+    testes), as rotas respondem 503 "armazenamento indisponível", sem quebrar a página.
+  - Upload: rota de servidor assina `PutObject` (10 min) com `ContentType` e
+    `ContentLength` fixos; aceita só áudio (`audio/mpeg`, `audio/mp4`, `audio/ogg`,
+    `audio/flac`) até 25 MB; exige `rights_confirmed`; chave `tracks/<artist_id>/<uuid>`;
+    upload direto do navegador ao bucket (não passa pela Vercel).
+  - Playback: rota de servidor assina `GetObject` (1 h) só para faixa `published`.
+  - **Player econômico (cota diária):** `<audio preload="none">`, sem pré-buscar a
+    próxima faixa; um único elemento `<audio>` reaproveitado; uma URL assinada por
+    faixa, guardada no cliente e reusada em pausa/retomada/seek até ~5 min antes de
+    expirar; nenhum HEAD/LIST no bucket (duração vem de `tracks.duration_sec`, chaves
+    vêm do banco); em 403/429 do bucket, mensagem curta "limite diário atingido" e no
+    máximo 1 nova tentativa (sem loop).
+  - Testes: unitários com mock do S3; E2E só com rotas públicas (prévias não têm
+    as variáveis S3). Bucket de produção nunca é escrito por testes.
+  - UI (upload e player) com a skill `impeccable`.
+  - **Pendente do Julio, não bloqueia o código:** aplicar o CORS do bucket
+    (`node --env-file=.env.local scripts/b2-cors.mjs`, chave com `writeBuckets`).
+    Se o upload do navegador falhar por CORS em produção, registrar aqui e seguir.
+- [x] **c) Ciclo 2 — auth por magic link**, onboarding com escolha de perfil
+  (troca de `role` só no servidor), RLS testado por perfil. Concluído em 2026-11-08
+  (PR item-c-auth: `/login`, `/auth/callback`, `/onboarding`, `proxy.ts`, `lib/auth/roles.ts`).
+  Pendências: RLS testado só por análise estática da migration (sem credencial de banco
+  no agente); Julio deve conferir no Supabase Auth: Site URL e Redirect URLs com
+  `https://radioon-ten.vercel.app/auth/callback`, e o limite do e-mail embutido (gratuito).
+  `lib/auth.ts` virou `lib/session.ts`.
+- [x] **d) Ciclo 3 — playlists do curador**, playlists públicas na home, ranking.
+  Concluído em 2026-11-09 (PR item-d-playlists: `/curador`, `/playlist/[id]`, home com
+  ranking, `lib/playlists/`). Sem migration (schema/RLS do ciclo 0 bastaram). Pendências:
+  RLS das escritas só por análise estática; ranking = nº de faixas (decisão 26); sem
+  reordenar/ocultar playlist na UI ainda.
+- [x] **e) Ciclo 4 — heartbeats de escuta**, validação no Postgres, `points_ledger`,
+  painel de pontos. Concluído em 2026-11-09 (PR item-e-heartbeats: migration
+  `20261109000000` com `listen_start`/`listen_beat`, rotas `/api/listen/*`, `/pontos`,
+  heartbeat de 10 s no `Player`). Pendências: a lógica SQL não foi testada contra um
+  banco (agente sem credencial) — Julio deve fazer uma escuta real logado e conferir
+  `/pontos`; env opcionais `POINTS_PER_LISTEN` (10) e `POINTS_DAILY_LIMIT` (200);
+  `SUPABASE_SECRET_KEY` precisa existir na Vercel Production.
+- [x] **f) Ciclo 5 — home "play primeiro" polida**, métricas básicas. Concluído em 2026-11-09
+  (PR item-f-home: home com `Player` grande na faixa mais recente + lista de faixas,
+  `/metricas` para artistas, `lib/tracks/`). Sem migration. Pendências: sem faixas
+  publicadas a home mostra o play inativo; `/metricas` usa service_role (só lê escutas das
+  faixas do próprio artista) e ainda não tem link na UI; skill `impeccable` seguiu o caminho
+  "Launcher unavailable", sem PRODUCT.md/DESIGN.md (não existem).
+
+- [x] **g) Home/navegação (pedido do Julio, teste real em produção)** — cabeçalho com
+  Entrar (deslogado) e, logado, Enviar música/Métricas (artista), Playlists (curador),
+  Escolher perfil (sem perfil) e Pontos; estado vazio com convite ao artista e play inerte;
+  `/enviar` agora redireciona (login/onboarding). E2E do estado vazio e da navegação.
+  Concluído em 2026-11-09 (branch item-g-cabecalho-vazio). Obs.: E2E local de redirects
+  exige `NEXT_PUBLIC_SUPABASE_URL`/`_PUBLISHABLE_KEY` (podem ser fictícias).
+
+### Fase UX (pedido do Julio em 2026-11-10; relatório único só ao fim da fase)
+
+Os itens do pedido eram "g–j", mas g)/f) já existiam acima; aqui levam sufixo 2 (decisão 30).
+
+- [x] **g2) PRODUCT.md e DESIGN.md** para a skill `impeccable` — concluído em 2026-11-10 (PR #33).
+  Escritos sem entrevista (não há humano); fatos inferidos estão marcados em PRODUCT.md.
+- [x] **h2) Impeccable em todas as telas** (home, login, onboarding, enviar, métricas, curador,
+  playlist, pontos): polimento visual, textos curtos, acessibilidade, mobile (tentativas: 1;
+  `components/ui.tsx` com `campo`/`botao`/`Mensagem`/`Tela`; foco global, seleção, alvos 44 px,
+  texto `night-900` sobre laranja; E2E local sem browser do Playwright, validado no gate).
+  Concluído em 2026-11-10 (PR #34).
+- [x] **i2) Login preservando o destino** — concluído em 2026-11-10 (PR item-i2-login-destino).
+  Páginas protegidas redirecionam a `/login?next=<caminho>`; o destino vai num cookie httpOnly
+  (`radioon_next`, path `/auth`, 1 h) e não na URL do magic link, porque o Supabase só aceita
+  redirects da allowlist (query no `emailRedirectTo` poderia cair no Site URL). `/auth/callback`
+  valida com `safeNext`. Limite: link aberto em outro navegador perde o destino (vai a `/onboarding`).
+- [x] **j2) Estados vazios e mensagens de erro** de todas as telas (upload falho, limite diário
+  do B2, sem pontos ainda) — concluído em 2026-11-10 (PR item-j2-estados-erros):
+  `lib/storage/messages.ts` (erros do envio, 403/429 do bucket = limite diário), vazios em
+  `/pontos`, `/metricas`, `/curador`, `/playlist`, `app/not-found.tsx` e `app/error.tsx` em pt-BR.
+  Obs.: erro de rede no PUT ao B2 pode ser cota (sem CORS na resposta); a mensagem diz isso.
+
+### Redesenho mobile-first (pedido do Julio em 2026-11-10; instrução extra da execução)
+
+- [x] **r1) Identidade** (marinho/âmbar, gramofone, abertura, grão, frase, env com trim, e-mails em
+  `docs/emails-autenticacao.md`, proposta "faixa bônus" no PLANO.md) — concluído em 2026-11-10 (PR #42).
+- [x] **r2) Rádio, Explorar, Minha rádio, player global, envio com capa/ficha, curador com notas e
+  programação** — concluído em 2026-11-10 (PR #43; migration aditiva `20261110000000`).
+  Pendências: policies/consultas novas só revisadas por leitura (sem credencial de banco); catálogo
+  de produção vazio, então listas e player cheio não foram vistos com dados; o `.jpeg` do pedido era
+  um print do Audius, não o site de 2012 (ver relatório 2026-11-10-redesenho-mobile.md).
+- [x] **r3) DESIGN.md/PRODUCT.md, DECISIONS 33–40, relatório e prints** — esta execução.
+
+### Instrução prioritária do Julio (2026-11-10, teste real no celular)
+
+- [x] **p0) Bug das faixas / dados de demo / fidelidade ao protótipo / envio no celular / login / PWA**
+  — PR #47, em produção (commit 265268d) em 2026-11-10; ver DECISIONS 41–45 e `docs/reports/2026-11-10-correcoes-celular.md`.
+  Pendências: confirmar em produção com faixa real; criar a credencial Google (passo a passo no
+  relatório); Explorar do protótipo (busca, "por clima", gêneros) fica para o item k.
+
+### Instrução do Julio (2026-11-11): auditoria para anônimos
+
+- [x] **s) Auditoria de segurança para usuários anônimos** — migration aditiva `20261111010000` (policies
+  restritivas), "apoiar" só com conta, testes de RLS em Postgres real (PGlite) e de rotas; DECISIONS 52–54;
+  relatório `2026-11-11-auditoria-anonimos.md` (diz quando ligar Anonymous Sign-Ins e Manual Linking).
+
+### Fase proposta: Descoberta e curadoria (Fase 1 do `docs/PLANO.md`)
+
+Itens k–n concluídos em 2026-11-10 (relatório `2026-11-10-fase-descoberta.md`); restam os **propostos**, só executar após "aprovado" do Julio na issue do
+relatório (ex.: "aprovado k, l"; "recusado n"). Nenhum exige serviço pago nem credencial nova.
+
+- [x] **k) Busca de faixas e playlists** (título/artista/curador) — concluído em 2026-11-10 (PR item-k-busca): campo na Rádio e em `/explorar?q=` (GET, sem JS), filtro em memória sem acento (`buscar` em `lib/radio/rules.ts`). Sem migration. Limite: busca só no catálogo já carregado pela Rádio.
+- [x] **l) Páginas públicas de artista e de curador** — concluído em 2026-11-10 (PR item-l-perfil): `/perfil/[id]` (nome, faixas publicadas, playlists públicas; 404 sem conteúdo), ligada por Playlisters em alta e pelo curador na playlist. Sem migration. Pendência: nome do artista ainda não é link nas listas de faixas.
+- [x] **m) Curador: reordenar, ocultar e destacar faixas** — concluído em 2026-11-10 (PR item-m-curadoria; migration aditiva `20261111000000`; DECISIONS 46). Também corrige a nota do playlister (faltava grant). Pendência: lógica só validada por tipos/testes, sem banco; conferir logado como curador.
+- [x] **n) Ranking de playlists por escutas válidas** — concluído em 2026-11-10 (PR item-n-ranking; DECISIONS 47). Sem migration.
+- [ ] **o) Central de recompensas (v1)**: `/pontos` com metas diárias e histórico por perfil — proposto (próximo no PLANO.md).
+
+- [x] **q) Acesso sem atrito (instrução do Julio, 2026-11-11)** — sessão anônima, vínculo à conta,
+  teto anônimo, `/privacidade` e `/termos` — PR item-q-acesso-anonimo; DECISIONS 48–51; relatório
+  `2026-11-11-acesso-sem-atrito.md`. Pendência do Julio: ativar Anonymous Sign-Ins (e manual linking) no Supabase.
+
+### Plano aprovado pelo Julio (2026-11-11): Fases A, B e C
+
+- [x] **Fase A — qualidade (itens 1–13):** PRs #64 (1–8, 10–12) e #65 (9, 13). Rádio com estado no cliente e
+  gesto entre abas; abertura com logo inteiro; capas SVG distintas; regra de pontos na própria faixa;
+  abas nunca vazias; selo No ar; Rádio radioOn contínua; Open Graph por faixa; gênero e clima no envio.
+- [x] **Fase B — conteúdo (14–16):** PR #66. Explorar visual, Perfil (resumo da semana, minhas faixas/playlists,
+  botão +), qualquer conta cria playlist, álbum/EP com capa única.
+- [x] **Fase C — Stories v1 (17–20):** PR #67. Texto + imagem + trecho de 15 s; 7 dias na home,
+  depois no perfil; cartão 9:16; denúncias.
+- **Regra de recompensas (Julio):** pontos de sessões anônimas **nunca** podem ser resgatados; resgate só para
+  contas. Vale para o item o) e qualquer recompensa futura.
+- **Regra de moderação de stories:** só contas denunciam (1 por conta e story); com **3 denunciantes distintos**
+  o story é ocultado automaticamente (`stories.hidden`), some para todos menos o autor, e só volta por decisão
+  do Julio (update manual no banco). O agente não reverte ocultações. Stories de plataforma: ids em
+  `PLATFORM_STORY_IDS` (opcional, sem credencial nova).
+- **Pendências do Julio:** conferir logado (artista/playlister) o envio de álbum, de story com imagem e a
+  denúncia; opcional `PLATFORM_STORY_IDS` na Vercel; CORS do bucket já cobre PUT de imagens.
+
+Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
+
+**Marco pré-lançamento (Julio, numa sessão no Codespace — não é item do agente):**
+1. Rodar a skill `security-audit` da Cloudflare
+   (https://github.com/cloudflare/security-audit-skill) sobre o repositório.
+2. Na mesma sessão, rotacionar a secret key e a senha do banco do Supabase (foram
+   expostas no chat do Claude Code) e atualizar Vercel, `.env.local` e o secret
+   `SUPABASE_DB_URL`.
+3. Rotacionar a application key do Backblaze B2 usada pelo app (exposta em conversa):
+   criar outra com escopo só no bucket `radioon-audio` (sem `writeBuckets`), atualizar
+   `S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` na Vercel e apagar a antiga.
+4. Apagar os secrets do Codespaces `B2_TEMP_KEY_ID` e `B2_TEMP_APP_KEY` (guardam a
+   master key do Backblaze, usada em 2026-11-08 para aplicar o CORS) e gerar nova
+   master key no Backblaze (invalida a anterior).
+
+## Como o modo autônomo funciona
+
+- **Branches do agente:** só `[a-z0-9-]`, no máx. 28 caracteres (ex.: `item-a-e2e`):
+  o gate acessa a prévia por `radioon-git-<branch>-juliobalsinis-projects.vercel.app`.
+- **Dois projetos Vercel** estão ligados a este repo: `radioon` (o oficial) e o
+  antigo `music-web3-platform` (gera deploys duplicados; o gate o ignora).
+
+- **Agendamento:** `.github/workflows/autonomo.yml`, a cada 4 h (03, 07, 11, 15, 19, 23 UTC; issue #153)
+  + disparo manual; no máximo 2 execuções seguidas; limite de uso do plano encerra sem alerta. **O agendamento do GitHub
+  pode atrasar horas ou pular execuções** em horários de pico; não é falha.
+  Repositórios públicos sem atividade por 60 dias têm o cron desativado.
+- **Agente:** Claude Code com `CLAUDE_CODE_OAUTH_TOKEN` e `AGENT_GH_TOKEN`
+  (PAT fine-grained do Julio, sem permissão *Workflows* nem *Administration*:
+  não consegue alterar `.github/`, rulesets nem secrets). Sem credencial do banco.
+  `VERCEL_TOKEN` (opcional) só para rollback.
+- **Gate** (`gate.yml`): travas → lint/typecheck/testes/build → E2E na prévia da
+  Vercel (bypass de proteção) → `gate-ok` → merge squash automático.
+  PR com arquivo protegido espera aprovação do Julio no ambiente `travas` e vira
+  "⚠️ Ação necessária".
+- **Arquivos protegidos:** `.github/**`, `.claude/**`, `scripts/notify.sh`,
+  `scripts/ci/**`, `supabase/config.toml`, migrations já existentes e a seção
+  de travas do `CLAUDE.md`. Mudança nesses arquivos: o agente não consegue nem
+  empurrar `.github/` (PAT sem *Workflows*); para os demais, abre PR e aguarda.
+- **Migrations** (`migracao.yml`): após o merge, aplica só SQL da allowlist
+  (`scripts/ci/validar-sql.mjs`): CREATE TABLE (com ENABLE RLS no mesmo arquivo),
+  CREATE INDEX, ADD COLUMN anulável, ENABLE RLS, CREATE POLICY, ADD VALUE,
+  CREATE FUNCTION (sql/plpgsql, sem SECURITY DEFINER, corpo sem DDL/DELETE/EXECUTE)
+  e CREATE TRIGGER, nunca `OR REPLACE`. GRANT/REVOKE e o resto → "⚠️ Ação
+  necessária". `SUPABASE_DB_URL` só existe no ambiente `producao-db` (branch main).
+- **Testes sem cota:** prévias e testes nunca usam produção. Bucket S3 (B2) e serviços
+  com cota gratuita: mocks, ou prefixo isolado `test/` (bucket de produção nunca é
+  escrito por testes). E2E só lê páginas públicas e `/api/health`.
+- **Alertas:** `scripts/notify.sh` → `notify.yml` (github-actions[bot],
+  "@juliobalsini" na 1ª linha); no máximo uma issue "⚠️ Ação necessária" por dia.
+  Issue fixada **"Painel radioOn"** atualizada por `scripts/painel.sh` ao fim de
+  cada execução.
+- **Codespace:** `.claude/settings.json` (hook de Notification → notify.sh) vale
+  quando o Julio usar o Codespace; no Actions o hook é ignorado.
+
+## Histórico de execuções
+
+- 2026-11-05 — configuração do modo autônomo (PR manual, única exceção às travas).
+- 2026-11-07 — sessão manual: o gate falhava por falta do script `e2e` e por buscar o
+  status `Vercel – radioon` (o real é `Vercel`). Suíte E2E + correção do gate no
+  #10 (mergeado). #8 fechado (branch longo demais para a URL da prévia) e
+  substituído pelo #11. Issue #7 (configuração inicial) fechada.
+- 2026-11-08 — sessão manual: armazenamento de áudio trocado de Cloudflare R2 para
+  Backblaze B2 (S3-compatível; variáveis `S3_*` na Vercel Production). Item b)
+  liberado; PR #14 (marcava o b) como bloqueado por falta de R2) substituído; issue
+  #15 obsoleta.
+- 2026-11-08 — CORS do bucket aplicado com a master key do B2 (conferido por
+  preflight). Gate corrigido no #17: o job `merge` era sempre pulado pelo `success()`
+  implícito sobre o `aprovacao` pulado; o próprio #17 foi mergeado pelo gate.
+- 2026-11-09 — execução autônoma: itens d) (#24) e e) (#25) concluídos e em produção
+  (migration do ciclo 4 aplicada pelo `migracao.yml`). Item f) fica para a próxima
+  execução (usa a skill `impeccable` de forma completa). Julio: testar uma escuta real
+  logado e conferir `/pontos`.
+- 2026-11-09 (2ª execução) — issues #18 e #20 fechadas a pedido do Julio; CLAUDE.md ganhou as
+  regras de fechar issues resolvidas ao fim da execução e de checar status.supabase.com /
+  Knowledge Base em erros do Supabase (PR #27); ciclo 5 (item f) concluído.
+- 2026-11-10 — Fase UX (g2–j2) concluída: PRs #33–#36 em produção. Relatório em
+  `docs/reports/2026-11-10-fase-ux.md`. Ciclo 6 segue fora da fila.
+- 2026-11-10 (3ª execução) — instrução prioritária do Julio: bug do play (currentTarget nulo), Rádio
+  resiliente, demo + E2E sem skip, envio no celular, login e PWA (PR #47). k–n aprovados (#45), próximos.
+- 2026-11-10 (2ª execução) — fila vazia; criado `docs/PLANO.md` (roadmap), regra de autoplanejamento
+  no `CLAUDE.md` (fora das travas) e proposta da próxima fase (k–o). Sem comentários do Julio nas
+  issues de relatório abertas (#32, #38).
+  "aprovado" do Julio (issues #45 aprovou só k–n; #56 sem comentários). Nada executado.
+- 2026-11-11 (2ª execução) — instrução do Julio: acesso sem atrito (item q); ver relatório.
+- 2026-11-11 (4ª execução) — instrução do Julio: auditoria de segurança para anônimos (item s); ver relatório.
+
+- 2026-11-11 (5ª execução) — plano aprovado do Julio: Fases A, B e C (itens 1–20) em PRs #64–#66 e o dos stories; PR #27 (regras de issues no CLAUDE.md) segue aberto, correto, aguardando o Julio (arquivo protegido).
+
+- 2026-11-12 (2ª) — mesma instrução reaplicada sobre a main: filtros próprios e Continue ouvindo com retomada (decisões 67–68; relatório `2026-11-12-home-filtros.md`).
+- 2026-11-12 — instrução do Julio: redesenho da Home "rádio viva" (PR item home-radio-viva); relatório `2026-11-12-home-radio-viva.md`.
+- 2026-11-11 a 2026-11-12 — execuções sem item livre (4x): o) segue "proposto" sem "aprovado" do Julio (só #45 aprovou k–n); nada executado. Daqui em diante essas execuções não abrem PR nem alteram arquivos: só resumo do workflow + Painel.
+- 2026-11-12 (manutenção) — #68 (checks presos na fila desde 11/11, incidente do Actions junto com o notify #33 `startup_failure`) rebaseado e reenviado; `notify.sh` repete e cria a issue direto se o workflow falhar; teste E2E "toca do cartão No ar" estabilizado (clicava na faixa já tocando e pausava; #75 fechado).
+
+
+## Entrega de áudio econômica (instrução do Julio, 2026-11-12; issue #78)
+
+- [~] **Fase A/B — código** (PR entrega-audio-economica): migration `20261112000000`, `lib/audio/`, `scripts/transcodificar.mjs`,
+  player com ganho, `/ajustes`, `workers/audio-proxy/`. DECISIONS 69–75; relatório `2026-11-12-entrega-audio.md`.
+- [!] **Bloqueado pelo Julio:** copiar `.github/workflows/{transcodificar,worker-deploy}.yml` para `.github/workflows/`; criar chave B2 de escrita
+  só em `audio/stream/` (`S3_WRITE_KEY_ID`/`S3_WRITE_KEY`); conferir se o ambiente tem `SUPABASE_URL`/`SUPABASE_SECRET_KEY`.
+- [x] **Fase B — Worker validado e proxy religado (issue #101, 2026-11-14; DECISIONS 93):** redeploy ok, 200/206, KV HIT, CORS, `tracks/` bloqueado;
+  `PROXY_LIGADO_POR_PADRAO = true`. CPU exata só no painel da Cloudflare (tempo de parede do HIT 10–21 ms). 3 faixas com original ausente
+  no bucket (`Key not found`) ficaram como falha definitiva da transcodificação.
+- [ ] **Fase C — verificação após 48 h em produção** — a partir da noite de 2026-11-16 (tentativa 2026-11-16 manhã: cedo demais) (contadores do KV `ctl`, B2 Classe B, reprodução real).
+
+- [x] **Stories v2 (issue #113)** — fases 1 e 2 em produção (PR #114, 2026-11-13; migrations `20261113000000` e `20261113010000` aplicadas; DECISIONS 87–88). Pendências: conferir logado (conta comentando, dono vendo estatísticas/apagando) e no celular real; mensagem direta e story com foto/vídeo ficam pós-beta (PLANO.md).
+
+- [x] **Navegação e conta v2 (issue #116)** — fatia 1 em produção (PR #117, 2026-11-13; DECISIONS 89): topo logo+☰, gaveta lateral,
+  Biblioteca, Player On, marca no feminino, Google antes do e-mail, protótipo atualizado. **Faltam (fatias com migrations aditivas):**
+  Configurações e exclusão de conta (8), compartilhar com Simple Icons (9), RLS+testes (11). Item 9 (ícones Simple Icons) feito em 2026-11-13 (DECISIONS 90). Item 4 (seguir/Seguindo, com RLS e testes) feito em 2026-11-14 (DECISIONS 95). Item 2 (logo rápida: catálogo em cache de 60 s, cache do cliente de 30 s, esqueleto; medição) feito em 2026-11-14 (DECISIONS 96). Item 5 (login contextual em painel inferior, volta ao ponto de origem) feito em 2026-11-14 (DECISIONS 97). Item 7 (Meus envios: editar, apagar lógico com `deleted_at`, desfazer 30 dias; migration aditiva `20261115000000`; RLS testada no PGlite) feito em 2026-11-15 (DECISIONS 98); remoção física no B2 registrada como pós-beta no PLANO.md. Itens 8 e resto do 11 (Configurações, exclusão de conta) entregues em 2026-11-15 como fatia 1 das Configurações da #125, que substitui o item 8 (DECISIONS 99; migration aditiva `20261115010000`). **Issue #116 concluída.**
+
+- [~] **Playlists v2 (issue #122)** — fatia 1 em PR (DECISIONS 91): rascunho + criação idempotente, editor (título/descrição com salvamento automático,
+  busca e +, subir/descer, remover), publicar com ≥ 5 faixas e compartilhar (cartão 9:16), página com Tocar tudo/Aleatório/Salvar/⋯, selo Playlister, aba Criar.
+  Fatia 2 (2026-11-15, PR item-122-editor-v2; DECISIONS 104): sugestões (clima/gênero/recentes/curtidas), prévia de 15 s, arrastar/deslizar, capa em mosaico no editor.
+  Fatia 3 (2026-11-15, PRs #164 e #165; DECISIONS 105): foto própria com recorte quadrado, zoom e arrastar (`covers/`), sem migration; em produção.
+  Fatia 4 (2026-11-16, PR #169; DECISIONS 106): nota, destacar e ocultar por faixa no editor (botão ⋯), sem migration; em produção.
+  **Faltam:**
+  E2E mobile e prints (o editor exige login; a prévia não tem conta de teste).
+  Artista ativado no 1º envio (2026-11-16, PR #171; DECISIONS 107): ouvinte vira artista no servidor ao enviar; playlister confirma; em produção.
+  Fase 2, item 5 (2026-11-16, PR #173; DECISIONS 108): "Sua faixa está em N playlists" no perfil e em Meus envios, sem migration; em produção. Item 6 (pós-beta) já no PLANO.md.
+  Fase 2, item 4 (2026-11-16, PR #175; DECISIONS 109): mini editor de capa (6 fundos, 3 fontes, 12 figurinhas, arrastar/redimensionar, PNG no navegador), sem migration; em produção.
+  Fase 2, item 1 (2026-11-16, PR #177; DECISIONS 110): hub de playlists na Rádio > Playlists e no Explorar (Playlists em alta, Playlisters
+  em destaque, Mais playlistados, Monte sua playlist; seções só com ≥ 3 itens), sem migration; em produção.
+  Fase 2, item 2 (2026-11-16, PR #179; DECISIONS 111): curadores oficiais por gênero ("radioOn Jazz"…), perfis virtuais com selo que
+  assinam a Seleção do gênero; seção no hub (≥ 3); sem migration; em produção (commit 5c86792).
+  Fase 2, item 3 (2026-11-16, PR #183; DECISIONS 112): Tema da semana (tema no código pela conta oficial, coluna `tema_semana` +
+  trigger só da semana atual na migration aditiva `20261116000000`, aplicada; seção no hub, interruptor no editor, chip na página);
+  em produção (commit 7f6a018). **Fase 2 concluída.** Resta só o E2E logado (a prévia não tem conta de teste).
+
+## Correções avulsas
+
+- [x] **Redesenho da Home (2026-11-12)** — selo "No ar · N ouvindo" no cabeçalho, stories com perfil oficial radioOn, No ar
+  em destaque com "A seguir", Agora combina com <clima>, Seleção radioOn, Artistas para conhecer; sem migration (DECISIONS 63–67).
+- [x] **Filtros próprios + Continue ouvindo com retomada (2026-11-12)** — Faixas (catálogo, ordenação, gênero, tocar tudo/aleatório),
+  Playlists, Álbuns, Stories; histórico local com posição exata (DECISIONS 67–68). Pendência: conferir no celular e logado; não sincroniza entre aparelhos.
+
+- [x] **Ícones do PWA / tela de abertura no Android** — concluído em 2026-11-11: manifest com ícones
+  `any` (logo inteiro) e `maskable` (zona segura validada, raio 32,7% < 40%) em 192/512, marinho `#00112A`.
+  Julio precisa desinstalar e reinstalar o app. Ver `docs/reports/2026-11-11-icones-pwa.md`.
+
+- 2026-11-12 (4ª) — instrução do Julio: #78 + autonomia. PR #81 (workflows e dependabot.yml) e #83 (CLAUDE.md, auditoria, headers, E2E mobile)
+  aguardam `travas`; issue #82; relatório `2026-11-12-autonomia-e-bloqueios.md`. Itens 3–5 do #78 pendentes do merge do #81.
+
+- 2026-11-12 (5ª) — instrução do Julio: vitrine do repositório e licença proprietária (issue #86, DECISIONS 76–77); relatório `2026-11-12-vitrine-licenca.md`.
+
+- 2026-11-12 (6ª) — ciclo "reduzir ações manuais": #83 atualizado sobre a main e ampliado (regras permanentes, E2E do Dependabot no app compilado, override minimatch, correções de `worker-deploy`/`transcodificar`, regras do #27, que foi fechado). Aguarda `travas`. Pendentes após o merge: redeploy do Worker (registra `workers.dev`), gravar a URL como padrão de `NEXT_PUBLIC_AUDIO_BASE_URL`, transcodificar lote=5 e medições do #78 (itens 4–5); precisa do secret `SUPABASE_SECRET_KEY` no ambiente `producao-db`. Relatório `2026-11-12-ciclo-reduzir-acoes-manuais.md`.
+
+- 2026-11-12 (7ª) — `worker-deploy` rodou: Worker em https://radioon-audio.radioon.workers.dev. #95 ligou o proxy por padrão, mas o Worker dava 503
+  (endpoint B2 vazio) → rollback no #96 (`PROXY_LIGADO_POR_PADRAO=false`, DECISIONS 82–83). #97 (protegido, aguarda `travas`) corrige o `worker-deploy`;
+  depois: redeploy, validar 200/206, religar o proxy, medir (itens 4–5 do #78). `transcodificar` pulou: falta `SUPABASE_SECRET_KEY` em `producao-db`
+  (só o Julio). Relatório `2026-11-12-worker-e-bloqueios.md`.
+
+- 2026-11-12 (8ª) — issue #101 (aprovada): proxy restrito a `audio/stream/`, `covers/`, `stories/`; `transcodificar.mjs` via `SUPABASE_DB_URL`; regra no CLAUDE.md (DECISIONS 84).
+  **Bloqueado:** #97 ainda aguarda `travas` (redeploy do Worker, 200/206, religar proxy, medições); `transcodificar.yml` precisa passar `SUPABASE_DB_URL` ao passo
+  do script (arquivo protegido, PR à parte) e falta `S3_WRITE_KEY_ID`/`S3_WRITE_KEY` (só o Julio cria). #101 segue aberta com `fila`.
+
+- 2026-11-13 (9ª) — issue #101: #97 aprovado na trava, mas o merge falhou por conflito em DECISIONS.md; atualizado sobre a main (decisão renumerada 86) e a trava foi pedida de novo (novo commit invalida a aprovação). **Aguarda `travas` do #97.** Depois: dispare `worker-deploy`, validar 200/206, religar o proxy restrito, `transcodificar` lote=5, medições do #78. #107 (Dependabot) com E2E falho: investigar na próxima execução.
+
+- 2026-11-13 (11ª) — issue #101: #97 mergeado; `worker-deploy` falhou (exit 127, caminho do `derivar-env.sh` com working-directory do job). Correção no PR #110 (protegido, **aguarda `travas`**). Depois: redeploy, 200/206, religar proxy, transcodificar lote=5, medições do #78, #103.
+
+- 2026-11-13 (12ª) — issue #113 (Stories v2) concluída: PR #114 mergeado, deploy e migrations ok. Fila restante: #103 e #101 (dependem de #110, que aguarda `travas`).
+
+- 2026-11-13 (13ª) — issue #116: fatia 1 (PR #117) concluída; restante registrado na fila acima.
+- 2026-11-13 (14ª) — issue #119 era duplicata da #113 (já entregue): fechada. #116 item 9 (ícones das redes) em PR.
+- 2026-11-13 (15ª) — issue #124: ícones/abertura (zona segura 80%), envios idempotentes + `failed` + reconciliação (migration `20261113030000`), design system (`components/ds/`, `docs/design-system.md`), auditoria no PLANO.md, regra no CLAUDE.md. Pendente do Julio: conferir a splash num Android real após reinstalar o PWA.
+
+- 2026-11-14 (16ª) — issue #126: Caixa de entrada (issue fixada #128, formato no CLAUDE.md e README; sem workflow novo, reaproveita o gatilho "aprovado…"). Fila restante: #125, #122 (fase 1 restante + fase 2), #120, #116, #103, #101 — grandes; seguem para as próximas execuções.
+
+- 2026-11-14 (17ª) — #130 e #126 fechadas (PRs #131 e #129 em produção; #132 fechada). Issue #101: `worker-deploy` ok, Worker validado (200/206/HIT),
+  proxy religado (DECISIONS 93). Fila restante: #103, #116, #120, #122, #125.
+  #103 (modelo operacional v2): PR protegido único (R4 TRAVAS, escopo menor da trava, encadeamento, `feedback`, resumo diário,
+  CLAUDE.md/README/PLANO.md; DECISIONS 94) — **aguarda `travas`**. Issue "Sessão manual" criada. Primeiro Sprint na segunda 2026-11-16.
+  #116 item 4 (seguir/Seguindo): PR item-116-seguir (migration aditiva `20261114000000`; DECISIONS 95) — em produção (PR #137).
+  Dependabot #107: o pedido de rebase não foi atendido; branch atualizado pela API, mas o gate escolhe o E2E pelo `github.actor` (virou
+  o Julio) e caiu na prévia (branch longo demais). Correção no #134 (gate usa o autor do PR); depois, rodar o gate do #107 de novo.
+
+- 2026-11-14 (18ª) — Caixa de entrada: issue #140 (Versão desktop, `fila`+`complexa`) criada. #103 fechada (PR #134 mergeado) e alerta #136 fechado.
+  #116 item 2 (logo rápida) em produção (PR #141, DECISIONS 96): prévia logo → Rádio em 83 ms; servidor de produção sem ganho
+  (cache em memória da Vercel por instância), ganho percebido via cache do cliente e esqueleto. E2E do Dependabot corrigido
+  (PR #142: sem retry do supabase-js para `.invalid`; páginas de 14–28 s para 20–60 ms) e #107 mergeado com gate verde.
+  Fila restante: #116 (itens 5, 7, 8, 11), #120, #122, #125, #140.
+
+- 2026-11-14 (19ª) — Caixa de entrada: pacote de 23:33 virou as issues #145 (Descoberta v2), #146 (Recompensas v1 e Fanfest) e #147
+  (Trilha do artista), todas com `fila`. #116 item 5 (login contextual) em produção (PR #148, DECISIONS 97;
+  E2E desktop/iPhone/Android verdes, print `05-login-contextual`).
+  Fila restante: #116 (itens 7, 8, 11), #120, #122, #125, #140, #145, #146, #147.
+
+- 2026-11-15 (20ª) — sem pacote novo na Caixa de entrada. #116 item 7 (Meus envios: ⋯ Editar/Apagar em cada item próprio, confirmação,
+  aviso com Desfazer, seção Apagados por 30 dias; apagar playlist deixou de ser DELETE) em PR item-116-meus-envios (migration aditiva
+  `20261115000000`, DECISIONS 98). Pendência: conferir logado (artista apagando faixa/álbum e desfazendo) e no celular real.
+  Fila restante: #116 (itens 8 e resto do 11), #120, #122, #125, #140, #145, #146, #147. (Item 7 em produção: PR #150.)
+
+- 2026-11-15 (21ª) — sem pacote novo na Caixa de entrada. #116 itens 8 e 11 (restante) entregues como Configurações fatia 1 da #125
+  (PR item-125-configuracoes; DECISIONS 99): Reprodução (normalizar, contínua, som nos stories), Dados (economia), Conta (nome, e-mail,
+  foto do Google), Privacidade (perfil público, mostrar o que ouço), Excluir conta (confirmação dupla, exclusão lógica + anonimização);
+  preferências no aparelho e na conta (`user_settings`, RLS testada no PGlite). #116 fechada. Pendência: conferir logado no celular
+  (trocar nome/e-mail; excluir uma conta de teste). Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (22ª) — Caixa de entrada: pacote de 15:12 virou a issue #153 (Distribuir o uso do agente; `fila`+`urgente`); #152 fechada
+  (limite de uso, sem ação). #153: PR protegido item-153-uso-distribuido (agendamento a cada 4 h, máx. 2 seguidas, limite de uso sem
+  alerta + `scripts/limites-de-uso.sh`; DECISIONS 100) — **aguarda `travas`**; vale como PR protegido semanal da semana de 2026-11-16.
+  Fila restante: #120, #122, #125 (resto), #140, #145, #146, #147.
+- 2026-11-15 (23ª) — Caixa de entrada: pacote das 15:16 virou a issue #156 (Stories reposicionados e story de bio; `fila`+`urgente`).
+  #153 aguarda a trava (PR #154, alerta #155). #156: Home sem círculos (Player On primeiro), Artistas para conhecer com cards de story
+  de bio, seguido com story novo primeiro, Explorar com stories ordenados, Perfil de artista em Configurações (frase e foto do Google),
+  ocultar o story de bio (DECISIONS 101; migration aditiva `20261115020000` aplicada; RLS testada no PGlite; E2E mobile `stories-bio-mobile-visual`).
+  **Em produção:** PR #157 (commit a5b79ce), issue #156 fechada. E2E da prévia: a ordem do Explorar compara só itens da demonstração (a prévia
+  lê stories reais do banco).
+  Pendência: conferir logado como artista (salvar frase e foto, ver o próprio card; seguir e ver o selo "Novo") no celular real.
+  Fila restante: #153 (trava), #120, #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (24ª) — #154 (trava da #153): trava aprovada, mas o E2E da prévia falhou em "página de login carrega" (strict mode: dois
+  campos E-mail durante o streaming; o branch estava sobre a main anterior ao #157). Atualizado sobre a main; o novo commit pede a trava
+  de novo. #120 (Login v2) fatia 1 em PR item-120-login-codigo (DECISIONS 102): código de 6 dígitos atrás de flag
+  (`LOGIN_CODIGO_POR_PADRAO=false`), modelos de e-mail em `docs/email-templates/`, guia SMTP, item na Sessão manual; teste de login do
+  home.spec só com campo visível. Ligar o código quando o Julio concluir a Sessão manual. Fila restante: #153 (trava), #120 (fatia 2:
+  GIS/One Tap, textos, `/entrar`), #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (25ª) — #120 fatia 1 em produção (PR #159). #120 fatia 2 em produção (PR #160, commit f32235a; DECISIONS 103): botão oficial
+  do Google (GIS) + One Tap com `signInWithIdToken` e nonce, Client ID público como padrão (script só na origem de produção; reserva =
+  redirecionamento), painel único "Entre na radioOn", `/entrar`, ação pendente (Seguir conclui sozinho após entrar), protótipo. Conferido
+  em produção: botão do Google carrega sem erro. Pendências: entrar com Google num celular real; ligar o código de 6 dígitos após o item 6
+  da Sessão manual (#135). #154 (trava da #153) segue aguardando o Julio.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122, #125 (resto), #140, #145, #146, #147.
+
+- 2026-11-15 (26ª) — sem pacote novo na Caixa de entrada; #154 (trava da #153) segue aguardando o Julio (E2E verde). #122 fase 1 fatia 2
+  (editor: sugestões, prévia de 15 s, arrastar/deslizar, capa em mosaico; DECISIONS 104) em PR item-122-editor-v2. Pendência: conferir
+  logado no celular real (arrastar, deslizar, prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (resto), #125 (resto),
+  #140, #145, #146, #147.
+
+- 2026-11-15 (27ª) — sem pacote novo na Caixa de entrada; #154 (trava da #153) segue aguardando o Julio. #122 fase 1 fatia 3 (capa
+  própria da playlist com recorte quadrado, zoom e arrastar; DECISIONS 105) em produção (PR #164; #165 trocou a prévia por canvas após alerta alto do CodeQL). Pendência: conferir logado no
+  celular real (escolher foto, enquadrar, usar; voltar ao mosaico). Fila restante: #153 (trava), #120 (só ligar o código), #122 (resto),
+  #125 (resto), #140, #145, #146, #147. Próxima execução (segunda 2026-11-16): abrir o Sprint 2026-47 e a auditoria semanal.
+
+- 2026-11-16 (28ª) — segunda-feira: Sprint 2026-47 aberto (#167; aguarda "aprovado"; as issues `fila` já valem). Auditoria semanal:
+  sem crítico; os 4 "alto" e 2 "médio" eram falsos positivos (variáveis públicas do login; denúncias de stories só do servidor),
+  corrigidos na auditoria (PR #168). #122 fase 1 fatia 4 (curadoria por faixa no editor; DECISIONS 106) em produção (PR #169).
+  #78 Fase C adiada para a próxima execução: a janela de 48 h com o proxy religado fecha na noite de 2026-11-16, e os contadores do
+  KV `ctl` só são lidos com o token da Cloudflare do ambiente `producao-db` (workflow protegido; avaliar um passo de leitura no PR semanal).
+  Pendência: conferir logado no celular (destacar, ocultar, nota). #154 (trava da #153) segue aguardando o Julio, sem conflito com a main.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (perfil Playlister, E2E; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (29ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122: perfil de artista ativado no 1º envio (PR #171, DECISIONS 107; sem migration) em produção. Pendência: conferir com conta de
+  ouvinte no celular (enviar a 1ª faixa). #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2), #125 (resto), #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (30ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 5 ("Sua faixa está em N playlists"; PR #173, DECISIONS 108; sem migration) em produção. Pendência: conferir com conta
+  de artista cuja faixa esteja numa playlist pública de outra pessoa. #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: hub, curadores oficiais, Tema da semana, mini editor
+  de capa), #125 (resto), #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (31ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 4 (mini editor de capa; PR #175, DECISIONS 109; sem migration) em produção (commit cbf4031). Pendência: conferir logado
+  no celular (Criar capa → montar → Usar esta capa). #78 Fase C: janela de 48 h só fecha na noite de 2026-11-16.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: hub, curadores oficiais, Tema da semana), #125 (resto),
+  #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (32ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 1 (hub de playlists; PR #177, DECISIONS 110; sem migration) em produção (commit ab1bc00); E2E local 32/32 e gate verde.
+  Pendência: com dados reais, as seções só aparecem quando houver ≥ 3 playlists salvas na semana / playlisters / artistas playlistados.
+  Fila restante: #153 (trava), #120 (só ligar o código), #122 (E2E logado; fase 2: curadores oficiais, Tema da semana), #125 (resto),
+  #78 Fase C, #140, #145, #146, #147.
+
+- 2026-11-16 (33ª) — sem pacote novo na Caixa de entrada; Sprint 2026-47 (#167) sem comentário; #154 (trava da #153) segue aguardando o Julio.
+  #122 fase 2, item 2 (curadores oficiais; PR #179, DECISIONS 111; sem migration) em produção (commit 5c86792). 1ª tentativa do gate
+  falhou no E2E mobile (legenda `sr-only` do carrossel criava rolagem horizontal); corrigido no mesmo PR. Demo passou a ter 9 faixas
+  em 3 gêneros; E2E do curador com `.first()` (duplicação momentânea do streaming na prévia). Fila restante: #153 (trava), #120 (só ligar o código), #122 (Tema da semana; E2E logado), #125 (resto), #78 Fase C,
+  #140, #145, #146, #147.
+
+- 2026-11-16 (34ª) — Sprint 2026-47 (#167) **aprovado** pelo Julio. #154 mergeado: #153 fechada; alertas #155 e #181 (limite de 5 h
+  do plano) fechados. Dependabot #182 (minor/patch, gate verde) mergeado. #122 fase 2, item 3 (Tema da semana; PR #183, DECISIONS 112)
+  em produção, migration `20261116000000` aplicada. Pendência: conferir logado no celular (marcar o tema no editor; ver no hub).
+  Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
+  fora do sprint: #120 (só ligar o código), #145, #146.
+
+- 2026-11-16 (35ª) — Caixa de entrada: pacote das 14:35 virou a issue #185 (Skills de qualidade de interface e testes de acessibilidade
+  e desempenho; `fila`+`urgente`). #185 entregue no PR #186, em produção (commit e204925; DECISIONS 113–114): skills `web-design-guidelines` (regras locais),
+  `react-best-practices` e `composition-patterns` vendorizadas; uso e identidade atual no CLAUDE.md; axe nos E2E mobile das telas
+  principais (serious/critical reprovam; `label-content-name-mismatch` corrigida, exceção só para cartões ricos); Lighthouse CI como
+  aviso no `ci.yml` (app compilado, sem secrets). Linha de base: LCP 3–4 s e TBT da Home 0,9 s acima do orçamento → item de desempenho
+  no PLANO.md; Lighthouse vira bloqueio a partir de 2026-11-23 e a medição na prévia entra no PR protegido semanal.
+  Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
+  fora do sprint: #120 (só ligar o código), #145, #146.
