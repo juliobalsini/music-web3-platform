@@ -4,13 +4,15 @@ import { EyeOff, GripVertical, MoreHorizontal, Pause, Play, Plus, Search, Star, 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 
-import { adicionarFaixaA, curarFaixa, publicar, removerFaixaDe, reordenarFaixas, salvarDetalhes } from "@/app/playlist/actions";
+import { adicionarFaixaA, curarFaixa, marcarTema, publicar, removerFaixaDe, reordenarFaixas, salvarDetalhes } from "@/app/playlist/actions";
 import { Capa } from "@/components/capa";
 import { CapaEditor } from "@/components/capa-editor";
 import { CapaPlaylist } from "@/components/capa-playlist";
+import { BannerTema } from "@/components/tema-semana";
 import { Interruptor, PainelInferior } from "@/components/ds/interativos";
 import { usePlayer, useTempo } from "@/components/player-provider";
 import { campo, botao } from "@/components/ui";
+import type { TemaAtual } from "@/lib/playlists/tema";
 import { MIN_FAIXAS_PUBLICAR, NOTA_MAX, podePublicar, reordenar, type Curadoria } from "@/lib/playlists/rules";
 import {
   destinoArraste,
@@ -61,6 +63,8 @@ export function EditorPlaylist({
   publicada,
   capa: capaInicial = null,
   curadoria: curadoriaInicial = {},
+  tema = null,
+  marcadaNoTema = false,
 }: {
   id: string;
   titulo: string;
@@ -70,6 +74,9 @@ export function EditorPlaylist({
   publicada: boolean;
   capa?: string | null;
   curadoria?: Record<string, Curadoria>;
+  /** Tema desta semana (null = não mostra o banner). */
+  tema?: TemaAtual | null;
+  marcadaNoTema?: boolean;
 }) {
   const router = useRouter();
   const player = usePlayer();
@@ -91,6 +98,8 @@ export function EditorPlaylist({
   const [curando, setCurando] = useState<FaixaEditor | null>(null);
   const [nota, setNota] = useState("");
   const [salvandoNota, setSalvandoNota] = useState(false);
+  const [noTema, setNoTema] = useState(marcadaNoTema);
+  const [marcandoTema, setMarcandoTema] = useState(false);
 
   // Salvamento automático (rascunho): espera 800 ms sem digitar.
   useEffect(() => {
@@ -198,6 +207,17 @@ export function EditorPlaylist({
     setPainel(false);
     if (previa) fimDaPrevia();
   }
+  async function alternarTema(v: boolean) {
+    setAviso(null);
+    setNoTema(v);
+    setMarcandoTema(true);
+    const r = await marcarTema(id, v);
+    setMarcandoTema(false);
+    if (!r.ok) {
+      setNoTema(!v);
+      setAviso(r.erro);
+    }
+  }
   function aoPublicar() {
     setAviso(null);
     iniciar(async () => {
@@ -276,6 +296,21 @@ export function EditorPlaylist({
       <button type="button" onClick={() => setPainel(true)} className={botao} data-testid="adicionar-faixas">
         <Plus className="size-5" aria-hidden="true" /> Adicionar faixas
       </button>
+
+      {tema && (
+        <BannerTema tema={tema}>
+          <div className="-mx-4 -mb-4 border-t border-white/10">
+            <Interruptor
+              titulo="Tema da semana"
+              apoio={publicada ? "Sua playlist aparece no tema, no hub de playlists." : "Ao publicar, ela aparece no tema, no hub de playlists."}
+              ligado={noTema}
+              desabilitado={marcandoTema}
+              aoMudar={(v) => void alternarTema(v)}
+              testId="marcar-tema"
+            />
+          </div>
+        </BannerTema>
+      )}
 
       {!publicada && (
         <div className="flex flex-col gap-1">

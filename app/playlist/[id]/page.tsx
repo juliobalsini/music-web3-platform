@@ -1,10 +1,11 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, CalendarHeart } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { AcoesPlaylist } from "@/components/acoes-playlist";
 import { CapaPlaylist } from "@/components/capa-playlist";
+import { ChipStatus } from "@/components/ds";
 import { EditorPlaylist } from "@/components/editor-playlist";
 import { RegistrarVisita } from "@/components/registrar-visita";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -12,6 +13,7 @@ import { Tela } from "@/components/ui";
 import { obterPlaylist } from "@/lib/playlists/queries";
 import { isUuid } from "@/lib/playlists/rules";
 import { curadorDaSelecao } from "@/lib/radio/curadores";
+import { temaAtual, temaDa } from "@/lib/playlists/tema";
 import { ehSelecao, selecaoRadioOn } from "@/lib/radio/home";
 import { getSessionRole } from "@/lib/session";
 import { carregarRadio } from "@/lib/radio/queries";
@@ -54,6 +56,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
   const radio = await carregarRadio();
   const porId = new Map(radio.faixas.map((f) => [f.id, f]));
 
+  const tema = temaAtual(new Date().getTime());
   // Dono: rascunho (ou ?editar=1) abre o editor, que é a própria página como será publicada.
   if (playlist.mine && (!playlist.isPublic || sp.editar === "1")) {
     return (
@@ -66,6 +69,8 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
         publicada={playlist.isPublic}
         capa={playlist.capa}
         curadoria={Object.fromEntries(playlist.faixas.map((i) => [i.id, { note: i.note, featured: i.featured, hidden: i.hidden }]))}
+        tema={tema}
+        marcadaNoTema={playlist.temaSemana === tema.semana}
       />
     );
   }
@@ -88,6 +93,13 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
         <CapaPlaylist titulo={playlist.title} faixas={faixas} capa={playlist.capa} />
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-semibold text-balance">{playlist.title}</h1>
+          {playlist.temaSemana && (
+            <span data-testid="chip-tema">
+              <ChipStatus tom="destaque" icone={<CalendarHeart className="size-3.5" aria-hidden="true" />}>
+                {playlist.temaSemana === tema.semana ? "Tema da semana" : "Tema"}: {temaDa(playlist.temaSemana).titulo}
+              </ChipStatus>
+            </span>
+          )}
           {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
         </div>
       </div>

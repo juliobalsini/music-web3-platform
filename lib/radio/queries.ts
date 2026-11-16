@@ -10,6 +10,7 @@ import { TAG_CATALOGO } from "./cache-catalogo";
 import { dadosDemo, demoAtivo } from "./demo";
 import { totalOuvindo } from "./home";
 import { emAltaPorSalvamentos, maisPlaylistados, playlistersEmDestaque, type PlaylistDoHub } from "@/lib/playlists/hub";
+import { destaquesDoTemaAnterior, marcadasNaSemana, temaAtual, type TemaAtual } from "@/lib/playlists/tema";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSupabasePublicKey, getSupabaseUrl } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,8 @@ export type Hub = {
   playlisters: { id: string; name: string; salvos: number; seguidores: number; playlists: number; topPlaylistId: string }[];
   /** Ranking semanal de artistas por playlists em que entraram. */
   playlistados: { id: string; name: string; posicao: number; playlists: number }[];
+  /** Tema da semana: o tema (sempre), as playlists marcadas nesta semana e os destaques do tema anterior. */
+  tema: { atual: TemaAtual; marcadas: PlaylistSemana[]; destaques: (PlaylistSemana & { salvos: number })[] };
 };
 
 export type Radio = {
@@ -70,7 +73,7 @@ export type Radio = {
 };
 
 const VAZIO: Radio = {
-  hub: { emAlta: [], playlisters: [], playlistados: [] },
+  hub: { emAlta: [], playlisters: [], playlistados: [], tema: { atual: temaAtual(0), marcadas: [], destaques: [] } },
   faixas: [],
   emAlta: [],
   descobertas: [],
@@ -91,7 +94,7 @@ type LinhaTrack = {
   created_at: string; composer?: string | null; performers?: string | null; album?: string | null; label?: string | null; genre?: string | null; mood?: string | null; album_id?: string | null; track_no?: number | null;
 };
 type LinhaPlaylist = {
-  id: string; title: string; curator_id: string; created_at: string;
+  id: string; title: string; curator_id: string; created_at: string; tema_semana?: string | null;
   playlist_tracks: { track_id: string; note?: string | null; position: number; hidden?: boolean | null; featured?: boolean | null; added_at?: string | null }[];
 };
 type LinhaPrograma = { id: string; title: string; start_hour: number; end_hour: number; playlist_id: string; curator_id: string };
@@ -163,6 +166,7 @@ async function lerNomes(supabase: Cliente, ids: string[]): Promise<Map<string, s
 
 async function lerPlaylists(supabase: Cliente): Promise<LinhaPlaylist[]> {
   for (const colunas of [
+    "id,title,curator_id,created_at,tema_semana,playlist_tracks(track_id,note,position,hidden,featured,added_at)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position,hidden,featured,added_at)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position,hidden,featured)",
     "id,title,curator_id,created_at,playlist_tracks(track_id,note,position)",
@@ -393,10 +397,16 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
     const seguidores = new Map(cat.seguidores);
     for (const [k, n] of demo?.seguidores ?? []) seguidores.set(k, (seguidores.get(k) ?? 0) + n);
     const plPorId = new Map(playlists.map((p) => [p.id, p]));
+    const comTema = playlists.map((p) => ({ id: p.id, tema: p.tema_semana ?? null }));
     const hub: Hub = {
       emAlta: emAltaPorSalvamentos(doHub, salvamentos, agora).map(({ id, salvos }) => ({ ...resumo(plPorId.get(id)!), salvos })),
       playlisters: playlistersEmDestaque(doHub, salvamentos, seguidores).map((r) => ({ ...r, name: nomeDe(r.id) ?? "Playlister" })),
       playlistados: maisPlaylistados(doHub, new Map(faixas.map((f) => [f.id, f.artistId])), agora).map((a) => ({ ...a, name: nomeDe(a.id) ?? "Artista" })),
+      tema: {
+        atual: temaAtual(agora),
+        marcadas: marcadasNaSemana(comTema, agora).map((id) => resumo(plPorId.get(id)!)),
+        destaques: destaquesDoTemaAnterior(comTema, salvamentos, agora).map(({ id, salvos }) => ({ ...resumo(plPorId.get(id)!), salvos })),
+      },
     };
 
     return {

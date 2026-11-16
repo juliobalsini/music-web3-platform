@@ -619,3 +619,17 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
     "Curadores oficiais" logo após a Seleção, só com ≥ 3 curadores ativos (mesmo mínimo do hub); o perfil radioOn lista os curadores
     ativos. O selo (`BadgeCheck`) é decorativo (`aria-hidden`); a legenda do carrossel mostra só curador + selo. (e) Demonstração (fora
     de produção): 9 faixas em 3 gêneros (MPB, Indie, Jazz), 3 por gênero, para o E2E ver a Seleção por gênero e os curadores.
+
+112. **Tema da semana (#122, fase 2, item 3; 2026-11-16).** (a) A conta oficial define o tema de cada semana ISO em
+    `lib/playlists/tema.ts` (`TEMAS_DEFINIDOS`, por PR revisado pelo gate), no mesmo modelo dos curadores oficiais: sem tela de
+    administração nem credencial nova. Semana sem tema definido usa um rodízio fixo de 8 temas (estável por semana), então o hub
+    nunca fica sem tema. (b) Migration aditiva `20261116000000`: coluna anulável `playlists.tema_semana` ("AAAA-SS", com check) e
+    trigger que só aceita marcar a **semana atual** (UTC, `IYYY-IW`), inclusive para o service_role: ninguém marca uma semana
+    passada para entrar no destaque. O dono marca/desmarca com o grant de update que já existia (RLS do dono; anônimo bloqueado pela
+    restritiva); a ação `marcarTema` usa a semana do relógio do servidor. Testado no PGlite. (c) Hub: seção "Tema da semana" logo
+    após Curadores oficiais, com o banner do tema (editorial, sempre visível) e "Monte a sua"; playlists marcadas na semana só com
+    ≥ 3 (`HUB_MINIMO`); "Destaques do tema passado" = as mais salvas **durante a semana anterior** entre as marcadas com o tema dela
+    (salvamentos lidos só como `playlist_id/created_at`), com pelo menos 1 salvamento. Explicação longa atrás de `Ajuda`.
+    (d) Editor: banner do tema com o interruptor "Tema da semana" (rascunho pode marcar; só aparece no hub depois de publicada).
+    Página pública: chip "Tema da semana: …" (ou "Tema: …" de semanas passadas). (e) Demonstração (fora de produção) marca as 3
+    playlists com a semana atual para o E2E ver a seção.

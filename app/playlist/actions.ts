@@ -7,6 +7,7 @@ import { isUuid, MIN_FAIXAS_PUBLICAR, parseCreateKey, parseCuradoria, parseDescr
 import { loginPath } from "@/lib/auth/roles";
 import { apagarEnvio } from "@/lib/envios/apagar";
 import { chaveCapaValida } from "@/lib/playlists/capa";
+import { semanaIso } from "@/lib/playlists/tema";
 import { isStorageConfigured, objetoExiste } from "@/lib/storage/client";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
@@ -161,6 +162,25 @@ export async function publicar(id: string): Promise<Resultado> {
   revalidatePath("/");
   revalidatePath("/explorar");
   revalidatePath("/biblioteca");
+  return { ok: true };
+}
+
+/**
+ * Marca (ou desmarca) a playlist com o Tema da semana. A semana vem do relógio do servidor; o trigger do banco
+ * recusa qualquer outra (ninguém marca uma semana passada). Desmarcar só limpa a marca desta semana.
+ */
+export async function marcarTema(id: string, marcar: boolean): Promise<Resultado> {
+  const d = await donoDe(id);
+  if (!d || typeof marcar !== "boolean") return { ok: false, erro: "Playlist não encontrada." };
+  const semana = semanaIso(Date.now());
+  let q = d.supabase.from("playlists").update({ tema_semana: marcar ? semana : null }).eq("id", id).eq("curator_id", d.userId);
+  if (!marcar) q = q.eq("tema_semana", semana);
+  const { error } = await q;
+  if (error) return { ok: false, erro: "Não foi possível marcar o tema agora." };
+  catalogoMudou();
+  revalidatePath(`/playlist/${id}`);
+  revalidatePath("/");
+  revalidatePath("/explorar");
   return { ok: true };
 }
 
