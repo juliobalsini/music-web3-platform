@@ -9,17 +9,26 @@ Toda segunda, a 1ª execução abre a issue **"Sprint AAAA-SS"** (label `sprint`
 com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estimadas. "aprovado" do Julio aprova o sprint
 inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
 
+**Sprint 2026-47 (replanejado pelo Julio em 16/11, foco no beta):** (1) #188 Eficiência do agente (urgente); (2) #156 ✅;
+(3) #122 fim da fase 1 (só E2E logado); (4) #125 restante; (5) #78 Fase C; (6) #185 ✅; (7) #147 Trilha do artista.
+#120 entra assim que a Sessão manual do SMTP (#135) for concluída.
+
 **Backlog priorizado (entrada do próximo sprint; issues `fila` do Julio passam à frente):**
-1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas. Configurações fatia 1 entregue (reprodução, dados,
-   conta, privacidade, excluir conta; DECISIONS 99). Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria,
-   itens 1–4, 6 e 7.
-2. Playlists v2: restante da fase 1 e fase 2 (#122) — complexa. Fase 2: itens 1 (hub; DECISIONS 110), 2 (curadores oficiais;
-   DECISIONS 111), 3 (Tema da semana; DECISIONS 112), 4 e 5 entregues; falta só o E2E logado (sem conta de teste na prévia).
-3. Login v2: Google oficial, código de 6 dígitos, e-mail com a marca (#120) — complexa. Fatia 1 entregue (código atrás de flag,
-   modelos de e-mail, guia SMTP; DECISIONS 102). Faltam: GIS + One Tap, textos do painel, `/entrar`, ação pendente, ligar a flag
-   depois da Sessão manual.
-4. Entrega de áudio, Fase C: verificação após 48 h com o proxy ligado (a partir de 2026-11-16) — baixo.
-5. Central de recompensas (item o) — proposto, aguarda aprovação.
+1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas. Configurações fatia 1 entregue (DECISIONS 99).
+   Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria, itens 1–4, 6 e 7.
+2. Playlists v2 (#122) — fases 1 e 2 entregues; falta só o E2E logado (sem conta de teste na prévia).
+3. Login v2 (#120) — só ligar o código de 6 dígitos depois do item 6 da Sessão manual.
+4. Entrega de áudio, Fase C (#78) — verificação após 48 h com o proxy ligado — baixo.
+5. Trilha do artista (#147).
+6. **Avaliar no próximo sprint (Dependabot major, #188):** TypeScript 6 (#92) e `@types/node` 26 (#93), fechados com comentário;
+   testar num branch próprio (typecheck, build, testes) antes de aceitar.
+
+## Depois do beta (pausados pelo Julio em 2026-11-16; label `pausado`, sem `fila`)
+
+- #140 Versão desktop (layout para telas grandes).
+- #189 Design system v2: movimento, interação e imagem.
+- #145 Descoberta v2: busca em linguagem natural e Playlist Score.
+- #146 Recompensas v1 e Fanfest (absorve a Central de recompensas, item o).
 
 ## Visão
 
