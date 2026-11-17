@@ -46,7 +46,7 @@ export function Artistas({ lista }: { lista: { id: string; nome: string; faixas:
                 {a.nome.charAt(0).toUpperCase()}
               </span>
               <span className="w-full truncate text-sm font-semibold">{a.nome}</span>
-              <span className="text-xs text-white/70">{a.faixas} {a.faixas === 1 ? "faixa" : "faixas"}</span>
+              <span className="text-xs text-tinta/70">{a.faixas} {a.faixas === 1 ? "faixa" : "faixas"}</span>
             </Link>
           </li>
         ))}
