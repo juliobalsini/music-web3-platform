@@ -1,18 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { excluirConta, salvarPreferenciasConta } from "@/lib/preferencias/conta";
+import { chaveFotoValida, fotoDaConta, urlFotoPerfil } from "@/lib/perfil/foto";
 import { confirmouExclusao, parseEmail, parseNome, sanear, type Preferencias } from "@/lib/preferencias/rules";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
 import { getSessionRole } from "@/lib/session";
 import { fotoSegura, parseBio } from "@/lib/stories/bio";
+import { isStorageConfigured, objetoExiste } from "@/lib/storage/client";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type Resultado = { ok: true; aviso?: string } | { ok: false; erro: string };
 
-const SEM_CONTA: Resultado = { ok: false, erro: "Entre na sua conta para continuar." };
+const SEM_CONTA = { ok: false as const, erro: "Entre na sua conta para continuar." };
 
 /** Salva preferências na conta (visitante guarda só no aparelho e nem chama isto). */
 export async function salvarPreferencias(parcial: Partial<Preferencias>): Promise<Resultado> {
@@ -43,9 +46,15 @@ export async function salvarNome(_: Resultado | null, form: FormData): Promise<R
   return { ok: true, aviso: "Nome salvo." };
 }
 
+/** O banco exige https na foto pública; a rota é gravada com o host atual e lida sempre como caminho relativo. */
+async function absoluta(caminho: string): Promise<string> {
+  const host = (await headers()).get("host") ?? "radioon-ten.vercel.app";
+  return `https://${host}${caminho}`;
+}
+
 /**
- * Perfil de artista (story de bio): frase e foto pública. Só artistas; a foto vem da conta Google lida no servidor
- * (nunca de um valor enviado pelo cliente). Grava com service_role: o cliente só tem grant em display_name.
+ * Perfil de artista (story de bio): frase e foto pública. Só artistas; a foto vem da conta (própria ou do Google),
+ * lida no servidor (nunca de um valor enviado pelo cliente). Grava com service_role: o cliente só tem grant em display_name.
  */
 export async function salvarPerfilArtista(_: Resultado | null, form: FormData): Promise<Resultado> {
   const s = await getSessionRole();
@@ -57,8 +66,11 @@ export async function salvarPerfilArtista(_: Resultado | null, form: FormData): 
   if (form.get("foto") === "1") {
     const { data } = await s.supabase.auth.getUser();
     const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-    foto = fotoSegura(typeof meta.avatar_url === "string" ? meta.avatar_url : typeof meta.picture === "string" ? meta.picture : null);
-    if (!foto) return { ok: false, erro: "Sua conta não tem foto do Google para usar." };
+    const propria = typeof meta.foto_propria === "string" ? urlFotoPerfil(s.userId, meta.foto_propria) : null;
+    foto = propria
+      ? await absoluta(propria)
+      : fotoSegura(typeof meta.avatar_url === "string" ? meta.avatar_url : typeof meta.picture === "string" ? meta.picture : null);
+    if (!foto) return { ok: false, erro: "Escolha uma foto em Conta para usar no perfil." };
   }
   try {
     const { error } = await createAdminClient().from("profiles").update({ bio, avatar_url: foto }).eq("id", s.userId);
@@ -69,6 +81,41 @@ export async function salvarPerfilArtista(_: Resultado | null, form: FormData): 
   catalogoMudou();
   revalidatePath("/", "layout");
   return { ok: true, aviso: foto ? "Perfil salvo. Seu story de bio já está no ar." : "Perfil salvo. Com uma foto, seu story de bio entra no ar." };
+}
+
+export type ResultadoFoto = { ok: true; foto: string | null } | { ok: false; erro: string };
+
+/**
+ * Foto própria (#125): chave em covers/<conta>/, enviada pelo navegador, ou `null` para voltar à do Google (ou à inicial).
+ * Confere com 1 HEAD que o arquivo chegou ao bucket. Se o artista já mostra foto no perfil, o story de bio acompanha.
+ */
+export async function definirFoto(key: string | null): Promise<ResultadoFoto> {
+  const s = await getSessionRole();
+  if (!s) return SEM_CONTA;
+  if (key !== null) {
+    if (!chaveFotoValida(key, s.userId)) return { ok: false, erro: "Foto inválida." };
+    if (!isStorageConfigured()) return { ok: false, erro: "Envio de imagens indisponível agora." };
+    const existe = await objetoExiste(key).catch(() => false);
+    if (!existe) return { ok: false, erro: "A imagem não chegou. Tente de novo." };
+  }
+  const { data, error } = await s.supabase.auth.updateUser({ data: { foto_propria: key } });
+  if (error || !data.user) return { ok: false, erro: "Não foi possível trocar a foto. Tente de novo." };
+  const foto = fotoDaConta((data.user.user_metadata ?? {}) as Record<string, unknown>, s.userId);
+  if (s.role === "artist") {
+    try {
+      const admin = createAdminClient();
+      const { data: p } = await admin.from("profiles").select("avatar_url").eq("id", s.userId).maybeSingle();
+      if (p?.avatar_url) {
+        const nova = foto?.startsWith("/") ? await absoluta(foto) : fotoSegura(foto);
+        if (nova) await admin.from("profiles").update({ avatar_url: nova }).eq("id", s.userId);
+      }
+    } catch {
+      // sem service_role (prévias): a foto da conta já mudou; o story acompanha ao salvar o perfil de artista
+    }
+    catalogoMudou();
+  }
+  revalidatePath("/", "layout");
+  return { ok: true, foto };
 }
 
 /** Troca de e-mail: o Supabase manda um link de confirmação ao endereço novo. */

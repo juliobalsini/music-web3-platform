@@ -111,7 +111,7 @@ describe("rotas de servidor recusam anônimos", () => {
   it("configurações: toda ação exige conta (getSessionRole) e excluir exige a palavra de confirmação", () => {
     const src = ler("app/ajustes/actions.ts");
     const acoes = src.split("export async function").slice(1);
-    assert.equal(acoes.length, 5);
+    assert.equal(acoes.length, 6);
     for (const a of acoes) assert.match(a, /const s = await getSessionRole\(\);\s+if \(!s\) return SEM_CONTA;/);
     // Story de bio: só artista grava a frase/foto, e a foto vem da conta Google lida no servidor.
     assert.match(src, /s\.role !== "artist"/);

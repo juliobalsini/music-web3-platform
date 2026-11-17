@@ -709,3 +709,13 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    põe as playlists desses gêneros logo após "Novidades da semana" (`ordenarPorGostos` em `lib/radio/home.ts`). A reordenação
    é no cliente (`usePreferencias`): a Home segue em cache compartilhado e a hidratação usa o padrão (sem mismatch).
    (c) UI: chips com caixa nativa em Configurações > Seus gostos, contador "N de 5" e Ajuda.
+121. **Foto própria do perfil (#125; 2026-11-17).** (a) Sem migration: a imagem (JPEG quadrado de até 640 px, recortado
+   no navegador com máscara redonda) vai direto ao bucket em `covers/<conta>/<uuid>` por URL assinada de 10 min
+   (`POST /api/perfil/<id>/foto`, só a própria conta, tipos e 2 MB como capa). (b) A chave fica em
+   `user_metadata.foto_propria`, gravada pela sessão (`auth.updateUser`) depois de 1 HEAD; mesmo que o cliente edite os
+   metadados, só vale chave do próprio prefixo (`chaveFotoValida`). (c) `GET /api/perfil/<id>/foto?v=<uuid>` é pública como a
+   foto do Google: reconstrói a chave sem tocar no banco e redireciona ao proxy/bucket (cache 15 min; foto nova = URL nova).
+   (d) A foto própria vence a do Google (`fotoDaConta`) no menu e nas Configurações. (e) Story de bio: `profiles.avatar_url`
+   exige https, então grava a rota absoluta com o host atual; `fotoSegura` normaliza qualquer host para o caminho relativo
+   (o host gravado nunca vira destino). Se o artista já mostra foto no perfil, trocar a foto atualiza o story. (f) Excluir
+   conta limpa `foto_propria`. (g) O recorte foi extraído para `components/recorte-foto.tsx`, usado também pela capa de playlist.

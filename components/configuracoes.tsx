@@ -1,13 +1,15 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- avatar externo (Google), sem otimizador (cota). */
+/* eslint-disable @next/next/no-img-element -- avatar externo (Google) ou redirecionado ao bucket, sem otimizador (cota). */
 
-import { Check, Download, Moon, SunMedium, SunMoon, TriangleAlert } from "lucide-react";
-import { useActionState, useState, type ReactNode } from "react";
+import { Camera, Check, Download, ImagePlus, Moon, SunMedium, SunMoon, Trash2, TriangleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useActionState, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
-import { excluir, salvarNome, salvarPerfilArtista, salvarPreferencias, trocarEmail, type Resultado } from "@/app/ajustes/actions";
+import { definirFoto, excluir, salvarNome, salvarPerfilArtista, salvarPreferencias, trocarEmail, type Resultado } from "@/app/ajustes/actions";
 import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos";
 import { BotaoEntrar } from "@/components/login-contextual";
+import { abrirFoto, enviarImagem, RecorteFoto, type Foto } from "@/components/recorte-foto";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
 import { DESTAQUES, EQS, GENEROS_GOSTO, MAX_GOSTOS, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Eq, type Preferencias, type Tema } from "@/lib/preferencias/rules";
@@ -15,9 +17,13 @@ import { rotuloGenero, type GeneroId } from "@/lib/radio/generos";
 import { MAX_BIO } from "@/lib/stories/bio";
 
 export type DadosConta = {
+  /** Necessário para enviar a foto própria (rota /api/perfil/<id>/foto). */
+  id?: string;
   nome: string | null;
   email: string | null;
   foto: string | null;
+  /** A foto atual é a própria (enviada na radioOn), não a do Google. */
+  fotoPropria?: boolean;
   /** Perfil de artista: story de bio (frase e foto pública). */
   artista?: boolean;
   bio?: string | null;
@@ -276,16 +282,7 @@ function SecaoConta({ conta }: { conta: DadosConta }) {
   return (
     <Secao titulo="Conta">
       <div className={`${grupo} divide-y-0 gap-5 p-4`}>
-        <div className="flex items-center gap-3">
-          {conta.foto ? (
-            <img src={conta.foto} alt="" width={56} height={56} referrerPolicy="no-referrer" className="size-14 rounded-full object-cover" />
-          ) : (
-            <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-sobre-destaque">
-              {(conta.nome ?? "?").slice(0, 1).toUpperCase()}
-            </span>
-          )}
-          <p className="text-sm text-[var(--ds-texto-2)] text-pretty">{conta.foto ? "Foto da sua conta Google." : "Sua inicial aparece no lugar da foto."}</p>
-        </div>
+        <FotoPerfil conta={conta} />
         <form action={acaoNome} className="flex flex-col gap-2">
           <label htmlFor="cfg-nome" className="text-sm font-semibold">Nome</label>
           <input id="cfg-nome" name="nome" defaultValue={conta.nome ?? ""} maxLength={80} required autoComplete="name" className={campo} />
@@ -315,6 +312,114 @@ function SecaoConta({ conta }: { conta: DadosConta }) {
   );
 }
 
+/** Lado da foto de perfil salva (px): sobra para telas densas e fica bem abaixo de 2 MB. */
+const LADO_FOTO = 640;
+
+/**
+ * Foto do perfil: toque abre "Foto do perfil" com escolher (recorte quadrado com máscara redonda, JPEG gerado no navegador
+ * e enviado direto ao bucket) ou remover a própria (volta à do Google ou à inicial).
+ */
+function FotoPerfil({ conta }: { conta: DadosConta }) {
+  const router = useRouter();
+  const [foto, setFotoAtual] = useState(conta.foto);
+  const [propria, setPropria] = useState(!!conta.fotoPropria);
+  const [aberto, setAberto] = useState(false);
+  const [edicao, setEdicao] = useState<Foto | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const arquivo = useRef<HTMLInputElement>(null);
+
+  const trocarEdicao = (nova: Foto | null) =>
+    setEdicao((velha) => {
+      if (velha && velha !== nova) velha.bmp.close();
+      return nova;
+    });
+  const fechar = () => {
+    if (enviando) return;
+    setAberto(false);
+    trocarEdicao(null);
+    setErro(null);
+  };
+  const escolher = async (f: File | undefined) => {
+    setErro(null);
+    if (!f) return;
+    const r = await abrirFoto(f);
+    if (typeof r === "string") return setErro(r);
+    trocarEdicao(r);
+  };
+  const gravar = async (key: string | null) => {
+    const r = await definirFoto(key);
+    if (!r.ok) return setErro(r.erro);
+    setFotoAtual(r.foto);
+    setPropria(key !== null);
+    setAberto(false);
+    trocarEdicao(null);
+    router.refresh();
+  };
+  const usar = async (jpeg: Blob | null) => {
+    if (!jpeg) return setErro("Não deu para preparar a imagem. Tente outra.");
+    if (!conta.id) return setErro("Entre na sua conta para continuar.");
+    setEnviando(true);
+    setErro(null);
+    try {
+      const r = await enviarImagem(`/api/perfil/${conta.id}/foto`, jpeg);
+      if ("erro" in r) return setErro(r.erro);
+      await gravar(r.key);
+    } finally {
+      setEnviando(false);
+    }
+  };
+  const remover = async () => {
+    setEnviando(true);
+    setErro(null);
+    try { await gravar(null); } finally { setEnviando(false); }
+  };
+
+  const legenda = propria ? "Sua foto na radioOn." : foto ? "Foto da sua conta Google." : "Sua inicial aparece no lugar da foto.";
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        aria-label="Trocar foto do perfil"
+        data-testid="trocar-foto"
+        className="group relative shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        {foto ? (
+          <img src={foto} alt="" width={56} height={56} referrerPolicy="no-referrer" className="size-14 rounded-full object-cover" />
+        ) : (
+          <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-sobre-destaque">
+            {(conta.nome ?? "?").slice(0, 1).toUpperCase()}
+          </span>
+        )}
+        <span className="absolute -bottom-1 -right-1 grid size-7 place-items-center rounded-full bg-brand text-sobre-destaque shadow-[0_2px_8px_rgb(0_0_0/0.35)] transition-transform duration-200 ease-out group-active:scale-90" aria-hidden="true">
+          <Camera className="size-3.5" />
+        </span>
+      </button>
+      <p aria-live="polite" className="min-w-0 text-sm text-[var(--ds-texto-2)] text-pretty">{legenda}</p>
+
+      <PainelInferior aberto={aberto} aoFechar={fechar} titulo="Foto do perfil">
+        <input ref={arquivo} type="file" accept="image/jpeg,image/png,image/webp,image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => { escolher(e.target.files?.[0]); e.target.value = ""; }} />
+        {edicao ? (
+          <RecorteFoto foto={edicao} rotulo="Enquadramento da foto" usar="Usar esta foto" enviando={enviando} erro={erro} aoUsar={usar} aoTrocar={() => arquivo.current?.click()} redondo ladoMax={LADO_FOTO} />
+        ) : (
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={() => arquivo.current?.click()} className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--ds-surface)] px-4 text-left font-semibold transition-colors hover:bg-[var(--ds-surface-2)]" data-testid="escolher-foto">
+              <ImagePlus className="size-5 shrink-0 text-brand" aria-hidden="true" /> Escolher foto
+            </button>
+            {propria && (
+              <button type="button" onClick={remover} disabled={enviando} className="flex min-h-14 items-center gap-3 rounded-xl bg-[var(--ds-surface)] px-4 text-left font-semibold transition-colors hover:bg-[var(--ds-surface-2)] disabled:opacity-60" data-testid="remover-foto">
+                <Trash2 className="size-5 shrink-0 text-brand" aria-hidden="true" /> Remover minha foto
+              </button>
+            )}
+            {erro && <Mensagem tipo="erro">{erro}</Mensagem>}
+          </div>
+        )}
+      </PainelInferior>
+    </div>
+  );
+}
+
 /** Perfil de artista: frase da bio e foto pública. Com foto, nome e uma faixa publicada, o story de bio entra no ar. */
 function SecaoArtista({ conta }: { conta: DadosConta }) {
   const [estado, acao] = useActionState(salvarPerfilArtista, null);
@@ -339,10 +444,10 @@ function SecaoArtista({ conta }: { conta: DadosConta }) {
         {conta.foto ? (
           <label className="flex min-h-11 items-center gap-3">
             <input type="checkbox" name="foto" value="1" defaultChecked={conta.fotoNoPerfil} className="size-5 accent-[var(--ds-destaque)]" />
-            <span className="text-pretty">Usar a foto da minha conta Google no perfil</span>
+            <span className="text-pretty">{conta.fotoPropria ? "Mostrar minha foto no perfil" : "Usar a foto da minha conta Google no perfil"}</span>
           </label>
         ) : (
-          <p className="text-sm text-pretty text-[var(--ds-texto-2)]">Entre com Google para usar sua foto. Foto própria chega em breve.</p>
+          <p className="text-sm text-pretty text-[var(--ds-texto-2)]">Escolha uma foto em Conta, logo acima, para mostrar no perfil.</p>
         )}
         <Retorno estado={estado} />
         <Enviar>Salvar perfil</Enviar>

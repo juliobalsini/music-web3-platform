@@ -45,7 +45,7 @@ export async function excluirConta(userId: string): Promise<ResultadoConta> {
   const { error: eAuth } = await admin.auth.admin.updateUserById(userId, {
     email: emailAnonimo(userId),
     email_confirm: true,
-    user_metadata: { full_name: null, name: null, avatar_url: null, picture: null, display_name: null },
+    user_metadata: { full_name: null, name: null, avatar_url: null, picture: null, display_name: null, foto_propria: null },
     ban_duration: "876000h",
   });
   if (eAuth) {
