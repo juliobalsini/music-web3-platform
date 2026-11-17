@@ -1,16 +1,33 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { confirmouExclusao, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+import { atributosAparencia, confirmouExclusao, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
-    assert.deepEqual(PADRAO, { normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true });
+    assert.deepEqual(PADRAO, {
+      normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true,
+      destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
+    });
   });
 
   it("saneia: só chaves conhecidas e booleanas", () => {
     assert.deepEqual(sanear({ economia: true, continua: "não", role: "curator", __proto__: { x: 1 } }), { economia: true });
     for (const v of [null, undefined, 1, "x", [true]]) assert.deepEqual(sanear(v), {});
+  });
+
+  it("aparência: destaque só da lista; texto maior e animações booleanos", () => {
+    assert.deepEqual(sanear({ destaque: "lilas", textoMaior: true, reduzirAnimacoes: false }), { destaque: "lilas", textoMaior: true, reduzirAnimacoes: false });
+    for (const v of ["roxo", "", 1, true, null, "AZUL"]) assert.deepEqual(sanear({ destaque: v }), {});
+    assert.deepEqual(sanear({ textoMaior: "sim" }), {});
+    assert.deepEqual(sanear(JSON.parse('{"__proto__": {"destaque": "azul"}}')), {});
+  });
+
+  it("aparência vira atributos de <html> (âmbar e desligados removem o atributo)", () => {
+    assert.deepEqual(atributosAparencia(PADRAO), { "data-destaque": null, "data-texto": null, "data-movimento": null });
+    assert.deepEqual(atributosAparencia({ destaque: "verde", textoMaior: true, reduzirAnimacoes: true }), {
+      "data-destaque": "verde", "data-texto": "maior", "data-movimento": "reduzido",
+    });
   });
 
   it("mescla da esquerda para a direita (a conta vence o aparelho quando vem depois)", () => {

@@ -667,3 +667,13 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    e `git diff HEAD^`), porque o último commit de um PR de código pode ser só o CONTEXTO.md e a prévia tem de existir para o E2E.
    (e) Dependabot majors: `checkout` v7, `upload-artifact` v7 e `download-artifact` v8 (#88–#90) entram no PR protegido;
    TypeScript 6 (#92) e `@types/node` 26 (#93) fechados com comentário e registrados no PLANO.md para o próximo sprint.
+
+116. **Configurações > Aparência (#125, fatia 2; 2026-11-17).** (a) Sem migration: `user_settings.prefs` é jsonb; `sanear`
+   passou a aceitar `destaque` (lista fechada `ambar|azul|verde|rosa|lilas`) além dos booleanos `textoMaior` e
+   `reduzirAnimacoes`. (b) Aplicação por atributos em `<html>` (`data-destaque`, `data-texto="maior"` = 112,5 %,
+   `data-movimento="reduzido"` = mesmo corte do `prefers-reduced-motion`); script fixo no `<head>` aplica antes da 1ª pintura
+   (sem piscar o âmbar) e `components/aparencia.tsx` mantém em dia; a conta sincroniza pelo caminho já existente (gaveta).
+   (c) `--color-brand`/`brand-2` do Tailwind passam a seguir `--ds-destaque`, então botões, play, abas e foco mudam juntos; a
+   logo é imagem e não muda. Lilás novo (#b69cff escuro / #6a3fd0 claro); os destaques escuros têm contraste alto com o
+   texto marinho. (d) **Tema claro/automático fica para fatia própria:** os tokens existem, mas há ~370 classes de cor fixa
+   (`text-white`, `bg-night-*`) que quebrariam no claro; migrar para tokens antes de oferecer a opção.

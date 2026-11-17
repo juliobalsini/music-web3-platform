@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { Abertura } from "@/components/abertura";
+import { Aparencia, SCRIPT_APARENCIA } from "@/components/aparencia";
 import { Cabecalho } from "@/components/cabecalho";
 import { LoginContextualProvider } from "@/components/login-contextual";
 import { MiniPlayer } from "@/components/mini-player";
@@ -40,9 +41,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // A aparência (destaque, texto maior, animações) marca <html> antes da hidratação.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_APARENCIA }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         <RegistrarSW />
+        <Aparencia />
         <PlayerProvider>
           <LoginContextualProvider>
           <Abertura />

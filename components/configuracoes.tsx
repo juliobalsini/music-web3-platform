@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- avatar externo (Google), sem otimizador (cota). */
 
-import { TriangleAlert } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { useActionState, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -10,7 +10,7 @@ import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos"
 import { BotaoEntrar } from "@/components/login-contextual";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
-import { PALAVRA_EXCLUIR, type Preferencias } from "@/lib/preferencias/rules";
+import { DESTAQUES, PALAVRA_EXCLUIR, type Destaque, type Preferencias } from "@/lib/preferencias/rules";
 import { MAX_BIO } from "@/lib/stories/bio";
 
 export type DadosConta = {
@@ -44,6 +44,40 @@ function Enviar({ children, perigo = false, desabilitado = false }: { children: 
   );
 }
 
+const NOME_DESTAQUE: Record<Destaque, string> = { ambar: "Âmbar", azul: "Azul", verde: "Verde", rosa: "Rosa", lilas: "Lilás" };
+
+/** Cor de destaque: rádios nativos (setas do teclado, leitor de tela) com amostras redondas de 44 px. */
+function EscolherDestaque({ valor, aoMudar }: { valor: Destaque; aoMudar: (d: Destaque) => void }) {
+  return (
+    <fieldset className="flex flex-col gap-3 p-4">
+      <legend className="float-left mb-1 font-semibold">Cor de destaque</legend>
+      <div className="clear-left flex flex-wrap gap-3">
+        {DESTAQUES.map((d) => (
+          <label key={d} className="flex cursor-pointer flex-col items-center gap-1 text-xs text-[var(--ds-texto-2)]">
+            <input
+              type="radio"
+              name="destaque"
+              value={d}
+              checked={valor === d}
+              onChange={() => aoMudar(d)}
+              data-testid={`pref-destaque-${d}`}
+              className="peer sr-only"
+            />
+            <span
+              aria-hidden="true"
+              data-cor={d}
+              className="ds-amostra flex size-11 items-center justify-center rounded-full ring-offset-2 ring-offset-[var(--ds-bg)] transition-shadow duration-[var(--ds-mov-rapido)] peer-checked:ring-2 peer-checked:ring-[var(--ds-texto)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-[var(--ds-texto)]"
+            >
+              {valor === d && <Check className="size-5" strokeWidth={2.5} />}
+            </span>
+            {NOME_DESTAQUE[d]}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 function Retorno({ estado }: { estado: Resultado | null }) {
   if (!estado) return null;
   if (!estado.ok) return <Mensagem tipo="erro">{estado.erro}</Mensagem>;
@@ -55,7 +89,7 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
   const prefs = usePreferencias();
   const [erroConta, setErroConta] = useState<string | null>(null);
 
-  function mudar(k: keyof Preferencias, v: boolean) {
+  function mudar<K extends keyof Preferencias>(k: K, v: Preferencias[K]) {
     gravarPreferencias({ [k]: v });
     if (!conta) return;
     setErroConta(null);
@@ -66,6 +100,14 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
 
   return (
     <div className="flex flex-col gap-8">
+      <Secao titulo="Aparência">
+        <div className={grupo}>
+          <EscolherDestaque valor={prefs.destaque} aoMudar={(d) => mudar("destaque", d)} />
+          <Interruptor titulo="Texto maior" ligado={prefs.textoMaior} aoMudar={(v) => mudar("textoMaior", v)} testId="pref-texto-maior" />
+          <Interruptor titulo="Reduzir animações" apoio="Telas sem movimento." ligado={prefs.reduzirAnimacoes} aoMudar={(v) => mudar("reduzirAnimacoes", v)} testId="pref-reduzir-animacoes" />
+        </div>
+      </Secao>
+
       <Secao titulo="Reprodução">
         <div className={grupo}>
           <Interruptor titulo="Normalizar volume" apoio="Faixas com volume parecido." ligado={prefs.normalizar} aoMudar={(v) => mudar("normalizar", v)} testId="pref-normalizar" />

@@ -23,7 +23,9 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
   `ignoreCommand` da Vercel (só produção), prompt do `autonomo.yml` enxuto, Dependabot #88–#90 — aguarda `travas`.
   Item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
-- [ ] **#125 Perfil e Configurações v2 (restante)** — Aparência, Som, Seus gostos, exportar dados, foto própria (`covers/`).
+- [~] **#125 Perfil e Configurações v2** — Aparência (destaque, texto maior, reduzir animações; DECISIONS 116) no PR
+  `item-125-aparencia`. Faltam: tema claro/automático (migrar ~370 classes de cor fixa para tokens), Som (equalizador), Seus gostos,
+  exportar dados, foto própria (`covers/`), itens 1–4, 6 e 7.
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -32,10 +34,13 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. Se o PR da parte B da #188 foi mergeado: conferir que um PR só de `.md` passa pelo caminho rápido (jobs `validar`/`e2e`
-   pulados, `gate-ok` verde) e fechar a #188.
-2. Senão, seguir para a **#125**: ler `app/ajustes/` e `lib/preferencias/` (fatia 1, DECISIONS 99); próxima fatia =
-   Aparência + Som em `user_settings` (migration aditiva de colunas anuláveis), com RLS testada no PGlite.
+1. PR protegido #191 (parte B da #188) mergeado? Conferir num PR só de `.md` que `validar`/`e2e` são pulados e `gate-ok` fica
+   verde; fechar #88–#90 e a #188 (resta só o item 6 em 2026-11-23). Após o #191, commit só de `.md` na `main` não gera deploy
+   de produção: não esperar `/api/health` com o commit novo nesses casos.
+2. **#125, tema claro:** trocar classes fixas por tokens (`grep -rhoE '(text|bg|border)-(white|black|night-[0-9]+)' app components`;
+   `text-white`→`text-[var(--ds-texto)]`, `bg-night-900`→`bg-[var(--ds-bg)]`, `body` em `app/globals.css`), então ligar
+   `data-tema` em `lib/preferencias/rules.ts` + `components/aparencia.tsx` (auto via `matchMedia`) e a opção em
+   `components/configuracoes.tsx`. Depois: Som (BiquadFilter no `player-provider`, só com proxy).
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -60,4 +65,5 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - 2026-11-16 (35ª) — #185 (skills de qualidade, axe, Lighthouse) em produção (PR #186).
 - 2026-11-16 (36ª) — Caixa de entrada: pacotes das 14:49–14:55 viraram #188 (urgente) e #189 (logo pausada); replanejamento
   das 15:02 aplicado (Sprint #167, label `pausado`). #188 parte A no PR `item-188-eficiencia`; parte B em PR protegido.
-  Tamanho do contexto fixo: CONTEXTO.md 43,5 → ~7 KB; DECISIONS.md 68,6 → ~5 KB; CLAUDE.md 15,2 KB → ver resumo.
+  Contexto fixo: CONTEXTO.md 43,5 → 5 KB; DECISIONS.md 68,6 → 4,8 KB; CLAUDE.md 15,2 → 15,9 KB (regras novas). #125 Aparência
+  no PR `item-125-aparencia` (sem migration).

@@ -90,3 +90,34 @@ test("configurações: ajustes do aparelho valem para o visitante e ficam salvos
   const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem("radioon:prefs") ?? "{}"));
   expect(salvo).toMatchObject({ economia: true, continua: false });
 });
+
+test("configurações: aparência muda o destaque e o texto e vale antes de pintar ao recarregar", async ({ page }, testInfo) => {
+  await page.goto("/ajustes");
+  await expect(page.getByRole("heading", { name: "Aparência" })).toBeVisible();
+  const raiz = page.locator("html");
+  await expect(raiz).not.toHaveAttribute("data-destaque", /.+/);
+  const verde = page.getByTestId("pref-destaque-verde");
+  await expect(verde).toHaveCount(1);
+  // Só responde depois de hidratar: repete o toque até o atributo aparecer.
+  await expect(async () => {
+    await page.getByText("Verde", { exact: true }).click();
+    await expect(raiz).toHaveAttribute("data-destaque", "verde", { timeout: 500 });
+  }).toPass({ timeout: 15_000 });
+  await expect(verde).toHaveCount(1);
+  await expect(verde).toBeChecked();
+  const texto = page.getByTestId("pref-texto-maior");
+  await expect(async () => {
+    if ((await texto.getAttribute("aria-checked")) !== "true") await texto.click();
+    await expect(raiz).toHaveAttribute("data-texto", "maior", { timeout: 500 });
+  }).toPass({ timeout: 15_000 });
+  const fonte = await page.evaluate(() => getComputedStyle(document.documentElement).fontSize);
+  expect(fonte).toBe("18px");
+  await foto(page, "09-aparencia", testInfo);
+  // Recarregar: o script do <head> aplica antes da hidratação (sem piscar o âmbar).
+  await page.reload();
+  await expect(raiz).toHaveAttribute("data-destaque", "verde");
+  await expect(raiz).toHaveAttribute("data-texto", "maior");
+  // O conteúdo chega por streaming (cópia oculta por um instante): espera a cópia única.
+  await expect(page.getByTestId("pref-destaque-verde")).toHaveCount(1);
+  await expect(page.getByTestId("pref-destaque-verde")).toBeChecked();
+});
