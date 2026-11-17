@@ -698,3 +698,9 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    Web Audio toca normal (bandas em 0). `plano` sem normalização não monta o Web Audio. (d) Preferência `eq` no jsonb
    `user_settings.prefs`, saneada por lista (sem migration); muda na hora pela faixa atual (evento `radioon:prefs`).
    (e) UI: o seletor de Tema virou o `Segmentado` genérico em `components/configuracoes.tsx`, reaproveitado pelo Equalizador.
+119. **Exportar meus dados (#125; 2026-11-17).** (a) `GET /api/conta/exportar` só para conta de verdade (`getSessionRole`),
+   lê com o cliente da sessão (RLS), nunca com service_role, e cada tabela é filtrada pela coluna dona
+   (`FONTES_EXPORTACAO` em `lib/conta/exportar.ts`): a RLS deixa ver linhas de outras pessoas em alguns casos (curtidas no
+   próprio story, quem me segue) e essas ficam fora. (b) `select("*")` das próprias linhas (são dados da pessoa), teto de
+   5000 por tabela, `no-store`, anexo `radioon-meus-dados-AAAA-MM-DD.json` com e-mail e data de criação da conta.
+   (c) Áudio e imagens não entram (cota do B2). (d) Botão "Baixar meus dados" na seção Conta das Configurações, com Ajuda.

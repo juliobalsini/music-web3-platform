@@ -26,6 +26,7 @@ const SO_CONTA = [
   "app/meus-envios/actions.ts",
   "app/meus-envios/page.tsx",
   "components/menu-dono.tsx",
+  "app/api/conta/exportar/route.ts",
 ];
 
 describe("rotas de servidor recusam anônimos", () => {
