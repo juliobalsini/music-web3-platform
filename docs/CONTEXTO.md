@@ -11,7 +11,8 @@ execuções antigas): `docs/historico/CONTEXTO-AAAA-MM.md`, não lido por padrã
 - **Áudio:** B2 + proxy `radioon-audio.radioon.workers.dev` (cache em KV) ligado desde 2026-11-14 (DECISIONS 93).
 - **Entregue:** ciclos 0–5, Fase UX, redesenho mobile, Fases A–C, Stories v2, Navegação v2, Configurações fatia 1,
   Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso), Aparência (destaque,
-  texto maior, animações, tema claro/automático), Som (equalizador), exportar dados, Seus gostos, foto própria do perfil. CI verde na `main`.
+  texto maior, animações, tema claro/automático), Som (equalizador), exportar dados, Seus gostos, foto própria do perfil,
+  primeiro acesso com gostos. CI verde na `main`.
 - **Sprint 2026-47** (#167) aprovado e replanejado pelo Julio (foco no beta). PRs protegidos da semana: #154 e #191 (mergeados).
 
 ## Fila
@@ -22,8 +23,9 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
   Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
 - [~] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
-  (#195); exportar dados (#196); Seus gostos (#197); foto própria (PR `item-125-foto`, DECISIONS 121). Faltam: itens
-  1–4, 6 e 7 (ler a issue para escolher o próximo).
+  (#195); exportar dados (#196); Seus gostos (#197); foto própria (#198); primeiro acesso (PR `item-125-inicio`,
+  DECISIONS 122) e item 7 registrado no PLANO.md. Faltam: itens 1–4 (perfil com estatísticas, perfil público, aba artista,
+  Meus envios).
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -32,11 +34,11 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-125-foto` mergeou e o deploy subiu (`/api/health`). Recorte de foto reutilizável:
-   `components/recorte-foto.tsx` (capa de playlist e foto do perfil).
-2. **#125, item 6 (primeiro acesso):** tela pulável pedindo 3 gêneros/climas que grava `prefs.gostos`
-   (`sanearGostos` em `lib/preferencias/rules.ts`, `GENEROS_GOSTO`); depois item 7 (PLANO.md pós-beta: inglês, crossfade,
-   e-mails) e os itens 1–4 (perfil com estatísticas, perfil público, aba artista, Meus envios).
+1. Conferir se o PR `item-125-inicio` mergeou e o deploy subiu (`/api/health`). Tela nova: `app/onboarding/gostos/page.tsx`
+   + `components/primeiros-gostos.tsx`; chips em `components/escolher-gostos.tsx`.
+2. **#125, item 4 (Meus envios):** `app/meus-envios` → abas Faixas · Álbuns · Playlists · Stories com `CartaoCapa`,
+   `ChipStatus` e `MenuMais` (`components/ds/`), duplicatas (mesmo título e duração) e estados vazios; depois itens 1–3.
+   Pendente do issue: atualizar `docs/prototipo-mobile.html` com as telas novas de Configurações/primeiro acesso.
 3. #122: avaliar sessão simulada no E2E para o editor de playlist logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
@@ -59,6 +61,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
 - 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).
 - 2026-11-17 (38ª) — #194 (tema claro) em produção. #125: equalizador (#195) e exportar dados (#196) em produção; Seus gostos no PR `item-125-gostos`.
 

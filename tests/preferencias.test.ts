@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { atributosAparencia, BANDAS_EQ, EQS, MAX_GOSTOS, preGanhoEq, sanearGostos, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+import { atributosAparencia, destinoInicio, GOSTOS_INICIO, BANDAS_EQ, EQS, MAX_GOSTOS, preGanhoEq, sanearGostos, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
@@ -94,5 +94,16 @@ describe("Configurações — conta", () => {
     const e = emailAnonimo("00000000-0000-4000-8000-000000000001");
     assert.match(e, /@radioon\.invalid$/);
     assert.notEqual(e, emailAnonimo("00000000-0000-4000-8000-000000000002"));
+  });
+});
+
+describe("primeiro acesso (#125, item 6)", () => {
+  it("pede até 3 gêneros, dentro do limite de Seus gostos", () => {
+    assert.equal(GOSTOS_INICIO, 3);
+    assert.ok(GOSTOS_INICIO <= MAX_GOSTOS);
+  });
+  it("artista vai para enviar música; ouvinte, curador ou sem papel vão para a Home", () => {
+    assert.equal(destinoInicio("artist"), "/enviar");
+    for (const r of ["listener", "curator", null, undefined, "x"]) assert.equal(destinoInicio(r), "/");
   });
 });

@@ -36,6 +36,14 @@ export function preGanhoEq(eq: Eq): number {
 export const MAX_GOSTOS = 5;
 export const GENEROS_GOSTO = GENEROS.filter((g) => g.id !== "outro").map((g) => g.id) as GeneroId[];
 
+/** Primeiro acesso: pede até 3 gêneros (pulável); em Configurações dá para chegar a 5. */
+export const GOSTOS_INICIO = 3;
+
+/** Para onde vai quem termina o primeiro acesso: artista direto para enviar música; os demais, a Home. */
+export function destinoInicio(role: string | null | undefined): "/enviar" | "/" {
+  return role === "artist" ? "/enviar" : "/";
+}
+
 /** Lista de gostos saneada: só ids conhecidos, sem repetição, na ordem escolhida, no máx. 5; não-lista → null. */
 export function sanearGostos(v: unknown): GeneroId[] | null {
   if (!Array.isArray(v)) return null;
