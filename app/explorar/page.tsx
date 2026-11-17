@@ -41,7 +41,7 @@ async function Conteudo({ q, genero, clima }: { q: string; genero: string | null
     const playlists = buscar(radio.playlists, q, (p) => [p.title, p.curator]);
     const playlisters = buscar(radio.playlisters, q, (p) => [p.name]);
     if (faixas.length + playlists.length + playlisters.length === 0) {
-      return <p role="status" className="text-white/70">Nada encontrado para “{q}”. Tente outro nome.</p>;
+      return <p role="status" className="text-tinta/70">Nada encontrado para “{q}”. Tente outro nome.</p>;
     }
     return (
       <>

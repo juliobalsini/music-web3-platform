@@ -19,7 +19,7 @@ async function Conteudo() {
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Novo story</h1>
-      <p className="text-white/70 text-pretty">Texto, imagem e um trecho de 15 segundos de uma faixa. Fica 7 dias na Rádio e depois no seu perfil.</p>
+      <p className="text-tinta/70 text-pretty">Texto, imagem e um trecho de 15 segundos de uma faixa. Fica 7 dias na Rádio e depois no seu perfil.</p>
       <StoryForm faixas={faixas} />
     </>
   );

@@ -46,7 +46,7 @@ export function CartaoNoAr({
   const propria = p.usuarioId !== null && p.usuarioId === faixa.artistId;
   const aSeguir = fila.filter((f) => f.id !== faixa.id).slice(0, 3);
   return (
-    <section aria-label="No ar" className="relative isolate flex flex-col gap-4 overflow-hidden rounded-3xl p-4 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)]">
+    <section aria-label="No ar" className="tema-escuro relative isolate text-white flex flex-col gap-4 overflow-hidden rounded-3xl p-4 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.8)]">
       <Ambiente faixa={faixa} />
       <div className="flex items-center justify-between gap-3 text-sm font-semibold text-white/80">
         <p className="truncate">{atual ? `${atual.title} · ${hora(atual.startHour)}–${hora(atual.endHour)}` : "Player On"}</p>

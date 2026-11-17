@@ -159,7 +159,7 @@ export function EstudioCapa({
       <div
         ref={quadro}
         onPointerDown={(e) => e.target === e.currentTarget && setSel(null)}
-        className="relative mx-auto aspect-square w-full max-w-72 touch-none select-none overflow-hidden rounded-xl bg-night-800 shadow-[0_8px_24px_rgb(0_0_0/0.4)]"
+        className="relative mx-auto aspect-square w-full max-w-72 touch-none select-none overflow-hidden rounded-xl bg-fundo-2 shadow-[0_8px_24px_rgb(0_0_0/0.4)]"
       >
         <canvas ref={previa} width={LADO_PREVIA} height={LADO_PREVIA} role="img" aria-label="Prévia da capa" className="pointer-events-none size-full" data-testid="previa-estudio" />
         {alvos.map(({ id, rotulo }) => {

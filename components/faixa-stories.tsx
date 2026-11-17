@@ -62,8 +62,8 @@ function CartaoStory({ g, tipo, vistos, faixas, onAbrir }: { g: GrupoStories; ti
       data-a11y-nome="cartao"
       data-visto={visto ? "sim" : "nao"}
       data-tipo={tipo}
-      className={`relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-xl p-2.5 text-left transition-opacity ${visto ? "opacity-75" : ""} ${
-        destaque ? "ring-2 ring-brand ring-offset-2 ring-offset-night-900" : ""
+      className={`tema-escuro relative flex text-white aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-xl p-2.5 text-left transition-opacity ${visto ? "opacity-75" : ""} ${
+        destaque ? "ring-2 ring-brand ring-offset-2 ring-offset-fundo" : ""
       }`}
       style={{ background: g.isPlatform ? undefined : capaGerada(g.authorName).fundo }}
     >

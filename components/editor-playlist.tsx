@@ -248,7 +248,7 @@ export function EditorPlaylist({
           <span className="block truncate font-medium">{f.title}</span>
           <span className="block truncate text-sm text-[var(--ds-texto-2)]">{f.artistName}</span>
         </span>
-        <button type="button" onClick={() => adicionar(f)} aria-label={`Adicionar ${f.title}`} className="grid size-11 shrink-0 place-items-center rounded-full bg-brand text-night-900 transition-transform active:scale-90">
+        <button type="button" onClick={() => adicionar(f)} aria-label={`Adicionar ${f.title}`} className="grid size-11 shrink-0 place-items-center rounded-full bg-brand text-sobre-destaque transition-transform active:scale-90">
           <Plus className="size-5" aria-hidden="true" />
         </button>
       </li>
@@ -285,7 +285,7 @@ export function EditorPlaylist({
         className={`${campo} resize-none`}
       />
 
-      {aviso && <p role="alert" className="rounded-lg bg-white/10 px-3 py-2 text-sm">{aviso}</p>}
+      {aviso && <p role="alert" className="rounded-lg bg-tinta/10 px-3 py-2 text-sm">{aviso}</p>}
 
       {faixas.length === 0 ? (
         <p className="text-[var(--ds-texto-2)] text-pretty">Playlist vazia. Toque em &quot;Adicionar faixas&quot; para começar.</p>
@@ -299,7 +299,7 @@ export function EditorPlaylist({
 
       {tema && (
         <BannerTema tema={tema}>
-          <div className="-mx-4 -mb-4 border-t border-white/10">
+          <div className="-mx-4 -mb-4 border-t border-tinta/10">
             <Interruptor
               titulo="Tema da semana"
               apoio={publicada ? "Sua playlist aparece no tema, no hub de playlists." : "Ao publicar, ela aparece no tema, no hub de playlists."}
@@ -328,7 +328,7 @@ export function EditorPlaylist({
       <PainelInferior aberto={!!curando} aoFechar={() => setCurando(null)} titulo={curando ? curando.title : "Curadoria"}>
         {curando && (
           <div className="flex flex-col gap-4" data-testid="painel-curadoria">
-            <div className="divide-y divide-white/10 rounded-xl bg-white/5">
+            <div className="divide-y divide-tinta/10 rounded-xl bg-tinta/5">
               <Interruptor
                 titulo="Destacar"
                 apoio="Aparece em Em destaque, no topo da playlist."
@@ -493,10 +493,10 @@ function ListaEditavel({
               </span>
               <span className="block truncate text-sm text-[var(--ds-texto-2)]">{c.note ? <span className="italic">“{c.note}”</span> : f.artistName}</span>
             </span>
-            <button type="button" onClick={() => abrirCuradoria(f)} aria-label={`Curadoria de ${f.title}: nota, destacar, ocultar`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-white/10" data-testid="abrir-curadoria">
+            <button type="button" onClick={() => abrirCuradoria(f)} aria-label={`Curadoria de ${f.title}: nota, destacar, ocultar`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-tinta/10" data-testid="abrir-curadoria">
               <MoreHorizontal className="size-5" aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => remover(f)} aria-label={`Remover ${f.title}`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-white/10">
+            <button type="button" onClick={() => remover(f)} aria-label={`Remover ${f.title}`} className="grid size-11 shrink-0 place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-tinta/10">
               <Trash2 className="size-4" aria-hidden="true" />
             </button>
             <button
@@ -510,7 +510,7 @@ function ListaEditavel({
                 if (e.key === "ArrowDown" && i < faixas.length - 1) { e.preventDefault(); mover(i, i + 1); }
               }}
               aria-label={`Mover ${f.title} (posição ${i + 1} de ${faixas.length}; setas para cima e para baixo)`}
-              className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-white/10 active:cursor-grabbing"
+              className="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-[var(--ds-texto-2)] hover:bg-tinta/10 active:cursor-grabbing"
             >
               <GripVertical className="size-5" aria-hidden="true" />
             </button>

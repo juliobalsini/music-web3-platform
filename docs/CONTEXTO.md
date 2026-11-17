@@ -10,22 +10,20 @@ execuções antigas): `docs/historico/CONTEXTO-AAAA-MM.md`, não lido por padrã
 - **Banco:** Supabase `radioon` (us-west-2), RLS em todas as tabelas; última migration `20261116000000` (aplicada).
 - **Áudio:** B2 + proxy `radioon-audio.radioon.workers.dev` (cache em KV) ligado desde 2026-11-14 (DECISIONS 93).
 - **Entregue:** ciclos 0–5, Fase UX, redesenho mobile, Fases A–C, Stories v2, Navegação v2, Configurações fatia 1,
-  Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso). CI verde na `main`.
-- **Sprint 2026-47** (#167) aprovado e replanejado pelo Julio (foco no beta). PR protegido da semana: #154 (mergeado);
-  o da #188 (caminho rápido no gate, prompt, Dependabot majors) é o 2º da semana, pedido pelo Julio na própria #188.
+  Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso), Aparência (destaque,
+  texto maior, animações, tema claro/automático). CI verde na `main`.
+- **Sprint 2026-47** (#167) aprovado e replanejado pelo Julio (foco no beta). PRs protegidos da semana: #154 e #191 (mergeados).
 
 ## Fila
 
 Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloqueado. Ordem do Sprint 2026-47.
 
-- [~] **#188 Eficiência do agente (urgente).** Parte A (docs, regras no CLAUDE.md, dieta de contexto, PLANO.md; DECISIONS 115)
-  no PR `item-188-eficiencia`. Parte B (protegida, PR `item-188-gate-rapido`): caminho rápido do gate para PR só de `.md`,
-  `ignoreCommand` da Vercel (só produção), prompt do `autonomo.yml` enxuto, Dependabot #88–#90 — aguarda `travas`.
-  Item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
+- [~] **#188 Eficiência do agente (urgente).** Partes A (#190) e B (#191, protegida) em produção; #88–#90 fechados.
+  Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
-- [~] **#125 Perfil e Configurações v2** — Aparência (destaque, texto maior, reduzir animações; DECISIONS 116) no PR
-  `item-125-aparencia`. Faltam: tema claro/automático (migrar ~370 classes de cor fixa para tokens), Som (equalizador), Seus gostos,
-  exportar dados, foto própria (`covers/`), itens 1–4, 6 e 7.
+- [~] **#125 Perfil e Configurações v2** — Aparência completa (destaque, texto maior, animações; tema claro/automático no PR
+  `item-125-tema-claro`, DECISIONS 117). Faltam: Som (equalizador), Seus gostos, exportar dados, foto própria (`covers/`),
+  itens 1–4, 6 e 7.
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -34,13 +32,12 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. PR protegido #191 (parte B da #188) mergeado? Conferir num PR só de `.md` que `validar`/`e2e` são pulados e `gate-ok` fica
-   verde; fechar #88–#90 e a #188 (resta só o item 6 em 2026-11-23). Após o #191, commit só de `.md` na `main` não gera deploy
-   de produção: não esperar `/api/health` com o commit novo nesses casos.
-2. **#125, tema claro:** trocar classes fixas por tokens (`grep -rhoE '(text|bg|border)-(white|black|night-[0-9]+)' app components`;
-   `text-white`→`text-[var(--ds-texto)]`, `bg-night-900`→`bg-[var(--ds-bg)]`, `body` em `app/globals.css`), então ligar
-   `data-tema` em `lib/preferencias/rules.ts` + `components/aparencia.tsx` (auto via `matchMedia`) e a opção em
-   `components/configuracoes.tsx`. Depois: Som (BiquadFilter no `player-provider`, só com proxy).
+1. Conferir se o PR `item-125-tema-claro` mergeou e o deploy subiu (`/api/health`). Telas novas usam `tinta`/`fundo`/
+   `sobre-destaque` (docs/design-system.md), nunca `text-white`/`bg-night-*`; telas sobre capa/foto levam `.tema-escuro`.
+2. **#125, Som:** equalizador simples (3 bandas, `BiquadFilterNode`) em `components/player-provider.tsx`, só quando o áudio
+   vem do proxy (CORS); preferência `eq` em `lib/preferencias/rules.ts` (lista fechada, sem migration) e opção em
+   `components/configuracoes.tsx`. Depois: exportar dados (rota GET JSON das próprias linhas, RLS) e Seus gostos.
+3. #122: avaliar sessão simulada no E2E para o editor de playlist logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -62,6 +59,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-17 (37ª) — #192 fechada (#191 mergeado). #125 tema claro/automático no PR `item-125-tema-claro` (sem migration).
 - 2026-11-16 (35ª) — #185 (skills de qualidade, axe, Lighthouse) em produção (PR #186).
 - 2026-11-16 (36ª) — Caixa de entrada: pacotes das 14:49–14:55 viraram #188 (urgente) e #189 (logo pausada); replanejamento
   das 15:02 aplicado (Sprint #167, label `pausado`). #188 parte A no PR `item-188-eficiencia`; parte B em PR protegido.

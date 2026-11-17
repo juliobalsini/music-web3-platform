@@ -141,7 +141,7 @@ export function BotaoGoogle({ next, reserva }: { next: string; reserva: ReactNod
         aria-busy={estado === "carregando" || entrando}
         className="flex min-h-11 w-full items-center justify-center [color-scheme:light]"
       />
-      {entrando && <p role="status" className="text-center text-sm text-white/70">Entrando…</p>}
+      {entrando && <p role="status" className="text-center text-sm text-tinta/70">Entrando…</p>}
       {erro && <Mensagem tipo="erro">{erro}</Mensagem>}
       {/* Se o token for recusado, o caminho antigo (redirecionamento) fica à mão. */}
       {erro && reserva}

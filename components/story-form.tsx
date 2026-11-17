@@ -81,17 +81,17 @@ export function StoryForm({ faixas }: { faixas: FaixaDoStory[] }) {
 
   return (
     <form onSubmit={enviar} className="flex flex-col gap-4" aria-busy={enviando}>
-      <label className="flex flex-col gap-1 text-sm text-white/70">
+      <label className="flex flex-col gap-1 text-sm text-tinta/70">
         Texto
         <textarea value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={MAX_TEXTO} rows={4} placeholder="O que você quer contar?" className={campo} />
         <span className="self-end tabular-nums">{texto.length}/{MAX_TEXTO}</span>
       </label>
-      <label className="flex flex-col gap-1 text-sm text-white/70">
+      <label className="flex flex-col gap-1 text-sm text-tinta/70">
         Imagem (opcional)
-        <input name="imagem" type="file" accept="image/*,.jpg,.jpeg,.png,.webp" aria-label="Imagem (opcional)" className={`${campo} text-white`} />
+        <input name="imagem" type="file" accept="image/*,.jpg,.jpeg,.png,.webp" aria-label="Imagem (opcional)" className={`${campo} text-tinta`} />
         <span>Reduzimos no aparelho. Sem vídeo por enquanto.</span>
       </label>
-      <label className="flex flex-col gap-1 text-sm text-white/70">
+      <label className="flex flex-col gap-1 text-sm text-tinta/70">
         Trecho de uma faixa (opcional)
         <select value={trackId} onChange={(e) => setTrackId(e.target.value)} className={campo} aria-label="Faixa do trecho">
           <option value="">Sem trecho</option>
@@ -101,7 +101,7 @@ export function StoryForm({ faixas }: { faixas: FaixaDoStory[] }) {
         </select>
       </label>
       {faixa && maxInicio > 0 && (
-        <label className="flex flex-col gap-1 text-sm text-white/70">
+        <label className="flex flex-col gap-1 text-sm text-tinta/70">
           Começa no segundo
           <input name="inicio" type="number" min={0} max={maxInicio} defaultValue={0} className={campo} aria-label="Início do trecho em segundos" />
         </label>

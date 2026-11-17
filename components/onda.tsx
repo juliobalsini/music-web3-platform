@@ -28,7 +28,7 @@ export function Onda({ id }: { id: string }) {
           <span
             key={i}
             style={{ height: `${a * 100}%` }}
-            className={`flex-1 rounded-full ${i / BARRAS < pct ? "bg-brand" : "bg-white/25"}`}
+            className={`flex-1 rounded-full ${i / BARRAS < pct ? "bg-brand" : "bg-tinta/25"}`}
           />
         ))}
       </div>

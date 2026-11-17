@@ -55,7 +55,7 @@ function Playlisters({ lista }: { lista: Hub["playlisters"] }) {
         {lista.map((p) => (
           <li key={p.id} className="w-24 shrink-0">
             <Link href={`/perfil/${p.id}`} className="flex flex-col items-center gap-1 rounded-lg py-1 text-center">
-              <span aria-hidden="true" style={{ background: capaGerada(p.name).fundo }} className="flex size-16 items-center justify-center rounded-full text-2xl font-bold text-white">
+              <span aria-hidden="true" style={{ background: capaGerada(p.name).fundo }} className="flex size-16 items-center justify-center rounded-full text-2xl font-bold text-tinta">
                 {p.name.charAt(0).toUpperCase()}
               </span>
               <span className="w-full truncate text-sm font-semibold">{p.name}</span>
@@ -76,9 +76,9 @@ function Playlistados({ lista }: { lista: Hub["playlistados"] }) {
       <ol aria-label="Ranking de artistas" className="flex flex-col divide-y divide-[var(--ds-borda)] rounded-[var(--ds-raio)] bg-[var(--ds-surface)]">
         {lista.map((a) => (
           <li key={a.id}>
-            <Link href={`/perfil/${a.id}`} className="flex min-h-14 items-center gap-3 px-3 py-2 hover:bg-white/5">
+            <Link href={`/perfil/${a.id}`} className="flex min-h-14 items-center gap-3 px-3 py-2 hover:bg-tinta/5">
               <span
-                className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${a.posicao <= 3 ? "bg-brand text-night-900" : "border border-[var(--ds-borda)] text-[var(--ds-texto-2)]"}`}
+                className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${a.posicao <= 3 ? "bg-brand text-sobre-destaque" : "border border-[var(--ds-borda)] text-[var(--ds-texto-2)]"}`}
               >
                 {a.posicao}º
               </span>
@@ -101,9 +101,9 @@ export function MonteSuaPlaylist() {
       href="/playlist/nova"
       motivo="Entre para criar e publicar suas playlists."
       data-testid="criar-playlist"
-      className="foco-claro flex min-h-20 items-center gap-4 rounded-[var(--ds-raio)] bg-gradient-to-br from-brand to-brand-2 px-4 py-3 text-night-900"
+      className="foco-claro flex min-h-20 items-center gap-4 rounded-[var(--ds-raio)] bg-gradient-to-br from-brand to-brand-2 px-4 py-3 text-sobre-destaque"
     >
-      <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-night-900/15">
+      <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-fundo/15">
         <ListPlus className="size-6" />
       </span>
       <span className="min-w-0 flex-1">

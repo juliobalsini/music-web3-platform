@@ -15,7 +15,7 @@ export function Albuns({ lista, titulo = "Álbuns e EPs" }: { lista: AlbumResumo
             <Link href={`/album/${a.id}`} className="flex flex-col gap-1.5 rounded-xl">
               <Capa id={a.faixas[0].id} title={a.title} hasCover={a.faixas[0].hasCover} className="aspect-square w-full !rounded-xl" />
               <span className="line-clamp-2 text-sm font-semibold leading-tight">{a.title}</span>
-              <span className="truncate text-xs text-white/70">
+              <span className="truncate text-xs text-tinta/70">
                 {a.kind === "ep" ? "EP" : "Álbum"} · {a.artistName}
               </span>
             </Link>

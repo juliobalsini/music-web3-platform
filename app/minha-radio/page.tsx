@@ -21,7 +21,7 @@ function SecaoTitulo({ titulo, href, rotulo }: { titulo: string; href: string; r
   return (
     <div className="flex items-center justify-between gap-3">
       <h2 className="text-lg font-bold">{titulo}</h2>
-      <Link href={href} aria-label={rotulo} className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
+      <Link href={href} aria-label={rotulo} className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-sobre-destaque">
         <Plus className="size-5" aria-hidden="true" />
       </Link>
     </div>
@@ -85,7 +85,7 @@ async function Conteudo() {
       <section aria-label="Meta de hoje" className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-semibold">Meta de hoje</h2>
-          <p className="text-sm text-white/70 tabular-nums" data-testid="meta">
+          <p className="text-sm text-tinta/70 tabular-nums" data-testid="meta">
             {hoje} de {cfg.dailyLimit} pontos
           </p>
         </div>
@@ -95,16 +95,16 @@ async function Conteudo() {
           aria-valuemin={0}
           aria-valuemax={cfg.dailyLimit}
           aria-valuenow={Math.min(hoje, cfg.dailyLimit)}
-          className="h-3 overflow-hidden rounded-full bg-white/10"
+          className="h-3 overflow-hidden rounded-full bg-tinta/10"
         >
           <div className="h-full rounded-full bg-brand" style={{ width: `${meta}%` }} />
         </div>
         {erroPontos ? (
           <Mensagem>Pontos indisponíveis agora. Tente de novo em instantes.</Mensagem>
         ) : extrato.length === 0 ? (
-          <p className="text-sm text-white/70 text-pretty">Sem pontos ainda. Ouça uma faixa por 30 segundos e ganhe os primeiros.</p>
+          <p className="text-sm text-tinta/70 text-pretty">Sem pontos ainda. Ouça uma faixa por 30 segundos e ganhe os primeiros.</p>
         ) : hoje >= cfg.dailyLimit ? (
-          <p className="text-sm text-white/70">Meta batida. Os pontos voltam amanhã.</p>
+          <p className="text-sm text-tinta/70">Meta batida. Os pontos voltam amanhã.</p>
         ) : null}
       </section>
 
@@ -121,7 +121,7 @@ async function Conteudo() {
       </ul>
 
       {resumo.minutos > 0 && total === 0 && (
-        <p data-testid="regra-sem-pontos" className="rounded-lg bg-white/10 px-4 py-3 text-sm text-white/80 text-pretty">
+        <p data-testid="regra-sem-pontos" className="rounded-lg bg-tinta/10 px-4 py-3 text-sm text-tinta/80 text-pretty">
           Você ouviu {resumo.minutos} min sem ganhar pontos. Pontos vêm de faixas de outros artistas, com 30 segundos seguidos, até 3 vezes por faixa ao dia, dentro do limite diário.
         </p>
       )}
@@ -145,25 +145,25 @@ async function Conteudo() {
           <section aria-label="Resumo da semana" className="flex flex-col gap-2">
             <h2 className="text-lg font-bold">Resumo da semana</h2>
             {semana.escutas === 0 ? (
-              <p className="text-sm text-white/70 text-pretty">Ouça algumas faixas e veja aqui seus artistas e gêneros da semana.</p>
+              <p className="text-sm text-tinta/70 text-pretty">Ouça algumas faixas e veja aqui seus artistas e gêneros da semana.</p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-1 rounded-xl bg-white/10 p-3">
+                <div className="flex flex-col gap-1 rounded-xl bg-tinta/10 p-3">
                   <h3 className="text-sm font-semibold text-brand">Artistas</h3>
                   <ol className="flex flex-col gap-0.5 text-sm">
                     {semana.artistas.map((a) => (
-                      <li key={a.id} className="flex justify-between gap-2"><span className="truncate">{a.nome}</span><span className="tabular-nums text-white/70">{a.escutas}</span></li>
+                      <li key={a.id} className="flex justify-between gap-2"><span className="truncate">{a.nome}</span><span className="tabular-nums text-tinta/70">{a.escutas}</span></li>
                     ))}
                   </ol>
                 </div>
-                <div className="flex flex-col gap-1 rounded-xl bg-white/10 p-3">
+                <div className="flex flex-col gap-1 rounded-xl bg-tinta/10 p-3">
                   <h3 className="text-sm font-semibold text-brand">Gêneros</h3>
                   {semana.generos.length === 0 ? (
-                    <p className="text-sm text-white/70">Sem gênero informado.</p>
+                    <p className="text-sm text-tinta/70">Sem gênero informado.</p>
                   ) : (
                     <ol className="flex flex-col gap-0.5 text-sm">
                       {semana.generos.map((g) => (
-                        <li key={g.id} className="flex justify-between gap-2"><span className="truncate">{rotuloGenero(g.id) ?? g.id}</span><span className="tabular-nums text-white/70">{g.escutas}</span></li>
+                        <li key={g.id} className="flex justify-between gap-2"><span className="truncate">{rotuloGenero(g.id) ?? g.id}</span><span className="tabular-nums text-tinta/70">{g.escutas}</span></li>
                       ))}
                     </ol>
                   )}
@@ -175,17 +175,17 @@ async function Conteudo() {
           <section aria-label="Minhas faixas" className="flex flex-col gap-2">
             <SecaoTitulo titulo="Minhas faixas" href="/enviar" rotulo="Enviar música" />
             {role !== "artist" ? (
-              <p className="text-white/70 text-pretty">Artista? Envie sua primeira música: o perfil de artista é ativado na hora.</p>
+              <p className="text-tinta/70 text-pretty">Artista? Envie sua primeira música: o perfil de artista é ativado na hora.</p>
             ) : minhasFaixas === null ? (
               <Mensagem>Suas faixas estão indisponíveis agora. Tente de novo em instantes.</Mensagem>
             ) : minhasFaixas.length === 0 ? (
-              <p className="text-white/70 text-pretty">Nenhuma faixa publicada ainda. Suas escutas aparecem aqui.</p>
+              <p className="text-tinta/70 text-pretty">Nenhuma faixa publicada ainda. Suas escutas aparecem aqui.</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {minhasFaixas.map(({ faixa, metrica }) => (
                   <li key={faixa.id} className={`${linha} flex-wrap`}>
                     <span className="min-w-0 flex-1 basis-40 truncate font-medium">{faixa.title}</span>
-                    <span className="shrink-0 text-sm text-white/70 tabular-nums">
+                    <span className="shrink-0 text-sm text-tinta/70 tabular-nums">
                       {metrica.escutas} escutas · {metrica.ouvintes} ouvintes
                     </span>
                   </li>
@@ -197,14 +197,14 @@ async function Conteudo() {
           <section aria-label="Minhas playlists" className="flex flex-col gap-2">
             <SecaoTitulo titulo="Minhas playlists" href="/playlist/nova" rotulo="Criar playlist" />
             {(minhasPlaylists ?? []).length === 0 ? (
-              <p className="text-white/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
+              <p className="text-tinta/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {(minhasPlaylists ?? []).map((p) => (
                   <li key={p.id}>
                     <Link href={`/playlist/${p.id}`} className={`${linha} min-h-12`}>
                       <span className="truncate font-medium">{p.title}</span>
-                      <span className="shrink-0 text-sm text-white/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
+                      <span className="shrink-0 text-sm text-tinta/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
                     </Link>
                   </li>
                 ))}
@@ -215,7 +215,7 @@ async function Conteudo() {
           <section aria-label="Meus stories" className="flex flex-col gap-2">
             <SecaoTitulo titulo="Meus stories" href={publicaStory ? "/stories/novo" : "/onboarding"} rotulo={publicaStory ? "Novo story" : "Escolher perfil para publicar"} />
             {(meusStories ?? []).length === 0 ? (
-              <p className="text-white/70 text-pretty">{publicaStory ? "Nenhum story ainda. Toque em + para publicar o primeiro." : "Artistas e playlisters publicam stories. Escolha um perfil para começar."}</p>
+              <p className="text-tinta/70 text-pretty">{publicaStory ? "Nenhum story ainda. Toque em + para publicar o primeiro." : "Artistas e playlisters publicam stories. Escolha um perfil para começar."}</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {(meusStories ?? []).map((st) => {
@@ -223,7 +223,7 @@ async function Conteudo() {
                   const conteudo = (
                     <>
                       <span className="min-w-0 truncate font-medium">{st.body || "Story sem texto"}</span>
-                      <span className="shrink-0 text-sm text-white/70">{estado}</span>
+                      <span className="shrink-0 text-sm text-tinta/70">{estado}</span>
                     </>
                   );
                   return (
@@ -246,7 +246,7 @@ async function Conteudo() {
               <li key={l.id} className={linha}>
                 <span className="flex flex-col">
                   <span>{motivos[l.reason] ?? l.reason}</span>
-                  <time dateTime={l.created_at} className="text-sm text-white/70">
+                  <time dateTime={l.created_at} className="text-sm text-tinta/70">
                     {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                   </time>
                 </span>

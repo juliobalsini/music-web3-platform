@@ -14,7 +14,7 @@ async function Conteudo() {
   return (
     <>
       <h1 className="text-2xl font-semibold text-balance">Nova playlist</h1>
-      <p className="text-white/70 text-pretty">Ela começa como rascunho privado. Você monta e só publica quando quiser.</p>
+      <p className="text-tinta/70 text-pretty">Ela começa como rascunho privado. Você monta e só publica quando quiser.</p>
       <NovaPlaylist />
     </>
   );

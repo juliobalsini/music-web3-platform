@@ -6,6 +6,11 @@
   /* Seguem a cor de destaque escolhida em Configurações > Aparência (âmbar por padrão). */
   --color-brand: var(--ds-destaque);
   --color-brand-2: var(--ds-destaque-2);
+  /* Tema (Configurações > Aparência): tinta = texto/ícones base, fundo = página, sobre-destaque = texto em botão de destaque. */
+  --color-tinta: var(--ds-texto);
+  --color-fundo: var(--ds-bg);
+  --color-fundo-2: var(--ds-bg-2);
+  --color-sobre-destaque: var(--ds-sobre-destaque);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -15,8 +20,8 @@ html {
 }
 
 body {
-  background: #00112a;
-  color: #ffffff;
+  background: var(--ds-bg);
+  color: var(--ds-texto);
   /* Cor ambiente: a faixa atual a redefine (components/ambiente.tsx). Base marinho + âmbar. */
   --ambiente: #e89a3c;
 }
@@ -30,7 +35,7 @@ body::before {
   pointer-events: none;
   background:
     radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--ambiente) 15%, transparent), transparent 70%),
-    linear-gradient(180deg, #00112a 0%, #062244 100%);
+    linear-gradient(180deg, var(--ds-bg) 0%, var(--ds-bg-2) 100%);
   transition: background 1.2s ease;
 }
 
@@ -41,7 +46,7 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.07;
+  opacity: var(--ds-grao, 0.07);
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
@@ -66,6 +71,7 @@ body::after {
    no <html> trocam tema e cor de destaque (issue de Configurações). Estados e cores nunca dependem só da cor. */
 :root {
   --ds-bg: #00112a;
+  --ds-bg-2: #062244;
   --ds-surface: rgb(255 255 255 / 0.08);
   --ds-surface-2: rgb(255 255 255 / 0.14);
   --ds-texto: #ffffff;
@@ -90,6 +96,8 @@ body::after {
 :root[data-tema="claro"] {
   color-scheme: light;
   --ds-bg: #f6f8fc;
+  --ds-bg-2: #e3eaf5;
+  --ds-grao: 0;
   --ds-surface: rgb(0 17 42 / 0.06);
   --ds-surface-2: rgb(0 17 42 / 0.12);
   --ds-texto: #00112a;
@@ -110,6 +118,29 @@ body::after {
 :root[data-tema="claro"][data-destaque="verde"] { --ds-destaque: #0b6b3a; --ds-destaque-2: #095530; }
 :root[data-tema="claro"][data-destaque="rosa"] { --ds-destaque: #b0235e; --ds-destaque-2: #8e1c4c; }
 :root[data-tema="claro"][data-destaque="lilas"] { --ds-destaque: #6a3fd0; --ds-destaque-2: #5530b0; }
+
+/* Telas imersivas sobre capa ou foto (player cheio, stories, "No ar"): sempre escuras, mesmo no tema claro.
+   O destaque segue o tema da página (par destaque/sobre-destaque já tem contraste). */
+.tema-escuro {
+  color-scheme: dark;
+  --ds-bg: #00112a;
+  --ds-bg-2: #062244;
+  --ds-surface: rgb(255 255 255 / 0.08);
+  --ds-surface-2: rgb(255 255 255 / 0.14);
+  --ds-texto: #ffffff;
+  --ds-texto-2: rgb(255 255 255 / 0.74);
+  --ds-borda: rgb(255 255 255 / 0.16);
+  --ds-ok: #6ee7a8;
+  --ds-erro: #ff8a80;
+  --ds-aviso: #f4b562;
+}
+
+/* Logo: variante com "radio" em marinho no tema claro (fora das telas imersivas). */
+.logo-claro { display: none; }
+:root[data-tema="claro"] .logo-claro { display: revert; }
+:root[data-tema="claro"] .logo-escuro { display: none; }
+:root[data-tema="claro"] .tema-escuro .logo-claro { display: none; }
+:root[data-tema="claro"] .tema-escuro .logo-escuro { display: revert; }
 
 /* Configurações > Aparência: texto maior (rem escala tudo junto). */
 :root[data-texto="maior"] { font-size: 112.5%; }
@@ -143,14 +174,19 @@ body::after {
 /* Superfícies do navegador que também carregam a marca. */
 ::selection {
   background: var(--ds-destaque);
-  color: #00112a;
+  color: var(--ds-sobre-destaque);
 }
 
 input,
 textarea,
 select {
   caret-color: var(--ds-destaque);
-  color-scheme: dark;
+}
+
+/* Select nativo (Windows): fundo e texto explícitos por tema. */
+select option {
+  background-color: var(--ds-bg);
+  color: var(--ds-texto);
 }
 
 :focus-visible {
@@ -158,13 +194,13 @@ select {
   outline-offset: 2px;
 }
 
-/* Foco sobre laranja precisa de contraste: contorno branco. */
+/* Foco sobre o destaque precisa de contraste: contorno na cor do texto (branco no escuro, marinho no claro). */
 .foco-claro:focus-visible {
-  outline-color: #ffffff;
+  outline-color: var(--ds-texto);
 }
 
 html {
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  scrollbar-color: color-mix(in srgb, var(--ds-texto) 30%, transparent) transparent;
 }
 
 input[type="file"]::file-selector-button {
@@ -172,7 +208,7 @@ input[type="file"]::file-selector-button {
   border: 0;
   border-radius: 6px;
   background: var(--ds-destaque);
-  color: #00112a;
+  color: var(--ds-sobre-destaque);
   font-weight: 600;
   padding: 6px 12px;
   cursor: pointer;

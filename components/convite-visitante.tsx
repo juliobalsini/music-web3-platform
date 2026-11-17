@@ -19,17 +19,17 @@ export function ConviteVisitante({ compacto = false }: { compacto?: boolean }) {
       {!compacto && <Logo className="h-28 w-auto" />}
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-bold text-balance">{compacto ? "Seus pontos estão só neste aparelho" : "Entre para fazer parte"}</h2>
-        <p className="text-white/70 text-pretty">Ouvir é livre. Com uma conta, nada se perde.</p>
+        <p className="text-tinta/70 text-pretty">Ouvir é livre. Com uma conta, nada se perde.</p>
       </div>
       <ul className="grid w-full gap-2">
         {beneficios.map(({ Icone, titulo, texto }) => (
-          <li key={titulo} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 text-left">
-            <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
+          <li key={titulo} className="flex items-center gap-3 rounded-xl bg-tinta/10 px-4 py-3 text-left">
+            <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-sobre-destaque">
               <Icone className="size-5" />
             </span>
             <span className="flex flex-col">
               <span className="font-semibold">{titulo}</span>
-              <span className="text-sm text-white/70">{texto}</span>
+              <span className="text-sm text-tinta/70">{texto}</span>
             </span>
           </li>
         ))}
@@ -39,7 +39,7 @@ export function ConviteVisitante({ compacto = false }: { compacto?: boolean }) {
         <BotaoGoogle
           next="/minha-radio"
           reserva={
-            <button className={`${botao} !bg-none !bg-white !text-night-900`}>
+            <button className={`${botao} !bg-none !bg-white !text-night-900 ring-1 ring-inset ring-[var(--ds-borda)]`}>
               <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
             </button>
           }

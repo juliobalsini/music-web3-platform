@@ -22,6 +22,11 @@ describe("design system", () => {
       assert.match(css, new RegExp(`\\[data-tema="claro"\\]\\[data-destaque="${c}"\\]`));
     }
     assert.match(css, /--color-brand: var\(--ds-destaque\)/);
+    // Tema claro: utilitários de cor seguem tokens; telas imersivas ficam escuras.
+    for (const t of ["tinta: var(--ds-texto)", "fundo: var(--ds-bg)", "fundo-2: var(--ds-bg-2)", "sobre-destaque: var(--ds-sobre-destaque)"]) {
+      assert.ok(css.includes(`--color-${t}`), t);
+    }
+    assert.match(css, /\.tema-escuro \{/);
     assert.match(css, /:root\[data-movimento="reduzido"\]/);
     assert.match(css, /:root\[data-texto="maior"\]/);
     assert.match(css, /prefers-reduced-motion: reduce/);

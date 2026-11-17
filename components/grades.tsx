@@ -13,7 +13,7 @@ function CartaoPlaylist({ href, titulo, sub, capa }: { href: string; titulo: str
     <Link href={href} className="flex flex-col gap-1.5 rounded-xl">
       {capa ? <Capa id={capa.id} title={titulo} hasCover={capa.hasCover} className="aspect-square w-full !rounded-xl" /> : <CapaArte title={titulo} className="aspect-square w-full !rounded-xl" />}
       <span className="line-clamp-2 text-sm font-semibold leading-tight">{titulo}</span>
-      <span className="truncate text-xs text-white/70">{sub}</span>
+      <span className="truncate text-xs text-tinta/70">{sub}</span>
     </Link>
   );
 }
@@ -28,7 +28,7 @@ export function GradePlaylists({ selecao, playlists, hub }: { selecao: Selecao[]
       <section aria-label="Todas as playlists" className="flex flex-col gap-2">
         <h2 className="text-lg font-bold">Todas as playlists</h2>
         {playlists.length === 0 ? (
-          <p className="text-white/70">Nenhuma playlist de playlister ainda.</p>
+          <p className="text-tinta/70">Nenhuma playlist de playlister ainda.</p>
         ) : (
           <ul className="grid grid-cols-2 gap-3">
             {playlists.map((p) => (
@@ -54,7 +54,7 @@ export function GradeAlbuns({ lista }: { lista: AlbumResumo[] }) {
             <Link href={`/album/${a.id}`} className="flex flex-col gap-1.5 rounded-xl">
               <Capa id={a.faixas[0].id} title={a.title} hasCover={a.faixas[0].hasCover} className="aspect-square w-full !rounded-xl" />
               <span className="line-clamp-2 text-sm font-semibold leading-tight">{a.title}</span>
-              <span className="truncate text-xs text-white/70">
+              <span className="truncate text-xs text-tinta/70">
                 {a.artistName} · {new Date(a.createdAt).getUTCFullYear()}
               </span>
             </Link>

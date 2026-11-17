@@ -13,7 +13,7 @@ export function BannerTema({ tema, children }: { tema: Tema; children?: React.Re
   return (
     <div
       data-testid="banner-tema"
-      className="relative overflow-hidden rounded-[var(--ds-raio)] bg-night-800 px-4 py-4 shadow-[0_2px_10px_rgb(0_0_0/0.25)]"
+      className="relative overflow-hidden rounded-[var(--ds-raio)] bg-fundo-2 px-4 py-4 shadow-[0_2px_10px_rgb(0_0_0/0.25)]"
     >
       <span aria-hidden="true" className="pointer-events-none absolute -right-8 -top-10 size-36 rounded-full bg-brand/25 blur-2xl" />
       <div className="relative flex items-start gap-3">
@@ -54,7 +54,7 @@ export function TemaDaSemana({ tema }: { tema: Hub["tema"] }) {
         <LinkConta
           href="/playlist/nova"
           motivo="Entre para criar uma playlist com o tema da semana."
-          className="foco-claro inline-flex min-h-11 items-center gap-2 rounded-full bg-brand px-4 text-sm font-bold text-night-900 transition-colors hover:bg-brand-2"
+          className="foco-claro inline-flex min-h-11 items-center gap-2 rounded-full bg-brand px-4 text-sm font-bold text-sobre-destaque transition-colors hover:bg-brand-2"
         >
           <ListPlus className="size-4" aria-hidden="true" /> Monte a sua
         </LinkConta>

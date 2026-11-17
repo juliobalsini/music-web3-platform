@@ -32,7 +32,7 @@ async function SelecaoPagina({ id }: { id: string }) {
       <RegistrarVisita tipo="playlist" id={sel.id} titulo={sel.title} sub={curador.nome} capaId={faixas[0]?.id ?? null} temCapa={faixas[0]?.hasCover ?? false} />
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold text-balance">{sel.title}</h1>
-        <p className="text-white/70">
+        <p className="text-tinta/70">
           Seleção de{" "}
           <Link data-testid="selecao-curador" href={`/perfil/${curador.id}`} className="inline-flex items-center gap-1 font-semibold text-brand underline-offset-2 hover:underline">
             {curador.nome}
@@ -100,10 +100,10 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
               </ChipStatus>
             </span>
           )}
-          {playlist.curator && <p className="text-white/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
+          {playlist.curator && <p className="text-tinta/70">Playlist de <Link href={`/perfil/${playlist.curatorId}`} className="font-semibold text-brand underline-offset-2 hover:underline">{playlist.curator}</Link></p>}
         </div>
       </div>
-      {playlist.description && <p className="text-white/80 text-pretty">{playlist.description}</p>}
+      {playlist.description && <p className="text-tinta/80 text-pretty">{playlist.description}</p>}
       <AcoesPlaylist
         id={id}
         titulo={playlist.title}
@@ -116,7 +116,7 @@ async function Conteudo({ params, searchParams }: Pick<PageProps<"/playlist/[id]
         abrirCompartilhar={sp.publicada === "1"}
       />
       {faixas.length === 0 ? (
-        <p className="text-white/70 text-pretty">Esta playlist ainda não tem faixas. Volte em breve.</p>
+        <p className="text-tinta/70 text-pretty">Esta playlist ainda não tem faixas. Volte em breve.</p>
       ) : (
         <>
           {destaques.length > 0 && (

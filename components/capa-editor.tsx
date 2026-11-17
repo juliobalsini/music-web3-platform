@@ -180,7 +180,7 @@ export function CapaEditor({
         data-testid="trocar-capa"
       >
         {children}
-        <span className="absolute -bottom-1.5 -right-1.5 grid size-9 place-items-center rounded-full bg-brand text-night-900 shadow-[0_2px_8px_rgb(0_0_0/0.35)] transition-transform duration-200 ease-out group-active:scale-90" aria-hidden="true">
+        <span className="absolute -bottom-1.5 -right-1.5 grid size-9 place-items-center rounded-full bg-brand text-sobre-destaque shadow-[0_2px_8px_rgb(0_0_0/0.35)] transition-transform duration-200 ease-out group-active:scale-90" aria-hidden="true">
           <Camera className="size-4" />
         </span>
       </button>
@@ -219,7 +219,7 @@ export function CapaEditor({
               />
               {/* Grade de terços: ajuda a enquadrar, some ao salvar (não vai para a imagem). */}
               <div className="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3" aria-hidden="true">
-                {Array.from({ length: 9 }, (_, i) => <span key={i} className="border-[0.5px] border-white/20" />)}
+                {Array.from({ length: 9 }, (_, i) => <span key={i} className="border-[0.5px] border-tinta/20" />)}
               </div>
             </div>
             <p className="flex items-center justify-center gap-1.5 text-sm text-[var(--ds-texto-2)]">

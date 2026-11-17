@@ -9,9 +9,9 @@ import { formatContagem, formatDuracao, type FaixaListada, type ItemRanking, typ
 
 const TENDENCIA: Record<Tendencia, { rotulo: string; Icone: typeof ChevronUp | null; cor: string }> = {
   up: { rotulo: "Subiu", Icone: ChevronUp, cor: "text-brand" },
-  down: { rotulo: "Desceu", Icone: ChevronDown, cor: "text-white/60" },
-  same: { rotulo: "Manteve", Icone: Minus, cor: "text-white/60" },
-  new: { rotulo: "Novo", Icone: null, cor: "text-night-900 bg-brand" },
+  down: { rotulo: "Desceu", Icone: ChevronDown, cor: "text-tinta/60" },
+  same: { rotulo: "Manteve", Icone: Minus, cor: "text-tinta/60" },
+  new: { rotulo: "Novo", Icone: null, cor: "text-sobre-destaque bg-brand" },
 };
 
 /** Lista densa: capa pequena, escutas, curtidas e duração; equalizador na faixa tocando. */
@@ -34,10 +34,10 @@ export function ListaFaixas({
 }) {
   const { atual, estado, tocar } = usePlayer();
   const itens = ranking ? ranking.map((r) => r.faixa) : (faixas ?? []);
-  if (itens.length === 0) return <p className="px-1 text-sm text-white/70">{vazio}</p>;
+  if (itens.length === 0) return <p className="px-1 text-sm text-tinta/70">{vazio}</p>;
   return (
     <>
-    {dica && <p className="px-1 pb-1 text-sm text-white/70">{dica}</p>}
+    {dica && <p className="px-1 pb-1 text-sm text-tinta/70">{dica}</p>}
     <ol aria-label={rotulo} className="flex flex-col">
       {itens.map((f, i) => {
         const item = ranking?.[i];
@@ -51,7 +51,7 @@ export function ListaFaixas({
               onClick={() => tocar(f, itens)}
               aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`}
               data-a11y-nome="cartao"
-              className={`flex min-h-16 w-full items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5 ${naFila ? "bg-white/5" : ""}`}
+              className={`flex min-h-16 w-full items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-tinta/5 ${naFila ? "bg-tinta/5" : ""}`}
             >
               {!item && numerar && (
                 <span aria-hidden="true" className="w-7 shrink-0 text-sm font-bold tabular-nums text-brand">{String(i + 1).padStart(2, "0")}</span>
@@ -73,9 +73,9 @@ export function ListaFaixas({
                   <span className="truncate">{f.title}</span>
                   {tocando && <Equalizador />}
                 </span>
-                <span className="block truncate text-sm text-white/70">{f.artistName}{f.playlister && numerar ? ` · escolha de ${f.playlister}` : ""}</span>
+                <span className="block truncate text-sm text-tinta/70">{f.artistName}{f.playlister && numerar ? ` · escolha de ${f.playlister}` : ""}</span>
               </span>
-              <span className="flex shrink-0 flex-col items-end gap-0.5 text-xs text-white/70 tabular-nums">
+              <span className="flex shrink-0 flex-col items-end gap-0.5 text-xs text-tinta/70 tabular-nums">
                 <span>{formatDuracao(f.durationSec)}</span>
                 <span className="flex items-center gap-2">
                   <span className="flex items-center gap-0.5"><Headphones className="size-3.5" aria-hidden="true" />{formatContagem(f.plays)}<span className="sr-only"> escutas</span></span>

@@ -106,14 +106,14 @@ export function RadioCliente({
 
   return (
     <>
-      <nav aria-label="Filtros" className="sticky top-0 z-20 -mx-4 flex gap-2 overflow-x-auto bg-night-900 px-4 py-2">
+      <nav aria-label="Filtros" className="sticky top-0 z-20 -mx-4 flex gap-2 overflow-x-auto bg-fundo px-4 py-2">
         {filtros.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => escolherFiltro(f.id)}
             aria-pressed={filtro === f.id}
-            className={`${chip} ${filtro === f.id ? "bg-brand text-night-900" : "bg-white/10 text-white hover:bg-white/15"}`}
+            className={`${chip} ${filtro === f.id ? "bg-brand text-sobre-destaque" : "bg-tinta/10 text-tinta hover:bg-tinta/15"}`}
           >
             {f.label}
           </button>
@@ -149,7 +149,7 @@ export function RadioCliente({
                 if (d !== 0) escolherAba(abaVizinha(aba, d));
               }}
             >
-              <div role="tablist" aria-label="Listas" className="mb-1 flex gap-1 border-b border-white/10">
+              <div role="tablist" aria-label="Listas" className="mb-1 flex gap-1 border-b border-tinta/10">
                 {ABAS.map((a) => (
                   <button
                     key={a.id}
@@ -157,7 +157,7 @@ export function RadioCliente({
                     role="tab"
                     aria-selected={aba === a.id}
                     onClick={() => escolherAba(a.id)}
-                    className={`flex min-h-11 items-center px-3 text-sm font-semibold ${aba === a.id ? "border-b-2 border-brand text-brand" : "text-white/70 hover:text-white"}`}
+                    className={`flex min-h-11 items-center px-3 text-sm font-semibold ${aba === a.id ? "border-b-2 border-brand text-brand" : "text-tinta/70 hover:text-tinta"}`}
                   >
                     {a.label}
                   </button>

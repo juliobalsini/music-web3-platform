@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- avatar externo (Google), sem otimizador (cota). */
 
-import { Check, TriangleAlert } from "lucide-react";
+import { Check, Moon, SunMedium, SunMoon, TriangleAlert } from "lucide-react";
 import { useActionState, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -10,7 +10,7 @@ import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos"
 import { BotaoEntrar } from "@/components/login-contextual";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
-import { DESTAQUES, PALAVRA_EXCLUIR, type Destaque, type Preferencias } from "@/lib/preferencias/rules";
+import { DESTAQUES, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Preferencias, type Tema } from "@/lib/preferencias/rules";
 import { MAX_BIO } from "@/lib/stories/bio";
 
 export type DadosConta = {
@@ -36,11 +36,48 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
 
 function Enviar({ children, perigo = false, desabilitado = false }: { children: ReactNode; perigo?: boolean; desabilitado?: boolean }) {
   const { pending } = useFormStatus();
-  const cor = perigo ? "!bg-none !bg-[var(--ds-erro)] !text-white" : "";
+  const cor = perigo ? "!bg-none !bg-[var(--ds-erro)] !text-sobre-destaque" : "";
   return (
     <button disabled={pending || desabilitado} className={`${botao} ${cor}`}>
       {pending ? "Salvando…" : children}
     </button>
+  );
+}
+
+const OPCAO_TEMA: Record<Tema, { nome: string; Icone: typeof Moon }> = {
+  escuro: { nome: "Escuro", Icone: Moon },
+  claro: { nome: "Claro", Icone: SunMedium },
+  auto: { nome: "Sistema", Icone: SunMoon },
+};
+
+/** Tema: rádios nativos em controle segmentado (setas do teclado, leitor de tela), alvos de 48 px. */
+function EscolherTema({ valor, aoMudar }: { valor: Tema; aoMudar: (t: Tema) => void }) {
+  return (
+    <fieldset className="flex flex-col gap-3 p-4">
+      <legend className="float-left mb-1 font-semibold">Tema</legend>
+      <div className="clear-left grid grid-cols-3 gap-1 rounded-[var(--ds-raio)] bg-[var(--ds-surface)] p-1">
+        {TEMAS.map((t) => {
+          const { nome, Icone } = OPCAO_TEMA[t];
+          return (
+            <label key={t} className="relative cursor-pointer">
+              <input
+                type="radio"
+                name="tema"
+                value={t}
+                checked={valor === t}
+                onChange={() => aoMudar(t)}
+                data-testid={`pref-tema-${t}`}
+                className="peer sr-only"
+              />
+              <span className="flex min-h-12 items-center justify-center gap-2 rounded-[calc(var(--ds-raio)-0.25rem)] text-sm font-semibold text-[var(--ds-texto-2)] transition-colors duration-[var(--ds-mov-rapido)] peer-checked:bg-[var(--ds-surface-2)] peer-checked:text-[var(--ds-texto)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ds-destaque)]">
+                <Icone className="size-4" aria-hidden="true" />
+                {nome}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -102,6 +139,7 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
     <div className="flex flex-col gap-8">
       <Secao titulo="Aparência">
         <div className={grupo}>
+          <EscolherTema valor={prefs.tema} aoMudar={(t) => mudar("tema", t)} />
           <EscolherDestaque valor={prefs.destaque} aoMudar={(d) => mudar("destaque", d)} />
           <Interruptor titulo="Texto maior" ligado={prefs.textoMaior} aoMudar={(v) => mudar("textoMaior", v)} testId="pref-texto-maior" />
           <Interruptor titulo="Reduzir animações" apoio="Telas sem movimento." ligado={prefs.reduzirAnimacoes} aoMudar={(v) => mudar("reduzirAnimacoes", v)} testId="pref-reduzir-animacoes" />
@@ -169,7 +207,7 @@ function SecaoConta({ conta }: { conta: DadosConta }) {
           {conta.foto ? (
             <img src={conta.foto} alt="" width={56} height={56} referrerPolicy="no-referrer" className="size-14 rounded-full object-cover" />
           ) : (
-            <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-night-900">
+            <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-sobre-destaque">
               {(conta.nome ?? "?").slice(0, 1).toUpperCase()}
             </span>
           )}

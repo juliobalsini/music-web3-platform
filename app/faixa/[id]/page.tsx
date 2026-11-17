@@ -40,10 +40,10 @@ async function Conteudo({ params }: Pick<PageProps<"/faixa/[id]">, "params">) {
       <Capa id={faixa.id} title={faixa.title} hasCover={faixa.hasCover} className="size-60" />
       <div>
         <h1 className="text-2xl font-bold text-balance">{faixa.title}</h1>
-        <p className="text-white/70">{faixa.artistName}</p>
+        <p className="text-tinta/70">{faixa.artistName}</p>
       </div>
       <BotaoFaixa faixa={faixa} />
-      <p className="text-sm text-white/70">Ouça 30s e ganhe pontos.</p>
+      <p className="text-sm text-tinta/70">Ouça 30s e ganhe pontos.</p>
     </div>
   );
 }

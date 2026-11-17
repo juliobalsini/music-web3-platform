@@ -11,7 +11,7 @@ import { botao } from "@/components/ui";
 import { gravarPreferencias } from "@/lib/preferencias/cliente";
 import type { ResumoConta } from "@/lib/session";
 
-const item = "foco-claro flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-semibold hover:bg-white/10";
+const item = "foco-claro flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-semibold hover:bg-tinta/10";
 
 /** Menu ☰ e gaveta lateral (desliza da direita; fecha com toque fora, deslize para a direita, Esc ou ao navegar). */
 export function MenuGaveta({ conta }: { conta: ResumoConta }) {
@@ -46,7 +46,7 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
         aria-haspopup="dialog"
         aria-expanded={aberta}
         data-testid="menu-abrir"
-        className="foco-claro flex size-11 items-center justify-center rounded-full hover:bg-white/10"
+        className="foco-claro flex size-11 items-center justify-center rounded-full hover:bg-tinta/10"
       >
         <Menu className="size-7" aria-hidden="true" />
       </button>
@@ -70,10 +70,10 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
             if (inicioX.current !== null && e.changedTouches[0].clientX - inicioX.current > 70) setAberta(false);
             inicioX.current = null;
           }}
-          className={`absolute inset-y-0 right-0 flex w-[min(20rem,88vw)] flex-col gap-4 overflow-y-auto bg-night-800 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-200 ease-out ${aberta ? "translate-x-0" : "translate-x-full"}`}
+          className={`absolute inset-y-0 right-0 flex w-[min(20rem,88vw)] flex-col gap-4 overflow-y-auto bg-fundo-2 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-200 ease-out ${aberta ? "translate-x-0" : "translate-x-full"}`}
         >
           <div className="flex justify-end">
-            <button type="button" onClick={() => setAberta(false)} aria-label="Fechar" className="foco-claro flex size-11 items-center justify-center rounded-full hover:bg-white/10">
+            <button type="button" onClick={() => setAberta(false)} aria-label="Fechar" className="foco-claro flex size-11 items-center justify-center rounded-full hover:bg-tinta/10">
               <X className="size-6" aria-hidden="true" />
             </button>
           </div>
@@ -84,7 +84,7 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
                 {conta.foto ? (
                   <img src={conta.foto} alt="" width={56} height={56} referrerPolicy="no-referrer" className="size-14 rounded-full object-cover" />
                 ) : (
-                  <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-night-900">
+                  <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-xl font-bold text-sobre-destaque">
                     {(conta.nome ?? "?").slice(0, 1).toUpperCase()}
                   </span>
                 )}
@@ -102,15 +102,15 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
               </nav>
             </>
           ) : (
-            <section aria-label="Crie sua conta" className="flex flex-col gap-3 rounded-2xl bg-white/10 p-4">
+            <section aria-label="Crie sua conta" className="flex flex-col gap-3 rounded-2xl bg-tinta/10 p-4">
               <div className="flex items-center gap-2">
                 <UserRound className="size-6 text-brand" aria-hidden="true" />
                 <h2 className="text-lg font-bold">Crie sua conta</h2>
               </div>
-              <p className="text-sm text-white/80 text-pretty">Salve seus pontos, crie playlists e envie música.</p>
+              <p className="text-sm text-tinta/80 text-pretty">Salve seus pontos, crie playlists e envie música.</p>
               <form action={entrarComGoogle} className="flex flex-col gap-2">
                 <input type="hidden" name="next" value={caminho} />
-                <button className={`${botao} !bg-none !bg-white !text-night-900`}>
+                <button className={`${botao} !bg-none !bg-white !text-night-900 ring-1 ring-inset ring-[var(--ds-borda)]`}>
                   <LogIn className="size-5" aria-hidden="true" /> Continuar com Google
                 </button>
               </form>
@@ -120,12 +120,12 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
             </section>
           )}
 
-          <nav aria-label="Legal" className="mt-auto flex flex-col border-t border-white/10 pt-2">
-            <Link href="/privacidade" className={item}><ShieldCheck className="size-5 text-white/70" aria-hidden="true" />Privacidade</Link>
-            <Link href="/termos" className={item}><FileText className="size-5 text-white/70" aria-hidden="true" />Termos</Link>
+          <nav aria-label="Legal" className="mt-auto flex flex-col border-t border-tinta/10 pt-2">
+            <Link href="/privacidade" className={item}><ShieldCheck className="size-5 text-tinta/70" aria-hidden="true" />Privacidade</Link>
+            <Link href="/termos" className={item}><FileText className="size-5 text-tinta/70" aria-hidden="true" />Termos</Link>
             {conta.logado && (
               <form action={sair}>
-                <button className={`${item} w-full`}><LogOut className="size-5 text-white/70" aria-hidden="true" />Sair</button>
+                <button className={`${item} w-full`}><LogOut className="size-5 text-tinta/70" aria-hidden="true" />Sair</button>
               </form>
             )}
           </nav>

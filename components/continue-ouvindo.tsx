@@ -63,7 +63,7 @@ export function ContinueOuvindo({ faixas, servidor, validos }: { faixas: FaixaLi
             <>
               <span className="relative block shrink-0">
                 {a.tipo === "perfil" ? (
-                  <span aria-hidden="true" style={{ background: capaGerada(a.titulo).fundo }} className="flex size-12 items-center justify-center rounded-full text-lg font-bold text-white">
+                  <span aria-hidden="true" style={{ background: capaGerada(a.titulo).fundo }} className="flex size-12 items-center justify-center rounded-full text-lg font-bold text-tinta">
                     {a.titulo.charAt(0).toUpperCase()}
                   </span>
                 ) : (
@@ -75,11 +75,11 @@ export function ContinueOuvindo({ faixas, servidor, validos }: { faixas: FaixaLi
                   <span className="truncate text-sm font-semibold leading-tight">{a.titulo}</span>
                   {a.tipo === "faixa" && atual?.id === a.id && estado === "tocando" && <Equalizador />}
                 </span>
-                <span className="block truncate text-xs text-white/70">{a.sub}</span>
+                <span className="block truncate text-xs text-tinta/70">{a.sub}</span>
               </span>
             </>
           );
-          const caixa = "relative flex min-h-14 w-full items-center gap-2 overflow-hidden rounded-lg bg-white/10 py-1.5 pl-1.5 pr-2 text-left hover:bg-white/15";
+          const caixa = "relative flex min-h-14 w-full items-center gap-2 overflow-hidden rounded-lg bg-tinta/10 py-1.5 pl-1.5 pr-2 text-left hover:bg-tinta/15";
           const pct = progressoAtalho(a) * 100;
           return (
             <li key={`${a.tipo}:${a.id}`}>
@@ -95,7 +95,7 @@ export function ContinueOuvindo({ faixas, servidor, validos }: { faixas: FaixaLi
                 >
                   {corpo}
                   {pct > 0 && (
-                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-white/10">
+                    <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-tinta/10">
                       <span data-testid="progresso" className="block h-full bg-brand" style={{ width: `${pct}%` }} />
                     </span>
                   )}

@@ -38,18 +38,18 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
       {erro && <Mensagem tipo="erro">Não deu certo. Tente de novo.</Mensagem>}
       <section aria-label="Programação" className="flex flex-col gap-3">
         
-        <p className="text-sm text-white/70 text-pretty">Um bloco por horário (Brasília). O cartão &quot;No ar&quot; da Rádio toca a playlist do bloco atual.</p>
+        <p className="text-sm text-tinta/70 text-pretty">Um bloco por horário (Brasília). O cartão &quot;No ar&quot; da Rádio toca a playlist do bloco atual.</p>
         {(programas ?? []).length > 0 && (
           <ul className="flex flex-col gap-2">
             {(programas ?? []).map((g) => (
-              <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/10 pl-4">
+              <li key={g.id} className="flex items-center justify-between gap-2 rounded-lg bg-tinta/10 pl-4">
                 <span className="min-w-0 truncate">
                   <span className="font-semibold">{g.title}</span>{" "}
-                  <span className="text-sm text-white/70 tabular-nums">{String(g.start_hour).padStart(2, "0")}h–{String(g.end_hour % 24).padStart(2, "0")}h</span>
+                  <span className="text-sm text-tinta/70 tabular-nums">{String(g.start_hour).padStart(2, "0")}h–{String(g.end_hour % 24).padStart(2, "0")}h</span>
                 </span>
                 <form action={removerPrograma}>
                   <input type="hidden" name="programa" value={g.id} />
-                  <button aria-label={`Remover bloco ${g.title}`} className="flex size-11 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white">
+                  <button aria-label={`Remover bloco ${g.title}`} className="flex size-11 items-center justify-center rounded-lg text-tinta/70 hover:bg-tinta/10 hover:text-tinta">
                     <X className="size-4" aria-hidden="true" />
                   </button>
                 </form>
@@ -58,7 +58,7 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/curador">, "searchPar
           </ul>
         )}
         {(playlists ?? []).length === 0 ? (
-          <p className="text-sm text-white/70">Crie uma playlist para montar um bloco.</p>
+          <p className="text-sm text-tinta/70">Crie uma playlist para montar um bloco.</p>
         ) : (
           <form action={criarPrograma} className="flex flex-col gap-3">
             <input name="titulo" required maxLength={80} placeholder="Nome do bloco" aria-label="Nome do bloco" className={campo} />

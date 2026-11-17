@@ -120,3 +120,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 114. Lighthouse CI como aviso, no app compilado do CI
 115. Eficiência do agente: índice de decisões, contexto ≤ 8 KB, gate rápido p/ .md
 116. Configurações > Aparência: destaque, texto maior, reduzir animações (sem tema claro)
+117. Tema claro/automático: utilitários `tinta`/`fundo`/`sobre-destaque`, telas imersivas `.tema-escuro`, logo claro
