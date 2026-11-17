@@ -103,6 +103,7 @@ test("configurações: aparência muda o destaque e o texto e vale antes de pint
     await page.getByText("Verde", { exact: true }).click();
     await expect(raiz).toHaveAttribute("data-destaque", "verde", { timeout: 500 });
   }).toPass({ timeout: 15_000 });
+  await expect(verde).toHaveCount(1);
   await expect(verde).toBeChecked();
   const texto = page.getByTestId("pref-texto-maior");
   await expect(async () => {
@@ -116,5 +117,7 @@ test("configurações: aparência muda o destaque e o texto e vale antes de pint
   await page.reload();
   await expect(raiz).toHaveAttribute("data-destaque", "verde");
   await expect(raiz).toHaveAttribute("data-texto", "maior");
+  // O conteúdo chega por streaming (cópia oculta por um instante): espera a cópia única.
+  await expect(page.getByTestId("pref-destaque-verde")).toHaveCount(1);
   await expect(page.getByTestId("pref-destaque-verde")).toBeChecked();
 });
