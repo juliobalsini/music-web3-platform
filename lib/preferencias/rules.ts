@@ -1,6 +1,8 @@
 // Preferências da pessoa (Configurações). Regras puras: valores padrão, saneamento e mescla.
 // Aparelho = localStorage; conta = tabela user_settings (escrita só pelo servidor).
 
+import { GENEROS, type GeneroId } from "../radio/generos.ts";
+
 /** Cores de destaque (tokens `--ds-destaque` em app/globals.css; âmbar é o padrão e não muda a logo). */
 export const DESTAQUES = ["ambar", "azul", "verde", "rosa", "lilas"] as const;
 export type Destaque = (typeof DESTAQUES)[number];
@@ -30,6 +32,18 @@ export function preGanhoEq(eq: Eq): number {
   return -Math.max(0, b.grave, b.medio, b.agudo) / 2;
 }
 
+/** Seus gostos: até 5 gêneros da lista fixa ("outro" não conta como gosto). */
+export const MAX_GOSTOS = 5;
+export const GENEROS_GOSTO = GENEROS.filter((g) => g.id !== "outro").map((g) => g.id) as GeneroId[];
+
+/** Lista de gostos saneada: só ids conhecidos, sem repetição, na ordem escolhida, no máx. 5; não-lista → null. */
+export function sanearGostos(v: unknown): GeneroId[] | null {
+  if (!Array.isArray(v)) return null;
+  const r: GeneroId[] = [];
+  for (const x of v) if (typeof x === "string" && (GENEROS_GOSTO as string[]).includes(x) && !r.includes(x as GeneroId)) r.push(x as GeneroId);
+  return r.slice(0, MAX_GOSTOS);
+}
+
 export type Preferencias = {
   /** Reprodução: volume parecido entre faixas (ganho só no player). */
   normalizar: boolean;
@@ -47,6 +61,8 @@ export type Preferencias = {
   mostrarOuvindo: boolean;
   /** Artista: story de bio automático visível na Home e no Explorar. */
   storyBio: boolean;
+  /** Seus gostos: gêneros preferidos (a Home mostra as seleções deles primeiro). */
+  gostos: GeneroId[];
   /** Aparência: tema escuro, claro ou do sistema. */
   tema: Tema;
   /** Aparência: cor de destaque (botões, play, aba ativa, foco). */
@@ -66,6 +82,7 @@ export const PADRAO: Preferencias = {
   perfilPublico: true,
   mostrarOuvindo: true,
   storyBio: true,
+  gostos: [],
   tema: "escuro",
   destaque: "ambar",
   textoMaior: false,
@@ -89,7 +106,7 @@ function ehEq(v: unknown): v is Eq {
 /** Validador por chave de lista fechada; as demais são booleanas. */
 const LISTAS: Partial<Record<keyof Preferencias, (v: unknown) => boolean>> = { destaque: ehDestaque, tema: ehTema, eq: ehEq };
 
-/** Só as chaves conhecidas, com o tipo do padrão (destaque, tema e eq: só da lista); o resto é descartado (cliente ou banco). */
+/** Só as chaves conhecidas, com o tipo do padrão (destaque, tema e eq: só da lista; gostos: lista saneada); o resto é descartado (cliente ou banco). */
 export function sanear(entrada: unknown): Partial<Preferencias> {
   if (!entrada || typeof entrada !== "object" || Array.isArray(entrada)) return {};
   const o = entrada as Record<string, unknown>;
@@ -97,6 +114,11 @@ export function sanear(entrada: unknown): Partial<Preferencias> {
   for (const k of CHAVES) {
     if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
     const v = o[k];
+    if (k === "gostos") {
+      const g = sanearGostos(v);
+      if (g) r[k] = g;
+      continue;
+    }
     const valido = LISTAS[k];
     if (valido ? valido(v) : typeof v === "boolean") r[k] = v;
   }

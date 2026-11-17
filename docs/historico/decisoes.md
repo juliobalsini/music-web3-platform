@@ -704,3 +704,8 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    próprio story, quem me segue) e essas ficam fora. (b) `select("*")` das próprias linhas (são dados da pessoa), teto de
    5000 por tabela, `no-store`, anexo `radioon-meus-dados-AAAA-MM-DD.json` com e-mail e data de criação da conta.
    (c) Áudio e imagens não entram (cota do B2). (d) Botão "Baixar meus dados" na seção Conta das Configurações, com Ajuda.
+120. **Seus gostos (#125; 2026-11-17).** (a) Preferência `gostos`: até 5 ids de `GENEROS` (sem "outro"), sem repetição,
+   na ordem escolhida (`sanearGostos`), no jsonb `user_settings.prefs` (sem migration). (b) Uso: a Seleção radioOn da Home
+   põe as playlists desses gêneros logo após "Novidades da semana" (`ordenarPorGostos` em `lib/radio/home.ts`). A reordenação
+   é no cliente (`usePreferencias`): a Home segue em cache compartilhado e a hidratação usa o padrão (sem mismatch).
+   (c) UI: chips com caixa nativa em Configurações > Seus gostos, contador "N de 5" e Ajuda.

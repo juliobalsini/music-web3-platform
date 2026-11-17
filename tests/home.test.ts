@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { artistasParaConhecer, climaAgora, ehSelecao, prateleiraClima, selecaoRadioOn, totalOuvindo } from "../lib/radio/home.ts";
+import { artistasParaConhecer, climaAgora, ehSelecao, ordenarPorGostos, prateleiraClima, selecaoRadioOn, totalOuvindo } from "../lib/radio/home.ts";
 
 // 2026-11-11 é quarta-feira. Brasília = UTC−3.
 const em = (iso: string, horaBr: number) => Date.parse(`${iso}T00:00:00Z`) + (horaBr + 3) * 3600_000;
@@ -71,5 +71,20 @@ describe("artistas e ouvintes", () => {
   it("N ouvindo inclui você: nunca menos de 1", () => {
     assert.equal(totalOuvindo(0), 1);
     assert.equal(totalOuvindo(4), 5);
+  });
+});
+
+describe("ordenarPorGostos", () => {
+  const sel = (id: string, tipo: "novidades" | "genero" | "clima") => ({ id: `radioon-${id}`, title: id, tipo, faixas: [] });
+  const lista = [sel("novidades", "novidades"), sel("genero-rock", "genero"), sel("genero-mpb", "genero"), sel("genero-jazz", "genero"), sel("clima-chuva", "clima")];
+  const ids = (l: { id: string }[]) => l.map((s) => s.id.replace("radioon-", ""));
+
+  it("gêneros dos gostos logo após Novidades, na ordem escolhida; o resto como estava", () => {
+    assert.deepEqual(ids(ordenarPorGostos(lista, ["jazz", "mpb"])), ["novidades", "genero-jazz", "genero-mpb", "genero-rock", "clima-chuva"]);
+  });
+
+  it("sem gostos (ou sem seleção do gênero) a lista não muda", () => {
+    assert.equal(ordenarPorGostos(lista, []), lista);
+    assert.equal(ordenarPorGostos(lista, ["metal"]), lista);
   });
 });

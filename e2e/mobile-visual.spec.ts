@@ -88,13 +88,18 @@ test("configurações: ajustes do aparelho valem para o visitante e ficam salvos
     await page.getByText("Voz", { exact: true }).click();
     await expect(page.getByTestId("pref-eq-voz")).toBeChecked({ timeout: 500 });
   }).toPass({ timeout: 15_000 });
+  // Seus gostos: marca Rock (chip com caixa nativa).
+  await expect(async () => {
+    await page.getByText("Rock", { exact: true }).click();
+    await expect(page.getByTestId("pref-gosto-rock")).toBeChecked({ timeout: 500 });
+  }).toPass({ timeout: 15_000 });
   await foto(page, "08-configuracoes", testInfo);
   await page.reload();
   await expect(page.getByTestId("pref-economia")).toHaveCount(1);
   await expect(page.getByTestId("pref-economia")).toHaveAttribute("aria-checked", "true");
   await expect(page.getByTestId("pref-continua")).toHaveAttribute("aria-checked", "false");
   const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem("radioon:prefs") ?? "{}"));
-  expect(salvo).toMatchObject({ economia: true, continua: false, eq: "voz" });
+  expect(salvo).toMatchObject({ economia: true, continua: false, eq: "voz", gostos: ["rock"] });
   await expect(page.getByTestId("pref-eq-voz")).toBeChecked();
 });
 

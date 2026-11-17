@@ -66,6 +66,19 @@ export function selecaoRadioOn<T extends F>(faixas: T[], agora: number): Selecao
   return lista;
 }
 
+/**
+ * Seus gostos: seleções dos gêneros preferidos sobem logo após "Novidades da semana", na ordem escolhida;
+ * o resto mantém a ordem. Sem gostos, a lista volta igual (mesmo objeto).
+ */
+export function ordenarPorGostos(lista: Selecao[], gostos: readonly string[]): Selecao[] {
+  if (gostos.length === 0) return lista;
+  const pos = (s: Selecao) => (s.tipo === "genero" ? gostos.findIndex((g) => s.id === `${PREFIXO_SELECAO}genero-${g}`) : -1);
+  const fav = lista.filter((s) => pos(s) >= 0).sort((a, b) => pos(a) - pos(b));
+  if (fav.length === 0) return lista;
+  const novidades = lista.filter((s) => s.tipo === "novidades");
+  return [...novidades, ...fav, ...lista.filter((s) => s.tipo !== "novidades" && pos(s) < 0)];
+}
+
 export const ehSelecao = (id: string) => id.startsWith(PREFIXO_SELECAO);
 
 export type ArtistaResumo = { id: string; name: string; faixas: number };

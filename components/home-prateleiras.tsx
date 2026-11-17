@@ -5,11 +5,14 @@ import Link from "next/link";
 
 import { CapaArte } from "@/components/capa";
 import { curadorDaSelecao, curadoresAtivos } from "@/lib/radio/curadores";
-import { type ArtistaResumo, type Selecao } from "@/lib/radio/home";
+import { usePreferencias } from "@/lib/preferencias/cliente";
+import { ordenarPorGostos, type ArtistaResumo, type Selecao } from "@/lib/radio/home";
 import { capaGerada } from "@/lib/radio/rules";
 
-/** Seleção radioOn: playlists automáticas da plataforma. */
-export function SelecaoRadioOn({ lista }: { lista: Selecao[] }) {
+/** Seleção radioOn: playlists automáticas da plataforma (gêneros dos seus gostos primeiro). */
+export function SelecaoRadioOn({ lista: base }: { lista: Selecao[] }) {
+  const { gostos } = usePreferencias();
+  const lista = ordenarPorGostos(base, gostos);
   if (lista.length === 0) return null;
   return (
     <section aria-label="Seleção radioOn" className="flex flex-col gap-2">
