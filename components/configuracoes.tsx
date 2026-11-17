@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- avatar externo (Google), sem otimizador (cota). */
 
-import { Check, Moon, SunMedium, SunMoon, TriangleAlert } from "lucide-react";
+import { Check, Download, Moon, SunMedium, SunMoon, TriangleAlert } from "lucide-react";
 import { useActionState, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -254,7 +254,19 @@ function SecaoConta({ conta }: { conta: DadosConta }) {
           <Retorno estado={estEmail} />
           <Enviar>Trocar e-mail</Enviar>
         </form>
+        <a
+          href="/api/conta/exportar"
+          download
+          data-testid="exportar-dados"
+          className="foco-claro flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[var(--ds-borda)] px-5 font-semibold text-[var(--ds-texto)] transition-colors duration-[var(--ds-mov-rapido)] hover:bg-[var(--ds-surface-2)]"
+        >
+          <Download className="size-5" aria-hidden="true" /> Baixar meus dados
+        </a>
       </div>
+      <Ajuda titulo="O que vem no arquivo">
+        Um arquivo JSON com seu perfil, ajustes, faixas, álbuns, playlists, stories, reações, quem você segue, escutas e extrato de
+        pontos. Os arquivos de áudio e as imagens não entram.
+      </Ajuda>
     </Secao>
   );
 }

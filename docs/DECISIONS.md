@@ -122,3 +122,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 116. Configurações > Aparência: destaque, texto maior, reduzir animações (sem tema claro)
 117. Tema claro/automático: utilitários `tinta`/`fundo`/`sobre-destaque`, telas imersivas `.tema-escuro`, logo claro
 118. Equalizador: 4 predefinições fechadas (3 bandas Biquad), só com áudio do proxy (CORS)
+119. Exportar meus dados: GET JSON com a sessão (RLS) filtrado pela coluna dona, sem service_role
