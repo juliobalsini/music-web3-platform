@@ -9,11 +9,34 @@ export type Destaque = (typeof DESTAQUES)[number];
 export const TEMAS = ["escuro", "claro", "auto"] as const;
 export type Tema = (typeof TEMAS)[number];
 
+/** Equalizador do player: predefinições fechadas (3 bandas). "plano" é o padrão e não liga o Web Audio. */
+export const EQS = ["plano", "graves", "voz", "agudos"] as const;
+export type Eq = (typeof EQS)[number];
+
+/** Frequências das 3 bandas (Hz): prateleira grave, pico médio (Q 0,9) e prateleira aguda. */
+export const FREQ_EQ = { grave: 120, medio: 1000, agudo: 8000 } as const;
+
+/** Ganho (dB) de cada banda por predefinição. Reforços moderados (≤ +5 dB); o limitador do player evita clipping. */
+export const BANDAS_EQ: Record<Eq, { grave: number; medio: number; agudo: number }> = {
+  plano: { grave: 0, medio: 0, agudo: 0 },
+  graves: { grave: 5, medio: 0, agudo: -1 },
+  voz: { grave: -2, medio: 3, agudo: 1 },
+  agudos: { grave: -1, medio: 0, agudo: 4 },
+};
+
+/** Pré-ganho (dB) que compensa metade do maior reforço: menos trabalho para o limitador, volume parecido. */
+export function preGanhoEq(eq: Eq): number {
+  const b = BANDAS_EQ[eq];
+  return -Math.max(0, b.grave, b.medio, b.agudo) / 2;
+}
+
 export type Preferencias = {
   /** Reprodução: volume parecido entre faixas (ganho só no player). */
   normalizar: boolean;
   /** Reprodução: ao fim da faixa, toca a próxima da fila. */
   continua: boolean;
+  /** Reprodução: equalizador (predefinição; só com o áudio do proxy, que responde CORS). */
+  eq: Eq;
   /** Reprodução: stories abrem com som. */
   somStories: boolean;
   /** Dados: não pré-carrega o próximo story nem baixa o áudio de story antes de pedir som. */
@@ -37,6 +60,7 @@ export type Preferencias = {
 export const PADRAO: Preferencias = {
   normalizar: true,
   continua: true,
+  eq: "plano",
   somStories: true,
   economia: false,
   perfilPublico: true,
@@ -58,7 +82,14 @@ function ehTema(v: unknown): v is Tema {
   return typeof v === "string" && (TEMAS as readonly string[]).includes(v);
 }
 
-/** Só as chaves conhecidas, com o tipo do padrão (destaque e tema: só da lista); o resto é descartado (cliente ou banco). */
+function ehEq(v: unknown): v is Eq {
+  return typeof v === "string" && (EQS as readonly string[]).includes(v);
+}
+
+/** Validador por chave de lista fechada; as demais são booleanas. */
+const LISTAS: Partial<Record<keyof Preferencias, (v: unknown) => boolean>> = { destaque: ehDestaque, tema: ehTema, eq: ehEq };
+
+/** Só as chaves conhecidas, com o tipo do padrão (destaque, tema e eq: só da lista); o resto é descartado (cliente ou banco). */
 export function sanear(entrada: unknown): Partial<Preferencias> {
   if (!entrada || typeof entrada !== "object" || Array.isArray(entrada)) return {};
   const o = entrada as Record<string, unknown>;
@@ -66,7 +97,8 @@ export function sanear(entrada: unknown): Partial<Preferencias> {
   for (const k of CHAVES) {
     if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
     const v = o[k];
-    if (k === "destaque" ? ehDestaque(v) : k === "tema" ? ehTema(v) : typeof v === "boolean") r[k] = v;
+    const valido = LISTAS[k];
+    if (valido ? valido(v) : typeof v === "boolean") r[k] = v;
   }
   return r as Partial<Preferencias>;
 }

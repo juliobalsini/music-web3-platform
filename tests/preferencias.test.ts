@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { atributosAparencia, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+import { atributosAparencia, BANDAS_EQ, EQS, preGanhoEq, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
     assert.deepEqual(PADRAO, {
-      normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true,
+      normalizar: true, continua: true, eq: "plano", somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true,
       tema: "escuro", destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
     });
   });
@@ -30,6 +30,20 @@ describe("Configurações — preferências", () => {
     assert.deepEqual(atributosAparencia({ tema: "claro", destaque: "verde", textoMaior: true, reduzirAnimacoes: true }), {
       "data-tema": "claro", "data-destaque": "verde", "data-texto": "maior", "data-movimento": "reduzido",
     });
+  });
+
+  it("equalizador: só predefinições da lista; plano é neutro; reforço ≤ +5 dB com pré-ganho", () => {
+    assert.equal(PADRAO.eq, "plano");
+    for (const e of EQS) assert.deepEqual(sanear({ eq: e }), { eq: e });
+    for (const v of ["bass", "GRAVES", "", 3, true, null, { grave: 12 }]) assert.deepEqual(sanear({ eq: v }), {});
+    assert.deepEqual(BANDAS_EQ.plano, { grave: 0, medio: 0, agudo: 0 });
+    assert.equal(preGanhoEq("plano"), -0);
+    for (const e of EQS) {
+      const b = BANDAS_EQ[e];
+      for (const db of [b.grave, b.medio, b.agudo]) assert.ok(db <= 5 && db >= -6, `${e}: ${db} dB`);
+      assert.ok(preGanhoEq(e) <= 0);
+    }
+    assert.equal(preGanhoEq("graves"), -2.5);
   });
 
   it("tema: só escuro, claro ou auto; auto segue o sistema", () => {

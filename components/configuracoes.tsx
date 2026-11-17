@@ -10,7 +10,7 @@ import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos"
 import { BotaoEntrar } from "@/components/login-contextual";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
-import { DESTAQUES, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Preferencias, type Tema } from "@/lib/preferencias/rules";
+import { DESTAQUES, EQS, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Eq, type Preferencias, type Tema } from "@/lib/preferencias/rules";
 import { MAX_BIO } from "@/lib/stories/bio";
 
 export type DadosConta = {
@@ -44,34 +44,58 @@ function Enviar({ children, perigo = false, desabilitado = false }: { children: 
   );
 }
 
-const OPCAO_TEMA: Record<Tema, { nome: string; Icone: typeof Moon }> = {
+const OPCAO_TEMA: Record<Tema, { nome: string; Icone?: typeof Moon }> = {
   escuro: { nome: "Escuro", Icone: Moon },
   claro: { nome: "Claro", Icone: SunMedium },
   auto: { nome: "Sistema", Icone: SunMoon },
 };
 
-/** Tema: rádios nativos em controle segmentado (setas do teclado, leitor de tela), alvos de 48 px. */
-function EscolherTema({ valor, aoMudar }: { valor: Tema; aoMudar: (t: Tema) => void }) {
+const OPCAO_EQ: Record<Eq, { nome: string }> = {
+  plano: { nome: "Normal" },
+  graves: { nome: "Graves" },
+  voz: { nome: "Voz" },
+  agudos: { nome: "Agudos" },
+};
+
+/** Controle segmentado: rádios nativos (setas do teclado, leitor de tela), alvos de 48 px. */
+function Segmentado<T extends string>({
+  titulo,
+  nome,
+  valores,
+  opcoes,
+  valor,
+  aoMudar,
+}: {
+  titulo: string;
+  nome: string;
+  valores: readonly T[];
+  opcoes: Record<T, { nome: string; Icone?: typeof Moon }>;
+  valor: T;
+  aoMudar: (v: T) => void;
+}) {
   return (
     <fieldset className="flex flex-col gap-3 p-4">
-      <legend className="float-left mb-1 font-semibold">Tema</legend>
-      <div className="clear-left grid grid-cols-3 gap-1 rounded-[var(--ds-raio)] bg-[var(--ds-surface)] p-1">
-        {TEMAS.map((t) => {
-          const { nome, Icone } = OPCAO_TEMA[t];
+      <legend className="float-left mb-1 font-semibold">{titulo}</legend>
+      <div
+        style={{ gridTemplateColumns: `repeat(${valores.length}, minmax(0, 1fr))` }}
+        className="clear-left grid gap-1 rounded-[var(--ds-raio)] bg-[var(--ds-surface)] p-1"
+      >
+        {valores.map((v) => {
+          const { nome: rotulo, Icone } = opcoes[v];
           return (
-            <label key={t} className="relative cursor-pointer">
+            <label key={v} className="relative cursor-pointer">
               <input
                 type="radio"
-                name="tema"
-                value={t}
-                checked={valor === t}
-                onChange={() => aoMudar(t)}
-                data-testid={`pref-tema-${t}`}
+                name={nome}
+                value={v}
+                checked={valor === v}
+                onChange={() => aoMudar(v)}
+                data-testid={`pref-${nome}-${v}`}
                 className="peer sr-only"
               />
-              <span className="flex min-h-12 items-center justify-center gap-2 rounded-[calc(var(--ds-raio)-0.25rem)] text-sm font-semibold text-[var(--ds-texto-2)] transition-colors duration-[var(--ds-mov-rapido)] peer-checked:bg-[var(--ds-surface-2)] peer-checked:text-[var(--ds-texto)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ds-destaque)]">
-                <Icone className="size-4" aria-hidden="true" />
-                {nome}
+              <span className="flex min-h-12 items-center justify-center gap-2 rounded-[calc(var(--ds-raio)-0.25rem)] px-1 text-sm font-semibold text-[var(--ds-texto-2)] transition-colors duration-[var(--ds-mov-rapido)] peer-checked:bg-[var(--ds-surface-2)] peer-checked:text-[var(--ds-texto)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ds-destaque)]">
+                {Icone && <Icone className="size-4" aria-hidden="true" />}
+                {rotulo}
               </span>
             </label>
           );
@@ -139,7 +163,7 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
     <div className="flex flex-col gap-8">
       <Secao titulo="Aparência">
         <div className={grupo}>
-          <EscolherTema valor={prefs.tema} aoMudar={(t) => mudar("tema", t)} />
+          <Segmentado titulo="Tema" nome="tema" valores={TEMAS} opcoes={OPCAO_TEMA} valor={prefs.tema} aoMudar={(t) => mudar("tema", t)} />
           <EscolherDestaque valor={prefs.destaque} aoMudar={(d) => mudar("destaque", d)} />
           <Interruptor titulo="Texto maior" ligado={prefs.textoMaior} aoMudar={(v) => mudar("textoMaior", v)} testId="pref-texto-maior" />
           <Interruptor titulo="Reduzir animações" apoio="Telas sem movimento." ligado={prefs.reduzirAnimacoes} aoMudar={(v) => mudar("reduzirAnimacoes", v)} testId="pref-reduzir-animacoes" />
@@ -151,7 +175,12 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
           <Interruptor titulo="Normalizar volume" apoio="Faixas com volume parecido." ligado={prefs.normalizar} aoMudar={(v) => mudar("normalizar", v)} testId="pref-normalizar" />
           <Interruptor titulo="Reprodução contínua" apoio="Ao fim da faixa, toca a próxima." ligado={prefs.continua} aoMudar={(v) => mudar("continua", v)} testId="pref-continua" />
           <Interruptor titulo="Som nos stories" apoio="Stories abrem com som." ligado={prefs.somStories} aoMudar={(v) => mudar("somStories", v)} testId="pref-som-stories" />
+          <Segmentado titulo="Equalizador" nome="eq" valores={EQS} opcoes={OPCAO_EQ} valor={prefs.eq} aoMudar={(e) => mudar("eq", e)} />
         </div>
+        <Ajuda titulo="Sobre o equalizador">
+          Graves reforça o grave, Voz destaca vozes e Agudos dá brilho. Vale para as faixas do player, na hora, e não muda o arquivo do artista.
+          Se o navegador não permitir, a faixa toca normal.
+        </Ajuda>
       </Secao>
 
       <Secao titulo="Dados">

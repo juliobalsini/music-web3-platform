@@ -82,13 +82,20 @@ test("configurações: ajustes do aparelho valem para o visitante e ficam salvos
     }).toPass({ timeout: 15_000 });
   await ligar(economia, "true");
   await ligar(continua, "false");
+  // Equalizador: Normal por padrão; "Voz" fica marcada (rádio nativo, toque no rótulo).
+  await expect(page.getByTestId("pref-eq-plano")).toBeChecked();
+  await expect(async () => {
+    await page.getByText("Voz", { exact: true }).click();
+    await expect(page.getByTestId("pref-eq-voz")).toBeChecked({ timeout: 500 });
+  }).toPass({ timeout: 15_000 });
   await foto(page, "08-configuracoes", testInfo);
   await page.reload();
   await expect(page.getByTestId("pref-economia")).toHaveCount(1);
   await expect(page.getByTestId("pref-economia")).toHaveAttribute("aria-checked", "true");
   await expect(page.getByTestId("pref-continua")).toHaveAttribute("aria-checked", "false");
   const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem("radioon:prefs") ?? "{}"));
-  expect(salvo).toMatchObject({ economia: true, continua: false });
+  expect(salvo).toMatchObject({ economia: true, continua: false, eq: "voz" });
+  await expect(page.getByTestId("pref-eq-voz")).toBeChecked();
 });
 
 test("configurações: aparência muda o destaque e o texto e vale antes de pintar ao recarregar", async ({ page }, testInfo) => {
