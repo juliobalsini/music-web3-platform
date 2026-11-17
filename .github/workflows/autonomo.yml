@@ -118,7 +118,7 @@ jobs:
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         if: steps.pre.outputs.ok == 'true'
         with:
           token: ${{ secrets.AGENT_GH_TOKEN }}
@@ -188,10 +188,12 @@ jobs:
           MODELO_ESCOLHA: ${{ steps.modelo.outputs.escolha }}
         run: |
           prompt="Execução autônoma do radioOn (GitHub Actions, sem humano disponível).
-          Siga o CLAUDE.md à risca: leia docs/CONTEXTO.md, pegue o próximo item livre da fila
+          Siga o CLAUDE.md à risca. No início leia só docs/CONTEXTO.md (comece pela seção 'Próximo passo');
+          DECISIONS/PLANO/histórico só quando a tarefa tocar o tema. Pegue o próximo item livre da fila
           e execute o ciclo completo; continue até acabar a fila ou o limite de uso.
           Nunca aguarde resposta humana: bloqueios vão para bash scripts/notify.sh.
-          Antes de terminar, atualize docs/CONTEXTO.md (via PR) e rode bash scripts/painel.sh.
+          Antes de terminar, atualize docs/CONTEXTO.md (com o próximo passo) no último PR de código da execução
+          (PR só de docs é exceção) e rode bash scripts/painel.sh.
           Fila por issues (CLAUDE.md, seção 'Fila de tarefas por issues'): depois de ler o CONTEXTO.md,
           liste as issues abertas com label fila (gh issue list --label fila --state open --json number,author,labels,createdAt),
           processe só as criadas por juliobalsini, urgente primeiro e depois da mais antiga para a mais nova.
