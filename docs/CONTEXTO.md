@@ -11,7 +11,7 @@ execuções antigas): `docs/historico/CONTEXTO-AAAA-MM.md`, não lido por padrã
 - **Áudio:** B2 + proxy `radioon-audio.radioon.workers.dev` (cache em KV) ligado desde 2026-11-14 (DECISIONS 93).
 - **Entregue:** ciclos 0–5, Fase UX, redesenho mobile, Fases A–C, Stories v2, Navegação v2, Configurações fatia 1,
   Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso), Aparência (destaque,
-  texto maior, animações, tema claro/automático). CI verde na `main`.
+  texto maior, animações, tema claro/automático), Som (equalizador). CI verde na `main`.
 - **Sprint 2026-47** (#167) aprovado e replanejado pelo Julio (foco no beta). PRs protegidos da semana: #154 e #191 (mergeados).
 
 ## Fila
@@ -21,9 +21,8 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - [~] **#188 Eficiência do agente (urgente).** Partes A (#190) e B (#191, protegida) em produção; #88–#90 fechados.
   Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
-- [~] **#125 Perfil e Configurações v2** — Aparência completa (destaque, texto maior, animações; tema claro/automático no PR
-  `item-125-tema-claro`, DECISIONS 117). Faltam: Som (equalizador), Seus gostos, exportar dados, foto própria (`covers/`),
-  itens 1–4, 6 e 7.
+- [~] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
+  (PR `item-125-equalizador`, DECISIONS 118). Faltam: Seus gostos, exportar dados, foto própria (`covers/`), itens 1–4, 6 e 7.
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -32,11 +31,11 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-125-tema-claro` mergeou e o deploy subiu (`/api/health`). Telas novas usam `tinta`/`fundo`/
-   `sobre-destaque` (docs/design-system.md), nunca `text-white`/`bg-night-*`; telas sobre capa/foto levam `.tema-escuro`.
-2. **#125, Som:** equalizador simples (3 bandas, `BiquadFilterNode`) em `components/player-provider.tsx`, só quando o áudio
-   vem do proxy (CORS); preferência `eq` em `lib/preferencias/rules.ts` (lista fechada, sem migration) e opção em
-   `components/configuracoes.tsx`. Depois: exportar dados (rota GET JSON das próprias linhas, RLS) e Seus gostos.
+1. Conferir se o PR `item-125-equalizador` mergeou e o deploy subiu (`/api/health`). Telas novas usam `tinta`/`fundo`/
+   `sobre-destaque` (docs/design-system.md); seletor de opções = `Segmentado` em `components/configuracoes.tsx`.
+2. **#125, exportar dados:** rota GET `app/api/conta/exportar/route.ts` (sessão; JSON das próprias linhas de profiles,
+   user_settings, tracks, playlists, listen_events, points_ledger via cliente da sessão/RLS, sem service_role) + botão
+   "Baixar meus dados" na seção Conta. Depois: Seus gostos (gêneros preferidos em `prefs`, lista fechada, sem migration).
 3. #122: avaliar sessão simulada no E2E para o editor de playlist logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
@@ -58,6 +57,8 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - **Alertas:** `scripts/notify.sh`; Painel (#6) por `scripts/painel.sh` ao fim de cada execução.
 
 ## Últimas execuções (as anteriores estão no histórico)
+
+- 2026-11-17 (38ª) — #194 (tema claro) em produção. #125 Som: equalizador no PR `item-125-equalizador` (sem migration).
 
 - 2026-11-17 (37ª) — #192 fechada (#191 mergeado). #125 tema claro/automático no PR `item-125-tema-claro` (sem migration).
 - 2026-11-16 (35ª) — #185 (skills de qualidade, axe, Lighthouse) em produção (PR #186).

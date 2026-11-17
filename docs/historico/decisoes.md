@@ -690,3 +690,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    `scripts/brand/gerar-logo-claro.mjs`; troca só por CSS, variante escondida com `loading="lazy"`. (e) Grão do fundo
    desligado no claro (`--ds-grao: 0`); `.foco-claro` usa a cor do texto (branco/marinho). (f) axe do tema claro em Home,
    Explorar e Configurações (`e2e/acessibilidade-mobile-visual.spec.ts`).
+118. **Equalizador (#125, Som; 2026-11-17).** (a) Predefinições fechadas em vez de controles livres: `plano` (padrão,
+   "Normal"), `graves`, `voz` e `agudos` (`EQS`/`BANDAS_EQ` em `lib/preferencias/rules.ts`), reforço máximo +5 dB; menos UI e
+   nada de valor arbitrário vindo do cliente. (b) 3 bandas `BiquadFilterNode` (prateleira 120 Hz, pico 1 kHz Q 0,9, prateleira
+   8 kHz) no mesmo grafo do "Normalizar volume" (fonte → bandas → ganho → limitador); pré-ganho de metade do maior reforço
+   (`preGanhoEq`) para o limitador não bombear. (c) Só com o áudio do proxy (Worker responde CORS); origem sem CORS ou sem
+   Web Audio toca normal (bandas em 0). `plano` sem normalização não monta o Web Audio. (d) Preferência `eq` no jsonb
+   `user_settings.prefs`, saneada por lista (sem migration); muda na hora pela faixa atual (evento `radioon:prefs`).
+   (e) UI: o seletor de Tema virou o `Segmentado` genérico em `components/configuracoes.tsx`, reaproveitado pelo Equalizador.
