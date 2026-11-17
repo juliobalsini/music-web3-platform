@@ -719,3 +719,11 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    exige https, então grava a rota absoluta com o host atual; `fotoSegura` normaliza qualquer host para o caminho relativo
    (o host gravado nunca vira destino). Se o artista já mostra foto no perfil, trocar a foto atualiza o story. (f) Excluir
    conta limpa `foto_propria`. (g) O recorte foi extraído para `components/recorte-foto.tsx`, usado também pela capa de playlist.
+
+## 122. Primeiro acesso: gostos (2026-11-17, #125 item 6)
+(a) Depois de escolher o perfil em `/onboarding`, a pessoa vai para `/onboarding/gostos` (só com conta). (b) Pede até 3
+gêneros (`GOSTOS_INICIO`), reaproveitando os chips de Configurações (`components/escolher-gostos.tsx`, limite por prop);
+Configurações continua com até 5. (c) "Salvar e continuar" grava no aparelho (a Home lê de lá) e na conta
+(`salvarPreferencias`, que saneia no servidor); falha na conta não trava a entrada. "Pular" (ou nenhum gênero) segue sem
+gravar. (d) Quem já tem gostos na conta é redirecionado direto. Destino: artista → `/enviar`; demais → Home (`destinoInicio`).
+(e) Visitante sem conta não vê a tela: o produto é "entrar e dar play já". "Climas" ficam para quando houver lista de climas.

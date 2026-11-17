@@ -125,3 +125,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 119. Exportar meus dados: GET JSON com a sessão (RLS) filtrado pela coluna dona, sem service_role
 120. Seus gostos: até 5 gêneros da lista fixa em `prefs.gostos`; Seleção radioOn reordenada no cliente
 121. Foto própria do perfil: `covers/<conta>/<uuid>`, chave em `user_metadata.foto_propria`, rota pública `/api/perfil/<id>/foto?v=`
+122. Primeiro acesso: `/onboarding/gostos` pulável depois do perfil, até 3 gêneros; quem já tem gostos segue direto

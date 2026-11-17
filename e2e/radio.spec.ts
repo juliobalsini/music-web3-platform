@@ -157,6 +157,11 @@ test("login e onboarding mostram a frase da marca", async ({ page }) => {
   await expect(page.getByRole("img", { name: "radioOn" }).first()).toBeVisible();
 });
 
+test("primeiro acesso (gostos) pede conta antes", async ({ page }) => {
+  await page.goto("/onboarding/gostos");
+  await expect(page).toHaveURL(/\/(login|entrar)/);
+});
+
 test("página de faixa inexistente dá 404 e as rotas novas de API respondem sem quebrar", async ({ page, request }) => {
   await page.goto("/faixa/not-a-uuid");
   await expect(page.getByText("Página não encontrada")).toBeVisible();

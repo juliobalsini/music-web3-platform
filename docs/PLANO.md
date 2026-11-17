@@ -148,6 +148,9 @@ Meta: segurar as cotas do B2 (1 GB/dia, 2.500 Classe B) com 20–30 artistas no 
 - **Pós-beta (issue #116, item 8; DECISIONS 99):** remoção física da conta excluída (linha em `auth.users`/`auth.identities`, que ainda
   guarda o e-mail do Google, perfil, preferências e arquivos no B2). Escrita destrutiva: só com aprovação do Julio e pela trava.
 
+- **Pós-beta (issue #125, item 7):** idioma inglês, crossfade entre faixas e notificações por e-mail — registrado, não implementar agora
+  (e-mail depende do SMTP com a marca, item 6 da Sessão manual #135).
+
 ## Base visual e correções (issue #124, 2026-11-13)
 Design system entregue (`docs/design-system.md`). **Auditoria — telas com cara de painel administrativo** e ordem de migração para os componentes novos:
 1. **Enviar música** (`components/upload-form.tsx`): formulário cru com muitos campos e textos explicativos → `Abas` (avulsa/álbum), `Ajuda` para a ficha e a capa, `AnelProgresso` no envio.

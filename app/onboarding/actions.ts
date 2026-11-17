@@ -23,5 +23,5 @@ export async function escolherPerfil(form: FormData) {
     .eq("id", data.user.id);
   if (error) redirect("/onboarding?erro=1");
   catalogoMudou();
-  redirect(role === "artist" ? "/enviar" : "/");
+  redirect("/onboarding/gostos");
 }
