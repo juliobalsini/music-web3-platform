@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { atributosAparencia, confirmouExclusao, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+import { atributosAparencia, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
     assert.deepEqual(PADRAO, {
       normalizar: true, continua: true, somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true,
-      destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
+      tema: "escuro", destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
     });
   });
 
@@ -24,10 +24,21 @@ describe("Configurações — preferências", () => {
   });
 
   it("aparência vira atributos de <html> (âmbar e desligados removem o atributo)", () => {
-    assert.deepEqual(atributosAparencia(PADRAO), { "data-destaque": null, "data-texto": null, "data-movimento": null });
-    assert.deepEqual(atributosAparencia({ destaque: "verde", textoMaior: true, reduzirAnimacoes: true }), {
-      "data-destaque": "verde", "data-texto": "maior", "data-movimento": "reduzido",
+    assert.deepEqual(atributosAparencia(PADRAO), { "data-tema": null, "data-destaque": null, "data-texto": null, "data-movimento": null });
+    // Escuro é o padrão mesmo com o sistema claro (só "auto" segue o sistema).
+    assert.equal(atributosAparencia(PADRAO, true)["data-tema"], null);
+    assert.deepEqual(atributosAparencia({ tema: "claro", destaque: "verde", textoMaior: true, reduzirAnimacoes: true }), {
+      "data-tema": "claro", "data-destaque": "verde", "data-texto": "maior", "data-movimento": "reduzido",
     });
+  });
+
+  it("tema: só escuro, claro ou auto; auto segue o sistema", () => {
+    for (const t of ["escuro", "claro", "auto"]) assert.deepEqual(sanear({ tema: t }), { tema: t });
+    for (const v of ["dark", "CLARO", "", 1, true, null]) assert.deepEqual(sanear({ tema: v }), {});
+    assert.equal(temaClaro("escuro", true), false);
+    assert.equal(temaClaro("claro", false), true);
+    assert.equal(temaClaro("auto", true), true);
+    assert.equal(temaClaro("auto", false), false);
   });
 
   it("mescla da esquerda para a direita (a conta vence o aparelho quando vem depois)", () => {

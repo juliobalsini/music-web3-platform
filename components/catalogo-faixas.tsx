@@ -12,8 +12,8 @@ import { rotuloClima, rotuloGenero } from "@/lib/radio/generos";
 import { formatContagem, formatDuracao, type FaixaListada } from "@/lib/radio/rules";
 
 const chip = "inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-semibold";
-const ativoCls = "bg-brand text-night-900";
-const inativoCls = "bg-white/10 text-white hover:bg-white/15";
+const ativoCls = "bg-brand text-sobre-destaque";
+const inativoCls = "bg-tinta/10 text-tinta hover:bg-tinta/15";
 
 /**
  * Filtro Faixas: catálogo completo com "Últimas adicionadas", ordenação, chips de gênero, lista com artista
@@ -27,7 +27,7 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
   const lista = useMemo(() => ordenarFaixas(faixas.filter((f) => !genero || f.genre === genero), ordem), [faixas, ordem, genero]);
   const ultimas = useMemo(() => ordenarFaixas(faixas, "recentes").slice(0, 8), [faixas]);
 
-  if (faixas.length === 0) return <p className="text-white/70">Nenhuma faixa publicada ainda.</p>;
+  if (faixas.length === 0) return <p className="text-tinta/70">Nenhuma faixa publicada ainda.</p>;
   return (
     <div className="flex flex-col gap-4">
       <section aria-label="Últimas adicionadas" className="flex flex-col gap-2">
@@ -38,7 +38,7 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
               <button type="button" onClick={() => tocar(f, ultimas)} aria-label={`Tocar ${f.title}, ${f.artistName}`} className="flex w-full flex-col gap-1 rounded-xl text-left">
                 <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="aspect-square w-full !rounded-xl" />
                 <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>{" "}
-                <span className="truncate text-xs text-white/70">{f.artistName}</span>
+                <span className="truncate text-xs text-tinta/70">{f.artistName}</span>
               </button>
             </li>
           ))}
@@ -46,8 +46,8 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
       </section>
 
       <div className="flex gap-2">
-        <button type="button" data-testid="tocar-tudo" onClick={() => lista[0] && tocar(lista[0], lista)} disabled={lista.length === 0} className="foco-claro flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-2 font-semibold text-night-900 disabled:opacity-60">
-          <Play className="size-5 fill-night-900" aria-hidden="true" /> Tocar tudo
+        <button type="button" data-testid="tocar-tudo" onClick={() => lista[0] && tocar(lista[0], lista)} disabled={lista.length === 0} className="foco-claro flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-2 font-semibold text-sobre-destaque disabled:opacity-60">
+          <Play className="size-5 fill-sobre-destaque" aria-hidden="true" /> Tocar tudo
         </button>
         <button
           type="button"
@@ -57,7 +57,7 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
             if (f[0]) tocar(f[0], f);
           }}
           disabled={lista.length === 0}
-          className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white/10 font-semibold hover:bg-white/15 disabled:opacity-60"
+          className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-tinta/10 font-semibold hover:bg-tinta/15 disabled:opacity-60"
         >
           <Shuffle className="size-5" aria-hidden="true" /> Aleatório
         </button>
@@ -87,12 +87,12 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
           const tocando = naFila && estado === "tocando";
           const tags = [rotuloGenero(f.genre), rotuloClima(f.mood)].filter(Boolean).join(" · ");
           return (
-            <li key={f.id} className={`flex min-h-16 items-center gap-1 rounded-lg ${naFila ? "bg-white/5" : ""}`}>
-              <button type="button" onClick={() => tocar(f, lista)} aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`} data-a11y-nome="cartao" className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-white/5">
+            <li key={f.id} className={`flex min-h-16 items-center gap-1 rounded-lg ${naFila ? "bg-tinta/5" : ""}`}>
+              <button type="button" onClick={() => tocar(f, lista)} aria-label={`${tocando ? "Pausar" : "Tocar"} ${f.title}, ${f.artistName}`} data-a11y-nome="cartao" className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-2 text-left hover:bg-tinta/5">
                 <span className="relative shrink-0">
                   <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="size-12" />
-                  <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center rounded-md bg-night-900/50 opacity-0 hover:opacity-100">
-                    {tocando ? <Pause className="size-5 fill-white" /> : <Play className="size-5 fill-white" />}
+                  <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center rounded-md bg-fundo/50 opacity-0 hover:opacity-100">
+                    {tocando ? <Pause className="size-5 fill-tinta" /> : <Play className="size-5 fill-tinta" />}
                   </span>
                 </span>
                 <span className="min-w-0 flex-1">
@@ -100,11 +100,11 @@ export function CatalogoFaixas({ faixas }: { faixas: FaixaListada[] }) {
                     <span data-testid="titulo-faixa" className="truncate">{f.title}</span>
                     {tocando && <Equalizador />}
                   </span>
-                  {tags && <span className="block truncate text-xs text-white/70">{tags}</span>}
+                  {tags && <span className="block truncate text-xs text-tinta/70">{tags}</span>}
                 </span>
               </button>
-              <span className="flex w-24 shrink-0 flex-col items-end gap-0.5 pr-1 text-xs text-white/70 tabular-nums">
-                <Link href={`/perfil/${f.artistId}`} className="flex min-h-7 max-w-full items-center truncate text-sm text-white/90 underline-offset-2 hover:underline">
+              <span className="flex w-24 shrink-0 flex-col items-end gap-0.5 pr-1 text-xs text-tinta/70 tabular-nums">
+                <Link href={`/perfil/${f.artistId}`} className="flex min-h-7 max-w-full items-center truncate text-sm text-tinta/90 underline-offset-2 hover:underline">
                   <span className="truncate">{f.artistName}</span>
                 </Link>
                 <span>{formatDuracao(f.durationSec)}</span>

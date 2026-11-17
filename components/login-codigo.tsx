@@ -29,7 +29,7 @@ export function LoginCodigo({ next = "", antes }: { next?: string; antes?: React
   return (
     <form action={enviar} className="flex flex-col gap-4">
       {antes}
-      {antes && <p aria-hidden="true" className="text-center text-sm text-white/60">ou</p>}
+      {antes && <p aria-hidden="true" className="text-center text-sm text-tinta/60">ou</p>}
       <input
         name="email"
         type="email"
@@ -108,8 +108,8 @@ function EtapaCodigo({
   const ocupado = verificando || !!estado.entrou;
   return (
     <div className="flex flex-col gap-4" data-testid="etapa-codigo">
-      <p role="status" className="text-pretty text-white/80">
-        Enviamos um código para <strong className="text-white">{envio.email}</strong>.
+      <p role="status" className="text-pretty text-tinta/80">
+        Enviamos um código para <strong className="text-tinta">{envio.email}</strong>.
       </p>
       <form ref={form} action={verificar} className="flex flex-col gap-4">
         <input type="hidden" name="email" value={envio.email} />
@@ -137,19 +137,19 @@ function EtapaCodigo({
         {estado.erro && <Mensagem tipo="erro">{estado.erro}</Mensagem>}
       </form>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <button type="button" onClick={aoTrocarEmail} className="min-h-11 px-1 text-white/80 underline underline-offset-4">
+        <button type="button" onClick={aoTrocarEmail} className="min-h-11 px-1 text-tinta/80 underline underline-offset-4">
           Trocar e-mail
         </button>
         <button
           type="button"
           onClick={pedirOutro}
           disabled={restante > 0 || reenviando}
-          className="min-h-11 px-1 tabular-nums text-brand underline underline-offset-4 disabled:text-white/50 disabled:no-underline"
+          className="min-h-11 px-1 tabular-nums text-brand underline underline-offset-4 disabled:text-tinta/50 disabled:no-underline"
         >
           {reenviando ? "Reenviando…" : restante > 0 ? `Reenviar em ${restante} s` : "Reenviar código"}
         </button>
       </div>
-      <p className="text-sm text-white/60">Vale por 10 minutos. Confira também o spam.</p>
+      <p className="text-sm text-tinta/60">Vale por 10 minutos. Confira também o spam.</p>
     </div>
   );
 }

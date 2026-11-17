@@ -15,9 +15,9 @@ export function BotaoAlbum({ faixas }: { faixas: FaixaListada[] }) {
       type="button"
       data-testid="play-album"
       onClick={() => (noAlbum ? p.alternar() : p.tocar(faixas[0], faixas))}
-      className="foco-claro inline-flex min-h-12 items-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-2 px-6 font-semibold text-night-900"
+      className="foco-claro inline-flex min-h-12 items-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-2 px-6 font-semibold text-sobre-destaque"
     >
-      {tocando ? <Pause className="size-5 fill-night-900" aria-hidden="true" /> : <Play className="size-5 fill-night-900" aria-hidden="true" />}
+      {tocando ? <Pause className="size-5 fill-sobre-destaque" aria-hidden="true" /> : <Play className="size-5 fill-sobre-destaque" aria-hidden="true" />}
       {tocando ? "Pausar álbum" : "Tocar álbum"}
     </button>
   );

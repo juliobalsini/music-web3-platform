@@ -14,7 +14,7 @@ export const metadata = { title: "Seguindo · radioOn" };
 
 function Inicial({ nome }: { nome: string }) {
   return (
-    <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-lg font-bold text-night-900">
+    <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-lg font-bold text-sobre-destaque">
       {nome.charAt(0).toUpperCase()}
     </span>
   );
@@ -36,7 +36,7 @@ async function Conteudo() {
         titulo="Você ainda não segue ninguém"
         texto="Siga artistas e playlisters pelo perfil deles."
         acao={
-          <Link href="/explorar" className="foco-claro inline-flex min-h-11 items-center gap-2 rounded-full bg-brand px-5 font-bold text-night-900">
+          <Link href="/explorar" className="foco-claro inline-flex min-h-11 items-center gap-2 rounded-full bg-brand px-5 font-bold text-sobre-destaque">
             <Compass className="size-5" aria-hidden="true" /> Explorar
           </Link>
         }

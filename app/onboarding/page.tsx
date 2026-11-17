@@ -42,12 +42,12 @@ async function Conteudo({ searchParams }: Pick<PageProps<"/onboarding">, "search
             key={role}
             name="role"
             value={role}
-            className="flex min-h-16 items-center gap-4 rounded-lg bg-white/10 px-4 py-3 text-left transition-colors hover:bg-white/15"
+            className="flex min-h-16 items-center gap-4 rounded-lg bg-tinta/10 px-4 py-3 text-left transition-colors hover:bg-tinta/15"
           >
             <Icon className="size-6 shrink-0 text-brand" aria-hidden="true" />
             <span className="flex flex-col">
               <span className="text-lg font-semibold">{label}</span>
-              <span className="text-sm text-white/70">{dica}</span>
+              <span className="text-sm text-tinta/70">{dica}</span>
             </span>
           </button>
         ))}

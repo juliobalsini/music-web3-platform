@@ -6,19 +6,19 @@ export const metadata = {
 };
 
 const h2 = "mt-4 text-lg font-bold";
-const p = "text-white/80 text-pretty";
+const p = "text-tinta/80 text-pretty";
 
 export default function PrivacidadePage() {
   return (
     <Tela>
       <h1 className="text-2xl font-semibold text-balance">Política de Privacidade</h1>
-      <p className="text-sm text-white/70">Atualizada em 11/11/2026 · Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018)</p>
+      <p className="text-sm text-tinta/70">Atualizada em 11/11/2026 · Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018)</p>
 
       <h2 className={h2}>Quem somos</h2>
       <p className={p}>A radioOn é uma plataforma independente de streaming de música. O controlador dos dados é o responsável pelo projeto, contato: <a className="underline underline-offset-4" href="mailto:juliobalsini@gmail.com">juliobalsini@gmail.com</a>.</p>
 
       <h2 className={h2}>Dados que coletamos</h2>
-      <ul className="list-disc space-y-1 pl-5 text-white/80">
+      <ul className="list-disc space-y-1 pl-5 text-tinta/80">
         <li><strong>Visitante:</strong> ao dar play, criamos uma sessão anônima (um identificador aleatório, sem nome nem e-mail) para registrar escutas e pontos.</li>
         <li><strong>Conta:</strong> e-mail e, se você entrar com Google, nome e foto públicos da conta Google. Nome de exibição e perfil (ouvinte, artista ou curador) que você escolher.</li>
         <li><strong>Uso:</strong> faixas ouvidas, tempo de escuta, pontos, curtidas, salvos e playlists.</li>

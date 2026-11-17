@@ -97,7 +97,7 @@ export function PlayerCheio() {
       ref={ref}
       aria-label={`Tocando: ${atual.title}`}
       onClose={() => abrir(false)}
-      className="m-0 size-full max-h-none max-w-none overflow-y-auto bg-night-900 text-white backdrop:bg-night-900"
+      className="tema-escuro m-0 size-full max-h-none max-w-none overflow-y-auto bg-night-900 text-white backdrop:bg-night-900"
     >
       <div
         className="flex min-h-full flex-col items-center gap-6 px-6 pb-8 pt-4"

@@ -274,9 +274,9 @@ export function UploadForm() {
 
   return (
     <form onSubmit={enviar} className="flex flex-col gap-4" aria-busy={enviando}>
-      <div role="radiogroup" aria-label="Tipo de envio" className="grid grid-cols-2 gap-2 rounded-lg bg-white/5 p-1">
+      <div role="radiogroup" aria-label="Tipo de envio" className="grid grid-cols-2 gap-2 rounded-lg bg-tinta/5 p-1">
         {([["single", "Faixa avulsa"], ["album", "Álbum ou EP"]] as const).map(([v, r]) => (
-          <button key={v} type="button" role="radio" aria-checked={modo === v} onClick={() => setModo(v)} className={`min-h-11 rounded-md text-sm font-semibold ${modo === v ? "bg-brand text-night-900" : "text-white/80"}`}>
+          <button key={v} type="button" role="radio" aria-checked={modo === v} onClick={() => setModo(v)} className={`min-h-11 rounded-md text-sm font-semibold ${modo === v ? "bg-brand text-sobre-destaque" : "text-tinta/80"}`}>
             {r}
           </button>
         ))}
@@ -327,19 +327,19 @@ export function UploadForm() {
           )}
         </>
       )}
-      <label className="flex flex-col gap-1 text-sm text-white/70">
+      <label className="flex flex-col gap-1 text-sm text-tinta/70">
         Capa (opcional){modo === "album" ? ", única para todo o álbum" : ""}
         <input
           name="capa"
           type="file"
           accept="image/*,.jpg,.jpeg,.png,.webp"
           aria-label="Capa (opcional, até 15 MB)"
-          className={`${campo} text-white`}
+          className={`${campo} text-tinta`}
         />
         <span>Até 15 MB; reduzimos no aparelho. Sem capa, geramos uma arte a partir do título.</span>
       </label>
       <div className="grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1 text-sm text-white/70">
+        <label className="flex flex-col gap-1 text-sm text-tinta/70">
           Gênero
           <select name="genero" defaultValue="" className={campo}>
             <option value="">Escolher</option>
@@ -348,7 +348,7 @@ export function UploadForm() {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm text-white/70">
+        <label className="flex flex-col gap-1 text-sm text-tinta/70">
           Clima
           <select name="clima" defaultValue="" className={campo}>
             <option value="">Escolher</option>
@@ -359,7 +359,7 @@ export function UploadForm() {
         </label>
       </div>
       {modo === "single" && (
-      <details className="group rounded-lg bg-white/5 px-4 py-2">
+      <details className="group rounded-lg bg-tinta/5 px-4 py-2">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-semibold">
           Ficha técnica (opcional)
         </summary>
@@ -370,7 +370,7 @@ export function UploadForm() {
         </div>
       </details>
       )}
-      <label className="flex min-h-11 items-center gap-3 text-white/80">
+      <label className="flex min-h-11 items-center gap-3 text-tinta/80">
         <input name="direitos" type="checkbox" required className="size-5 accent-[#e89a3c]" />
         Tenho os direitos desta faixa
       </label>
@@ -379,8 +379,8 @@ export function UploadForm() {
       </button>
       {progresso && (
         <div role="progressbar" aria-label={progresso.rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progresso.frac * 100)} className="flex flex-col gap-1">
-          <p className="text-sm text-white/80">{progresso.rotulo} {Math.round(progresso.frac * 100)}%</p>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <p className="text-sm text-tinta/80">{progresso.rotulo} {Math.round(progresso.frac * 100)}%</p>
+          <div className="h-2 overflow-hidden rounded-full bg-tinta/10">
             <div className="h-full bg-brand transition-[width]" style={{ width: `${Math.round(progresso.frac * 100)}%` }} />
           </div>
         </div>

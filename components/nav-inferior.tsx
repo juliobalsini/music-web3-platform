@@ -29,15 +29,15 @@ export function NavInferior() {
     <>
       {aberto && (
         <div role="dialog" aria-modal="true" aria-label="Criar" className="fixed inset-0 z-50 flex items-end bg-black/60" onClick={() => setAberto(false)}>
-          <div className="mx-auto flex w-full max-w-md flex-col gap-1 rounded-t-2xl bg-night-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+          <div className="mx-auto flex w-full max-w-md flex-col gap-1 rounded-t-2xl bg-fundo-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between pb-2">
               <h2 className="text-base font-bold">Criar</h2>
-              <button type="button" onClick={() => setAberto(false)} aria-label="Fechar" className="flex size-11 items-center justify-center rounded-full hover:bg-white/10">
+              <button type="button" onClick={() => setAberto(false)} aria-label="Fechar" className="flex size-11 items-center justify-center rounded-full hover:bg-tinta/10">
                 <X className="size-5" aria-hidden="true" />
               </button>
             </div>
             {criar.map(({ href, label, Icone, motivo }) => (
-              <LinkConta key={href} href={href} motivo={motivo} onClick={() => setAberto(false)} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-semibold hover:bg-white/10">
+              <LinkConta key={href} href={href} motivo={motivo} onClick={() => setAberto(false)} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-semibold hover:bg-tinta/10">
                 <Icone className="size-5 text-brand" aria-hidden="true" />
                 {label}
               </LinkConta>
@@ -47,7 +47,7 @@ export function NavInferior() {
       )}
       <nav
         aria-label="Principal"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-night-900 pb-[env(safe-area-inset-bottom)]"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-tinta/10 bg-fundo pb-[env(safe-area-inset-bottom)]"
       >
         <ul className="mx-auto grid h-16 max-w-md grid-cols-4">
           {abas.map(({ href, label, Icone }) => {
@@ -57,7 +57,7 @@ export function NavInferior() {
                 <Link
                   href={href}
                   aria-current={ativa ? "page" : undefined}
-                  className={`${aba} ${ativa ? "text-brand" : "text-white/70 hover:text-white"}`}
+                  className={`${aba} ${ativa ? "text-brand" : "text-tinta/70 hover:text-tinta"}`}
                 >
                   <Icone className="size-6" aria-hidden="true" />
                   {label}
@@ -66,7 +66,7 @@ export function NavInferior() {
             );
           })}
           <li>
-            <button type="button" onClick={() => setAberto(true)} aria-haspopup="dialog" className={`${aba} text-white/70 hover:text-white`}>
+            <button type="button" onClick={() => setAberto(true)} aria-haspopup="dialog" className={`${aba} text-tinta/70 hover:text-tinta`}>
               <Plus className="size-6" aria-hidden="true" />
               Criar
             </button>

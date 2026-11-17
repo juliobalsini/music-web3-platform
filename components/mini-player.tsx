@@ -16,7 +16,7 @@ export function MiniPlayer() {
   return (
     <div
       data-testid="mini-player"
-      className="fixed inset-x-2 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-30 mx-auto max-w-md overflow-hidden rounded-xl bg-night-800 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
+      className="fixed inset-x-2 bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)] z-30 mx-auto max-w-md overflow-hidden rounded-xl bg-fundo-2 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.6)] ring-1 ring-tinta/10"
     >
       <div className="flex items-center gap-1 pr-1">
         <button
@@ -28,7 +28,7 @@ export function MiniPlayer() {
           <Capa id={atual.id} title={atual.title} hasCover={atual.hasCover} className="size-10" />
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold">{atual.title}</span>{" "}
-            <span className="block truncate text-xs text-white/70">{apoio}</span>
+            <span className="block truncate text-xs text-tinta/70">{apoio}</span>
           </span>
         </button>
         <button
@@ -36,15 +36,15 @@ export function MiniPlayer() {
           onClick={alternar}
           disabled={estado === "carregando"}
           aria-label={tocando ? "Pausar" : "Tocar"}
-          className="foco-claro flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-night-900 disabled:opacity-60"
+          className="foco-claro flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-sobre-destaque disabled:opacity-60"
         >
-          {tocando ? <Pause className="size-5 fill-night-900" aria-hidden="true" /> : <Play className="ml-0.5 size-5 fill-night-900" aria-hidden="true" />}
+          {tocando ? <Pause className="size-5 fill-sobre-destaque" aria-hidden="true" /> : <Play className="ml-0.5 size-5 fill-sobre-destaque" aria-hidden="true" />}
         </button>
-        <button type="button" onClick={proxima} aria-label="Próxima faixa" className="flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-white/10">
-          <SkipForward className="size-5 fill-white" aria-hidden="true" />
+        <button type="button" onClick={proxima} aria-label="Próxima faixa" className="flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-tinta/10">
+          <SkipForward className="size-5 fill-tinta" aria-hidden="true" />
         </button>
       </div>
-      <div aria-hidden="true" className="h-0.5 bg-white/10">
+      <div aria-hidden="true" className="h-0.5 bg-tinta/10">
         <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
     </div>

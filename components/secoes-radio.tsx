@@ -11,9 +11,9 @@ export function PlayVazio() {
     <div
       aria-hidden="true"
       data-testid="play-vazio"
-      className="flex size-24 select-none items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15"
+      className="flex size-24 select-none items-center justify-center rounded-full bg-tinta/10 ring-1 ring-tinta/15"
     >
-      <Play className="ml-1 size-10 fill-white/30 text-white/30" strokeWidth={0} />
+      <Play className="ml-1 size-10 fill-tinta/30 text-tinta/30" strokeWidth={0} />
     </div>
   );
 }
@@ -24,7 +24,7 @@ export function EstadoVazio() {
       <PlayVazio />
       <div className="flex flex-col gap-2">
         <h2 id="vazio" className="text-xl font-semibold text-balance">Nenhuma faixa ainda</h2>
-        <p className="text-white/70 text-pretty">Artista? Envie a primeira música e abra a rádio.</p>
+        <p className="text-tinta/70 text-pretty">Artista? Envie a primeira música e abra a rádio.</p>
       </div>
       <LinkConta href="/enviar" motivo="Entre para enviar sua música." className={botao}>
         <Upload className="size-5" aria-hidden="true" /> Enviar primeira faixa
@@ -44,12 +44,12 @@ export function PlaylistersEmAlta({ lista }: { lista: PlaylisterResumo[] }) {
             <Link href={`/perfil/${p.id}`} className="flex flex-col items-center gap-1 rounded-lg py-1 text-center">
               <span
                 aria-hidden="true"
-                className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900"
+                className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-sobre-destaque"
               >
                 {p.name.charAt(0).toUpperCase()}
               </span>
               <span className="w-full truncate text-sm font-semibold">{p.name}</span>
-              <span className="text-xs text-white/70">{p.playlists} {p.playlists === 1 ? "playlist" : "playlists"}</span>
+              <span className="text-xs text-tinta/70">{p.playlists} {p.playlists === 1 ? "playlist" : "playlists"}</span>
             </Link>
           </li>
         ))}
@@ -66,12 +66,12 @@ export function PlaylistsDaSemana({ lista, titulo = "Playlists da semana" }: { l
       <ul className="flex flex-col gap-2">
         {lista.map((p) => (
           <li key={p.id}>
-            <Link href={`/playlist/${p.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">
+            <Link href={`/playlist/${p.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-tinta/10 px-4 py-2 hover:bg-tinta/15">
               <span className="min-w-0">
                 <span className="block truncate font-semibold">{p.title}</span>
-                {p.curator && <span className="block truncate text-sm text-white/70">por {p.curator}</span>}
+                {p.curator && <span className="block truncate text-sm text-tinta/70">por {p.curator}</span>}
               </span>
-              <span className="shrink-0 text-sm text-white/70 tabular-nums">{p.trackCount} faixas</span>
+              <span className="shrink-0 text-sm text-tinta/70 tabular-nums">{p.trackCount} faixas</span>
             </Link>
           </li>
         ))}

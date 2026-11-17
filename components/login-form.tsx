@@ -23,7 +23,7 @@ export function LoginForm({ next = "" }: { next?: string }) {
       <BotaoGoogle
         next={next || "/"}
         reserva={
-          <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900`}>
+          <button formAction={entrarComGoogle} formNoValidate className={`${botao} !bg-none !bg-white !text-night-900 ring-1 ring-inset ring-[var(--ds-borda)]`}>
             <LogIn className="size-5" aria-hidden="true" /> Entrar com Google
           </button>
         }
@@ -40,7 +40,7 @@ function LoginLink({ google }: { google: React.ReactNode }) {
   if (state.ok) {
     return (
       <div className="flex flex-col gap-4">
-      <div role="status" className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-4">
+      <div role="status" className="flex items-center gap-3 rounded-lg bg-tinta/10 px-4 py-4">
         <MailCheck className="size-6 shrink-0 text-brand" aria-hidden="true" />
         <p className="text-lg">Link enviado. Abra seu e-mail e toque nele.</p>
       </div>
@@ -48,10 +48,10 @@ function LoginLink({ google }: { google: React.ReactNode }) {
         <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noopener noreferrer" className={botao}>
           <Mail className="size-5" aria-hidden="true" /> Abrir e-mail (Gmail)
         </a>
-        <a href="https://outlook.live.com/mail/0/inbox" target="_blank" rel="noopener noreferrer" className={`${botao} !bg-none !bg-white/10 !text-white`}>
+        <a href="https://outlook.live.com/mail/0/inbox" target="_blank" rel="noopener noreferrer" className={`${botao} !bg-none !bg-tinta/10 !text-tinta`}>
           <Mail className="size-5" aria-hidden="true" /> Abrir e-mail (Outlook)
         </a>
-        <p className="text-sm text-white/70">O link vale por pouco tempo. Confira também o spam.</p>
+        <p className="text-sm text-tinta/70">O link vale por pouco tempo. Confira também o spam.</p>
       </div>
       </div>
     );
@@ -59,7 +59,7 @@ function LoginLink({ google }: { google: React.ReactNode }) {
   return (
     <form action={action} className="flex flex-col gap-4">
       {google}
-      <p aria-hidden="true" className="text-center text-sm text-white/60">ou</p>
+      <p aria-hidden="true" className="text-center text-sm text-tinta/60">ou</p>
       <input
         name="email"
         type="email"

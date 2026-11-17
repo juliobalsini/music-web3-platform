@@ -677,3 +677,16 @@ Fatias seguintes (migrations aditivas): seguir, exclusão lógica, configuraçõ
    logo é imagem e não muda. Lilás novo (#b69cff escuro / #6a3fd0 claro); os destaques escuros têm contraste alto com o
    texto marinho. (d) **Tema claro/automático fica para fatia própria:** os tokens existem, mas há ~370 classes de cor fixa
    (`text-white`, `bg-night-*`) que quebrariam no claro; migrar para tokens antes de oferecer a opção.
+
+117. **Tema claro e automático (#125, fatia 3; 2026-11-17).** (a) Em vez de trocar classe por classe por `var(...)`, o
+   `@theme inline` ganhou `tinta` (= `--ds-texto`), `fundo` (`--ds-bg`), `fundo-2` (`--ds-bg-2`, novo) e `sobre-destaque`;
+   troca mecânica em 50 arquivos (`text-white/70`→`text-tinta/70`, `bg-night-900`→`bg-fundo`, `text-night-900` em botão de
+   destaque→`text-sobre-destaque`). No escuro os valores são os mesmos de antes (sem mudança visual). (b) Telas sobre capa ou
+   foto (player cheio, stories e cards de story, "No ar", abertura) e os cartões coloridos do Explorar ficam sempre escuros:
+   `.tema-escuro` redefine os tokens de superfície/texto (o destaque segue o tema da página, par já com contraste). Botão
+   Google segue branco (marca), com contorno `--ds-borda`. (c) Preferência `tema` (`escuro` padrão | `claro` | `auto`), lista
+   fechada no `sanear`, sem migration (jsonb). `auto` segue `prefers-color-scheme` ao vivo; script do `<head>` aplica antes da
+   1ª pintura e ajusta `meta theme-color`. (d) Logo: variante `public/brand/logo-claro.png` ("radio" em marinho) gerada por
+   `scripts/brand/gerar-logo-claro.mjs`; troca só por CSS, variante escondida com `loading="lazy"`. (e) Grão do fundo
+   desligado no claro (`--ds-grao: 0`); `.foco-claro` usa a cor do texto (branco/marinho). (f) axe do tema claro em Home,
+   Explorar e Configurações (`e2e/acessibilidade-mobile-visual.spec.ts`).

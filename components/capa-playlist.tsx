@@ -10,7 +10,7 @@ type FaixaCapa = { id: string; title: string; hasCover: boolean };
 export function CapaPlaylist({ titulo, faixas, capa, className = "size-28" }: { titulo: string; faixas: FaixaCapa[]; capa?: string | null; className?: string }) {
   if (capa) {
     // eslint-disable-next-line @next/next/no-img-element -- imagem do bucket via redirecionamento (sem otimizador da Vercel: cota)
-    return <img src={capa} alt="" width={1000} height={1000} decoding="async" className={`${className} shrink-0 rounded-xl bg-white/5 object-cover`} data-testid="capa-propria" />;
+    return <img src={capa} alt="" width={1000} height={1000} decoding="async" className={`${className} shrink-0 rounded-xl bg-tinta/5 object-cover`} data-testid="capa-propria" />;
   }
   const c = capaMosaico(faixas);
   if (c.tipo === "arte") return <CapaArte title={titulo} className={`${className} !rounded-xl`} />;

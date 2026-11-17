@@ -46,38 +46,38 @@ export function AcoesPlaylist({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" disabled={faixas.length === 0} onClick={() => tocar(faixas[0], faixas)} className={`${btn} bg-gradient-to-br from-brand to-brand-2 text-night-900 disabled:opacity-50`}>
+        <button type="button" disabled={faixas.length === 0} onClick={() => tocar(faixas[0], faixas)} className={`${btn} bg-gradient-to-br from-brand to-brand-2 text-sobre-destaque disabled:opacity-50`}>
           <Play className="size-4" aria-hidden="true" /> Tocar tudo
         </button>
-        <button type="button" disabled={faixas.length === 0} onClick={aleatorio} className={`${btn} bg-white/10 hover:bg-white/15 disabled:opacity-50`}>
+        <button type="button" disabled={faixas.length === 0} onClick={aleatorio} className={`${btn} bg-tinta/10 hover:bg-tinta/15 disabled:opacity-50`}>
           <Shuffle className="size-4" aria-hidden="true" /> Aleatório
         </button>
         {!dono && (
-          <button type="button" onClick={salvar} disabled={pendente} aria-pressed={salvaAgora} className={`${btn} bg-white/10 hover:bg-white/15`}>
+          <button type="button" onClick={salvar} disabled={pendente} aria-pressed={salvaAgora} className={`${btn} bg-tinta/10 hover:bg-tinta/15`}>
             {salvaAgora ? <BookmarkCheck className="size-4 text-brand" aria-hidden="true" /> : <Bookmark className="size-4" aria-hidden="true" />}
             {salvaAgora ? "Salva" : "Salvar"}
           </button>
         )}
-        <button type="button" onClick={() => setCompartilhar(true)} aria-label="Compartilhar" className={`${btn} bg-white/10 hover:bg-white/15`}>
+        <button type="button" onClick={() => setCompartilhar(true)} aria-label="Compartilhar" className={`${btn} bg-tinta/10 hover:bg-tinta/15`}>
           <Share2 className="size-4" aria-hidden="true" />
         </button>
         {dono && (
           <div className="relative">
-            <button type="button" onClick={() => setMenu((m) => !m)} aria-label="Mais opções" aria-expanded={menu} className={`${btn} bg-white/10 hover:bg-white/15`}>
+            <button type="button" onClick={() => setMenu((m) => !m)} aria-label="Mais opções" aria-expanded={menu} className={`${btn} bg-tinta/10 hover:bg-tinta/15`}>
               <MoreHorizontal className="size-4" aria-hidden="true" />
             </button>
             {menu && (
-              <div role="menu" className="absolute right-0 z-20 mt-1 flex w-44 flex-col rounded-xl bg-night-800 p-1 shadow-lg ring-1 ring-white/10">
-                <Link role="menuitem" href={`/playlist/${id}?editar=1`} className="flex min-h-11 items-center gap-2 rounded-lg px-3 hover:bg-white/10"><Pencil className="size-4" aria-hidden="true" /> Editar</Link>
+              <div role="menu" className="absolute right-0 z-20 mt-1 flex w-44 flex-col rounded-xl bg-fundo-2 p-1 shadow-lg ring-1 ring-tinta/10">
+                <Link role="menuitem" href={`/playlist/${id}?editar=1`} className="flex min-h-11 items-center gap-2 rounded-lg px-3 hover:bg-tinta/10"><Pencil className="size-4" aria-hidden="true" /> Editar</Link>
                 <form action={apagarPlaylist.bind(null, id)} onSubmit={(e) => { if (!confirm("Apagar esta playlist? Dá para desfazer em Meus envios por 30 dias.")) e.preventDefault(); }}>
-                  <button role="menuitem" className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-white/10"><Trash2 className="size-4" aria-hidden="true" /> Apagar</button>
+                  <button role="menuitem" className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-tinta/10"><Trash2 className="size-4" aria-hidden="true" /> Apagar</button>
                 </form>
               </div>
             )}
           </div>
         )}
       </div>
-      <p className="text-sm text-white/70">
+      <p className="text-sm text-tinta/70">
         {total} {total === 1 ? "salvamento" : "salvamentos"}
       </p>
       {aviso && <p role="status" className="text-sm text-brand-2">{aviso}</p>}

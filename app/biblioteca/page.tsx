@@ -26,7 +26,7 @@ async function Conteudo() {
     <>
       <h1 className="text-2xl font-semibold text-balance">Biblioteca</h1>
       {!conta && (
-        <div className="rounded-2xl bg-white/10 p-4">
+        <div className="rounded-2xl bg-tinta/10 p-4">
           <ConviteVisitante compacto />
         </div>
       )}
@@ -37,19 +37,19 @@ async function Conteudo() {
           <section aria-label="Playlists" className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-bold">Playlists</h2>
-              <Link href="/playlist/nova" aria-label="Criar playlist" className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-night-900">
+              <Link href="/playlist/nova" aria-label="Criar playlist" className="foco-claro flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-sobre-destaque">
                 <Plus className="size-5" aria-hidden="true" />
               </Link>
             </div>
             {(playlists ?? []).length === 0 ? (
-              <p className="text-white/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
+              <p className="text-tinta/70 text-pretty">Nenhuma playlist ainda. Toque em + para criar a primeira.</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {(playlists ?? []).map((p) => (
                   <li key={p.id}>
                     <Link href={`/playlist/${p.id}`} className={`${linha} min-h-12`}>
-                      <span className="truncate font-medium">{p.title}{!p.is_public && <span className="ml-2 text-xs font-normal text-white/60">Rascunho</span>}</span>
-                      <span className="shrink-0 text-sm text-white/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
+                      <span className="truncate font-medium">{p.title}{!p.is_public && <span className="ml-2 text-xs font-normal text-tinta/60">Rascunho</span>}</span>
+                      <span className="shrink-0 text-sm text-tinta/70 tabular-nums">{(p.playlist_tracks as unknown as { count: number }[])[0]?.count ?? 0} faixas</span>
                     </Link>
                   </li>
                 ))}

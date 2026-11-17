@@ -6,13 +6,13 @@ export const metadata = {
 };
 
 const h2 = "mt-4 text-lg font-bold";
-const p = "text-white/80 text-pretty";
+const p = "text-tinta/80 text-pretty";
 
 export default function TermosPage() {
   return (
     <Tela>
       <h1 className="text-2xl font-semibold text-balance">Termos de Uso</h1>
-      <p className="text-sm text-white/70">Atualizados em 11/11/2026</p>
+      <p className="text-sm text-tinta/70">Atualizados em 11/11/2026</p>
 
       <h2 className={h2}>O serviço</h2>
       <p className={p}>A radioOn permite ouvir música independente, enviar faixas (artistas), montar playlists (curadores) e ganhar pontos por escutas válidas. Ouvir não exige conta; enviar música, criar playlist e resgatar recompensas exigem entrar com e-mail ou Google.</p>

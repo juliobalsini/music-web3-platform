@@ -11,6 +11,10 @@ Fonte: `app/globals.css` (tokens `--ds-*`), `components/ds/index.tsx` (sem estad
   `--ds-texto-2`, `--ds-borda`, `--ds-destaque`, `--ds-destaque-2`, `--ds-sobre-destaque`, `--ds-ok`, `--ds-erro`, `--ds-aviso`.
   **Destaque** (`data-destaque="azul|verde|rosa"`; âmbar é o padrão) — usado pela futura tela Configurações. No tema claro os destaques
   são escurecidos para manter contraste AA (≥ 4,5:1 do texto sobre o destaque e do destaque sobre o fundo).
+- **Utilitários de tema** (Tailwind, seguem os tokens): `tinta` (texto/ícone base: `text-tinta/70`, `bg-tinta/10`), `fundo`
+  (`--ds-bg`), `fundo-2` (`--ds-bg-2`), `sobre-destaque` (texto e ícone em botão de destaque). Não usar `text-white`,
+  `bg-night-*` nem `text-night-900` em tela nova. Exceção: telas sobre capa ou foto (player cheio, stories, "No ar",
+  abertura) levam `.tema-escuro` na raiz e ficam escuras em qualquer tema; ali cor fixa é permitida.
 - **Tipografia:** Geist (já carregada); título de tela `text-2xl font-semibold`, seção `text-lg font-bold`, corpo 16 px, apoio `text-sm`
   em `--ds-texto-2`; números com `tabular-nums`.
 - **Espaçamento:** `--ds-esp-1…6` (4, 8, 12, 16, 24 px); raio `--ds-raio` (12 px); alvo de toque ≥ 44 px (`min-h-11`).

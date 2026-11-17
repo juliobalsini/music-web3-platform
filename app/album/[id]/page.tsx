@@ -30,7 +30,7 @@ async function Conteudo({ params }: Pick<PageProps<"/album/[id]">, "params">) {
         <Capa id={primeira.id} title={album.title} hasCover={primeira.hasCover} className="size-56 !rounded-xl" />
         <div>
           <h1 className="text-2xl font-bold text-balance">{album.title}</h1>
-          <p className="text-white/70">
+          <p className="text-tinta/70">
             {album.kind === "ep" ? "EP" : "Álbum"} ·{" "}
             <Link href={`/perfil/${album.artistId}`} className="underline underline-offset-2">{album.artistName}</Link>
           </p>

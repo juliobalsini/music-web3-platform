@@ -27,7 +27,7 @@ export function Abertura() {
     <div
       aria-hidden="true"
       data-testid="abertura"
-      className="abertura pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-night-900"
+      className="tema-escuro abertura pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-night-900"
     >
       {/* Mesma posição e proporção da splash do Android (ícone "any": logo a 64% do lado, centrado em 12 rem). */}
       <Logo className="h-auto w-[7.68rem] object-contain" />

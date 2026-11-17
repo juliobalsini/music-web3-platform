@@ -293,7 +293,7 @@ export function VisualizadorStories({
       aria-label={nomeGrupo}
       onClose={onFechar}
       onKeyDown={aoTeclar}
-      className="fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none overflow-hidden bg-night-900 p-0 text-white backdrop:bg-night-900"
+      className="tema-escuro fixed inset-0 m-0 h-dvh max-h-none w-dvw max-w-none overflow-hidden bg-night-900 p-0 text-white backdrop:bg-night-900"
     >
       <div className="relative mx-auto h-full w-full max-w-md overflow-hidden bg-night-900" data-testid="story-palco">
         {/* Fundo: capa desfocada da faixa, ou o gradiente do perfil. */}

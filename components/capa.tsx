@@ -48,7 +48,7 @@ export function Capa({
         loading="lazy"
         decoding="async"
         onError={() => setFalhou(true)}
-        className={`${className} ${forma} shrink-0 bg-night-800 object-cover`}
+        className={`${className} ${forma} shrink-0 bg-fundo-2 object-cover`}
       />
     );
   }

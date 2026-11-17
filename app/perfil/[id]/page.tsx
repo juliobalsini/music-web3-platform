@@ -41,9 +41,9 @@ function ListaSelecao({ lista, titulo }: { lista: Selecao[]; titulo: string }) {
       <ul className="flex flex-col gap-2">
         {lista.map((s) => (
           <li key={s.id}>
-            <Link href={`/playlist/${s.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-2 hover:bg-white/15">
+            <Link href={`/playlist/${s.id}`} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-tinta/10 px-4 py-2 hover:bg-tinta/15">
               <span className="truncate font-semibold">{s.title}</span>
-              <span className="shrink-0 text-sm text-white/70 tabular-nums">{s.faixas.length} {s.faixas.length === 1 ? "faixa" : "faixas"}</span>
+              <span className="shrink-0 text-sm text-tinta/70 tabular-nums">{s.faixas.length} {s.faixas.length === 1 ? "faixa" : "faixas"}</span>
             </Link>
           </li>
         ))}
@@ -64,7 +64,7 @@ async function PerfilCurador({ id }: { id: string }) {
     <>
       <RegistrarVisita tipo="perfil" id={id} titulo={curador.nome} sub="Curador oficial" />
       <div className="flex items-center gap-4">
-        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900">
+        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-sobre-destaque">
           {curador.nome.split(" ").at(-1)?.charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0">
@@ -72,11 +72,11 @@ async function PerfilCurador({ id }: { id: string }) {
           <p data-testid="selo-curador-oficial" className="flex items-center gap-1 text-sm font-semibold text-brand">
             <BadgeCheck aria-hidden="true" className="size-4" /> Curador oficial
           </p>
-          <p className="text-sm text-white/70">{curador.bio}</p>
+          <p className="text-sm text-tinta/70">{curador.bio}</p>
         </div>
       </div>
       <ListaSelecao titulo="Playlists" lista={lista} />
-      <p className="text-sm text-white/70">
+      <p className="text-sm text-tinta/70">
         Da equipe <Link href={`/perfil/${PLATAFORMA_ID}`} className="font-semibold text-brand underline-offset-2 hover:underline">radioOn</Link>
       </p>
     </>
@@ -95,7 +95,7 @@ function OficialSelecao({ lista }: { lista: Selecao[] }) {
           <ul className="flex flex-col gap-2">
             {curadores.map((c) => (
               <li key={c.id}>
-                <Link href={`/perfil/${c.id}`} className="flex min-h-12 items-center gap-2 rounded-lg bg-white/10 px-4 py-2 font-semibold hover:bg-white/15">
+                <Link href={`/perfil/${c.id}`} className="flex min-h-12 items-center gap-2 rounded-lg bg-tinta/10 px-4 py-2 font-semibold hover:bg-tinta/15">
                   <BadgeCheck aria-hidden="true" className="size-4 shrink-0 text-brand" />
                   <span className="truncate">{c.nome}</span>
                 </Link>
@@ -126,12 +126,12 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   if (!publico && seguir.eu !== id) {
     return (
       <div className="flex items-center gap-4">
-        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/70">
+        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-tinta/10 text-tinta/70">
           <Lock className="size-7" />
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{nome}</h1>
-          <p data-testid="perfil-privado" className="text-sm text-white/70">Perfil privado</p>
+          <p data-testid="perfil-privado" className="text-sm text-tinta/70">Perfil privado</p>
         </div>
       </div>
     );
@@ -140,14 +140,14 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
     <>
       <RegistrarVisita tipo="perfil" id={id} titulo={nome} sub={id === PLATAFORMA_ID ? "Perfil oficial" : "Perfil"} />
       <div className="flex items-center gap-4">
-        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-night-900">
+        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-sobre-destaque">
           {nome.charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{nome}</h1>
           {id === PLATAFORMA_ID && <p className="text-sm font-semibold text-brand">Perfil oficial</p>}
           {id !== PLATAFORMA_ID && playlists.length > 0 && <p data-testid="selo-playlister" className="text-sm font-semibold text-brand">Playlister</p>}
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-tinta/70">
             {[faixas.length > 0 && `${faixas.length} ${faixas.length === 1 ? "faixa" : "faixas"}`, faixas.length > 0 && `${plays} escutas`, playlists.length > 0 && `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}`].filter(Boolean).join(" · ")}
           </p>
           {faixas.length > 0 && presenca.total > 0 && (
@@ -174,9 +174,9 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
           <ul className="flex flex-col gap-2">
             {stories.map((st) => (
               <li key={st.id}>
-                <Link href={`/story/${st.id}`} className="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-white/10 px-4 py-3 hover:bg-white/15">
+                <Link href={`/story/${st.id}`} className="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-tinta/10 px-4 py-3 hover:bg-tinta/15">
                   <span className="min-w-0 truncate font-medium">{st.body || "Story sem texto"}</span>
-                  <span className="shrink-0 text-sm text-white/70">{ativo(st.createdAt, agora) ? "No ar" : "Arquivado"}</span>
+                  <span className="shrink-0 text-sm text-tinta/70">{ativo(st.createdAt, agora) ? "No ar" : "Arquivado"}</span>
                 </Link>
               </li>
             ))}

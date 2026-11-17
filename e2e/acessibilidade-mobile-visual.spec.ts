@@ -93,3 +93,18 @@ for (const [caminho, nome] of [
     await auditar(page, nome, testInfo);
   });
 }
+
+// Tema claro (Configurações > Aparência, #125): as mesmas regras com o tema gravado no aparelho antes da 1ª pintura.
+test("axe: tema claro (Home, Explorar, Configurações)", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => localStorage.setItem("radioon:prefs", JSON.stringify({ tema: "claro" })));
+  for (const [caminho, nome] of [
+    ["/", "claro-home"],
+    ["/explorar", "claro-explorar"],
+    ["/ajustes", "claro-configuracoes"],
+  ] as const) {
+    await abrir(page, caminho);
+    await expect(page.locator("html")).toHaveAttribute("data-tema", "claro");
+    await auditar(page, nome, testInfo);
+  }
+});

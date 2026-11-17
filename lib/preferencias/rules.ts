@@ -5,6 +5,10 @@
 export const DESTAQUES = ["ambar", "azul", "verde", "rosa", "lilas"] as const;
 export type Destaque = (typeof DESTAQUES)[number];
 
+/** Tema: escuro (padrão, marca marinho), claro ou automático (segue o sistema). */
+export const TEMAS = ["escuro", "claro", "auto"] as const;
+export type Tema = (typeof TEMAS)[number];
+
 export type Preferencias = {
   /** Reprodução: volume parecido entre faixas (ganho só no player). */
   normalizar: boolean;
@@ -20,6 +24,8 @@ export type Preferencias = {
   mostrarOuvindo: boolean;
   /** Artista: story de bio automático visível na Home e no Explorar. */
   storyBio: boolean;
+  /** Aparência: tema escuro, claro ou do sistema. */
+  tema: Tema;
   /** Aparência: cor de destaque (botões, play, aba ativa, foco). */
   destaque: Destaque;
   /** Aparência: texto um pouco maior em todo o app. */
@@ -36,6 +42,7 @@ export const PADRAO: Preferencias = {
   perfilPublico: true,
   mostrarOuvindo: true,
   storyBio: true,
+  tema: "escuro",
   destaque: "ambar",
   textoMaior: false,
   reduzirAnimacoes: false,
@@ -47,7 +54,11 @@ function ehDestaque(v: unknown): v is Destaque {
   return typeof v === "string" && (DESTAQUES as readonly string[]).includes(v);
 }
 
-/** Só as chaves conhecidas, com o tipo do padrão (destaque: só da lista); o resto é descartado (cliente ou banco). */
+function ehTema(v: unknown): v is Tema {
+  return typeof v === "string" && (TEMAS as readonly string[]).includes(v);
+}
+
+/** Só as chaves conhecidas, com o tipo do padrão (destaque e tema: só da lista); o resto é descartado (cliente ou banco). */
 export function sanear(entrada: unknown): Partial<Preferencias> {
   if (!entrada || typeof entrada !== "object" || Array.isArray(entrada)) return {};
   const o = entrada as Record<string, unknown>;
@@ -55,14 +66,26 @@ export function sanear(entrada: unknown): Partial<Preferencias> {
   for (const k of CHAVES) {
     if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
     const v = o[k];
-    if (k === "destaque" ? ehDestaque(v) : typeof v === "boolean") r[k] = v;
+    if (k === "destaque" ? ehDestaque(v) : k === "tema" ? ehTema(v) : typeof v === "boolean") r[k] = v;
   }
   return r as Partial<Preferencias>;
 }
 
+/** Tema efetivo: "auto" segue o sistema (`prefers-color-scheme: light`). */
+export function temaClaro(tema: Tema, sistemaClaro: boolean): boolean {
+  return tema === "claro" || (tema === "auto" && sistemaClaro);
+}
+
+/** Cor da barra do navegador (meta theme-color) para cada tema: o fundo da página. */
+export const COR_BARRA = { escuro: "#00112a", claro: "#f6f8fc" } as const;
+
 /** Atributos aplicados em <html> pela aparência (lidos pelo CSS de app/globals.css). */
-export function atributosAparencia(p: Pick<Preferencias, "destaque" | "textoMaior" | "reduzirAnimacoes">) {
+export function atributosAparencia(
+  p: Pick<Preferencias, "tema" | "destaque" | "textoMaior" | "reduzirAnimacoes">,
+  sistemaClaro = false,
+) {
   return {
+    "data-tema": temaClaro(p.tema, sistemaClaro) ? "claro" : null,
     "data-destaque": p.destaque === "ambar" ? null : p.destaque,
     "data-texto": p.textoMaior ? "maior" : null,
     "data-movimento": p.reduzirAnimacoes ? "reduzido" : null,

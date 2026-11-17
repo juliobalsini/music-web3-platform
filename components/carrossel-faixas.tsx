@@ -14,7 +14,7 @@ export function CarrosselFaixas({ titulo, dica, faixas }: { titulo: string; dica
     <section aria-label={titulo} className="flex flex-col gap-2">
       <div className="flex flex-col">
         <h2 className="text-lg font-bold">{titulo}</h2>
-        {dica && <p className="text-sm text-white/70">{dica}</p>}
+        {dica && <p className="text-sm text-tinta/70">{dica}</p>}
       </div>
       <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1">
         {faixas.map((f) => {
@@ -29,12 +29,12 @@ export function CarrosselFaixas({ titulo, dica, faixas }: { titulo: string; dica
               >
                 <span className="relative block">
                   <Capa id={f.id} title={f.title} hasCover={f.hasCover} className="aspect-square w-full !rounded-xl" />
-                  <span aria-hidden="true" className="absolute bottom-2 right-2 flex size-10 items-center justify-center rounded-full bg-brand text-night-900 shadow-lg">
-                    {tocando ? <Pause className="size-5 fill-night-900" /> : <Play className="ml-0.5 size-5 fill-night-900" />}
+                  <span aria-hidden="true" className="absolute bottom-2 right-2 flex size-10 items-center justify-center rounded-full bg-brand text-sobre-destaque shadow-lg">
+                    {tocando ? <Pause className="size-5 fill-sobre-destaque" /> : <Play className="ml-0.5 size-5 fill-sobre-destaque" />}
                   </span>
                 </span>
                 <span className="line-clamp-2 text-sm font-semibold leading-tight">{f.title}</span>{" "}
-                <span className="truncate text-xs text-white/70">{f.artistName}</span>
+                <span className="truncate text-xs text-tinta/70">{f.artistName}</span>
               </button>
             </li>
           );
