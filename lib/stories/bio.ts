@@ -2,6 +2,7 @@
 // (foto, nome, frase) e das faixas publicadas a cada leitura. Ao mudar foto, frase ou faixa mais ouvida,
 // o id muda, então o story volta a contar como "não visto".
 
+import { caminhoFotoPerfil } from "../perfil/foto.ts";
 import { ATIVO_MS, agruparPorAutor, type GrupoStories, type Story } from "./rules.ts";
 
 export const PREFIXO_BIO = "bio-";
@@ -23,12 +24,14 @@ export type FaixaBio = { id: string; artistId: string; genre: string | null; pla
 export const ehStoryDeBio = (s: Pick<Story, "id">) => s.id.startsWith(PREFIXO_BIO);
 
 /**
- * Foto aceita no story: https do Google (conta Google do artista) ou arquivo de demonstração local.
- * Qualquer outra origem é descartada (o banco já exige https; aqui também se limita o domínio).
+ * Foto aceita no story: foto própria (rota do app, sempre relativa), https do Google (conta Google do artista) ou
+ * arquivo de demonstração local. Qualquer outra origem é descartada (o banco já exige https; aqui também se limita o domínio).
  */
 export function fotoSegura(url: string | null | undefined): string | null {
   if (!url) return null;
   if (/^\/demo\/[a-z0-9-]+\.svg$/.test(url)) return url;
+  const propria = caminhoFotoPerfil(url);
+  if (propria) return propria;
   try {
     const u = new URL(url);
     return u.protocol === "https:" && (u.hostname === "googleusercontent.com" || u.hostname.endsWith(".googleusercontent.com")) ? u.toString() : null;

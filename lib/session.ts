@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fotoDaConta } from "@/lib/perfil/foto";
 import { lerPreferenciasConta } from "@/lib/preferencias/conta";
 import type { Preferencias } from "@/lib/preferencias/rules";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,6 @@ export async function getResumoConta(): Promise<ResumoConta> {
   ]);
   const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
   const nome = perfil?.display_name || (typeof meta.full_name === "string" ? meta.full_name : null) || u.email?.split("@")[0] || null;
-  const foto = typeof meta.avatar_url === "string" && meta.avatar_url.startsWith("https://") ? meta.avatar_url : null;
+  const foto = fotoDaConta(meta, u.id);
   return { logado: true, nome, foto, prefs };
 }

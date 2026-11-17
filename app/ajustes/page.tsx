@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Esqueleto } from "@/components/ds";
 import { Configuracoes, type DadosConta } from "@/components/configuracoes";
 import { Tela } from "@/components/ui";
+import { fotoDaConta } from "@/lib/perfil/foto";
 import { getSessionRole } from "@/lib/session";
 
 export const metadata = { title: "Configurações · radioOn" };
@@ -19,10 +20,11 @@ async function dadosConta(): Promise<DadosConta | null> {
     const artista = s.role === "artist";
     const { data: pb } = artista ? await s.supabase.from("profiles").select("bio,avatar_url").eq("id", s.userId).maybeSingle() : { data: null };
     const meta = (u.user?.user_metadata ?? {}) as Record<string, unknown>;
-    const foto = typeof meta.avatar_url === "string" && meta.avatar_url.startsWith("https://") ? meta.avatar_url : null;
+    const foto = fotoDaConta(meta, s.userId);
+    const fotoPropria = !!foto?.startsWith("/");
     const nome = p?.display_name || (typeof meta.full_name === "string" ? meta.full_name : null);
     const perfil = (pb ?? null) as { bio: string | null; avatar_url: string | null } | null;
-    return { nome, email: u.user?.email ?? null, foto, artista, bio: perfil?.bio ?? null, fotoNoPerfil: !!perfil?.avatar_url };
+    return { id: s.userId, nome, email: u.user?.email ?? null, foto, fotoPropria, artista, bio: perfil?.bio ?? null, fotoNoPerfil: !!perfil?.avatar_url };
   } catch {
     return null; // sem Supabase (testes/prévias): só os ajustes do aparelho
   }
