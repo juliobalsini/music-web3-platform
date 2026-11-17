@@ -10,7 +10,8 @@ import { Ajuda, Interruptor, PainelInferior } from "@/components/ds/interativos"
 import { BotaoEntrar } from "@/components/login-contextual";
 import { botao, campo, Mensagem } from "@/components/ui";
 import { gravarPreferencias, usePreferencias } from "@/lib/preferencias/cliente";
-import { DESTAQUES, EQS, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Eq, type Preferencias, type Tema } from "@/lib/preferencias/rules";
+import { DESTAQUES, EQS, GENEROS_GOSTO, MAX_GOSTOS, PALAVRA_EXCLUIR, TEMAS, type Destaque, type Eq, type Preferencias, type Tema } from "@/lib/preferencias/rules";
+import { rotuloGenero, type GeneroId } from "@/lib/radio/generos";
 import { MAX_BIO } from "@/lib/stories/bio";
 
 export type DadosConta = {
@@ -139,6 +140,40 @@ function EscolherDestaque({ valor, aoMudar }: { valor: Destaque; aoMudar: (d: De
   );
 }
 
+/** Seus gostos: caixas nativas em chips (alvo de 44 px); no máx. 5, as demais ficam indisponíveis até desmarcar uma. */
+function EscolherGostos({ valor, aoMudar }: { valor: GeneroId[]; aoMudar: (g: GeneroId[]) => void }) {
+  const cheio = valor.length >= MAX_GOSTOS;
+  return (
+    <fieldset className="flex flex-col gap-3 p-4" aria-describedby="gostos-contagem">
+      <legend className="float-left mb-1 font-semibold">Gêneros que você curte</legend>
+      <p id="gostos-contagem" aria-live="polite" className="clear-left text-sm tabular-nums text-[var(--ds-texto-2)]">
+        {valor.length} de {MAX_GOSTOS}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {GENEROS_GOSTO.map((g) => {
+          const marcado = valor.includes(g);
+          return (
+            <label key={g} className="cursor-pointer has-[:disabled]:cursor-not-allowed">
+              <input
+                type="checkbox"
+                checked={marcado}
+                disabled={!marcado && cheio}
+                onChange={() => aoMudar(marcado ? valor.filter((x) => x !== g) : [...valor, g])}
+                data-testid={`pref-gosto-${g}`}
+                className="peer sr-only"
+              />
+              <span className="flex min-h-11 items-center gap-1.5 rounded-full border border-[var(--ds-borda)] px-4 text-sm font-semibold text-[var(--ds-texto-2)] transition-colors duration-[var(--ds-mov-rapido)] peer-checked:border-transparent peer-checked:bg-[var(--ds-destaque)] peer-checked:text-sobre-destaque peer-disabled:opacity-50 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--ds-texto)]">
+                {marcado && <Check className="size-4" strokeWidth={2.5} aria-hidden="true" />}
+                {rotuloGenero(g)}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 function Retorno({ estado }: { estado: Resultado | null }) {
   if (!estado) return null;
   if (!estado.ok) return <Mensagem tipo="erro">{estado.erro}</Mensagem>;
@@ -168,6 +203,15 @@ export function Configuracoes({ conta }: { conta: DadosConta | null }) {
           <Interruptor titulo="Texto maior" ligado={prefs.textoMaior} aoMudar={(v) => mudar("textoMaior", v)} testId="pref-texto-maior" />
           <Interruptor titulo="Reduzir animações" apoio="Telas sem movimento." ligado={prefs.reduzirAnimacoes} aoMudar={(v) => mudar("reduzirAnimacoes", v)} testId="pref-reduzir-animacoes" />
         </div>
+      </Secao>
+
+      <Secao titulo="Seus gostos">
+        <div className={grupo}>
+          <EscolherGostos valor={prefs.gostos} aoMudar={(g) => mudar("gostos", g)} />
+        </div>
+        <Ajuda titulo="Para que serve">
+          As playlists da Seleção radioOn desses gêneros aparecem primeiro na Home. Escolha até {MAX_GOSTOS}; dá para mudar quando quiser.
+        </Ajuda>
       </Secao>
 
       <Secao titulo="Reprodução">

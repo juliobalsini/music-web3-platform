@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { atributosAparencia, BANDAS_EQ, EQS, preGanhoEq, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
+import { atributosAparencia, BANDAS_EQ, EQS, MAX_GOSTOS, preGanhoEq, sanearGostos, confirmouExclusao, temaClaro, emailAnonimo, mesclar, PADRAO, parseEmail, parseNome, sanear } from "../lib/preferencias/rules.ts";
 
 describe("Configurações — preferências", () => {
   it("padrão: som e continuidade ligados, economia desligada, perfil público", () => {
     assert.deepEqual(PADRAO, {
       normalizar: true, continua: true, eq: "plano", somStories: true, economia: false, perfilPublico: true, mostrarOuvindo: true, storyBio: true,
-      tema: "escuro", destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
+      gostos: [], tema: "escuro", destaque: "ambar", textoMaior: false, reduzirAnimacoes: false,
     });
   });
 
@@ -44,6 +44,14 @@ describe("Configurações — preferências", () => {
       assert.ok(preGanhoEq(e) <= 0);
     }
     assert.equal(preGanhoEq("graves"), -2.5);
+  });
+
+  it("gostos: só gêneros da lista, sem repetir, na ordem, no máx. 5; 'outro' não conta", () => {
+    assert.deepEqual(sanear({ gostos: ["rock", "mpb", "rock", "xyz", 3, "outro", "jazz"] }), { gostos: ["rock", "mpb", "jazz"] });
+    assert.deepEqual(sanear({ gostos: [] }), { gostos: [] });
+    for (const v of ["rock", null, { 0: "rock" }, true]) assert.deepEqual(sanear({ gostos: v }), {});
+    const muitos = ["rock", "mpb", "jazz", "funk", "pop", "samba", "metal"];
+    assert.deepEqual(sanearGostos(muitos), muitos.slice(0, MAX_GOSTOS));
   });
 
   it("tema: só escuro, claro ou auto; auto segue o sistema", () => {
