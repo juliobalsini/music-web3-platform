@@ -16,6 +16,14 @@ describe("design system", () => {
     const css = readFileSync("app/globals.css", "utf8");
     assert.match(css, /data-tema="claro"/);
     assert.match(css, /data-destaque="azul"/);
+    // Configurações > Aparência: cada destaque tem token escuro e claro, e os utilitários brand seguem o token.
+    for (const c of ["azul", "verde", "rosa", "lilas"]) {
+      assert.match(css, new RegExp(`:root\\[data-destaque="${c}"\\]`));
+      assert.match(css, new RegExp(`\\[data-tema="claro"\\]\\[data-destaque="${c}"\\]`));
+    }
+    assert.match(css, /--color-brand: var\(--ds-destaque\)/);
+    assert.match(css, /:root\[data-movimento="reduzido"\]/);
+    assert.match(css, /:root\[data-texto="maior"\]/);
     assert.match(css, /prefers-reduced-motion: reduce/);
   });
 });
