@@ -10,6 +10,7 @@ import { chaveCapaValida } from "@/lib/playlists/capa";
 import { semanaIso } from "@/lib/playlists/tema";
 import { isStorageConfigured, objetoExiste } from "@/lib/storage/client";
 import { catalogoMudou } from "@/lib/radio/cache-catalogo";
+import { editorDemo } from "@/lib/playlists/demo-editor";
 import { getSessionRole } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -48,6 +49,7 @@ export async function criarRascunho(chave: string) {
 
 /** Salvamento automático de título e descrição (RLS: só o dono altera). */
 export async function salvarDetalhes(id: string, titulo: string, descricao: string): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const { supabase, userId } = await conta();
   const title = parseTitle(titulo);
   const description = parseDescricao(descricao);
@@ -67,6 +69,7 @@ async function donoDe(id: string) {
 }
 
 export async function adicionarFaixaA(id: string, trackId: string): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const d = await donoDe(id);
   if (!d || !isUuid(trackId)) return { ok: false, erro: "Playlist não encontrada." };
   const { data: ultima } = await d.supabase.from("playlist_tracks").select("position").eq("playlist_id", id).order("position", { ascending: false }).limit(1).maybeSingle();
@@ -79,6 +82,7 @@ export async function adicionarFaixaA(id: string, trackId: string): Promise<Resu
 }
 
 export async function removerFaixaDe(id: string, trackId: string): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const d = await donoDe(id);
   if (!d || !isUuid(trackId)) return { ok: false, erro: "Playlist não encontrada." };
   const { error } = await d.supabase.from("playlist_tracks").delete().eq("playlist_id", id).eq("track_id", trackId);
@@ -90,6 +94,7 @@ export async function removerFaixaDe(id: string, trackId: string): Promise<Resul
 
 /** Reordena: recebe a ordem final de ids. Posições são regravadas por RLS (o dono tem UPDATE em `position`). */
 export async function reordenarFaixas(id: string, ordem: string[]): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const d = await donoDe(id);
   if (!d || !ordem.every(isUuid)) return { ok: false, erro: "Playlist não encontrada." };
   const { data } = await d.supabase.from("playlist_tracks").select("track_id,position").eq("playlist_id", id);
@@ -116,6 +121,7 @@ export async function reordenarFaixas(id: string, ordem: string[]): Promise<Resu
  * service_role — só depois de o RLS do cliente do usuário confirmar que a playlist é dele (mesma regra de /curador).
  */
 export async function curarFaixa(id: string, trackId: string, mudanca: unknown): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const d = await donoDe(id);
   const m = parseCuradoria(mudanca);
   if (!d || !isUuid(trackId)) return { ok: false, erro: "Playlist não encontrada." };
@@ -151,6 +157,7 @@ export async function definirCapa(id: string, key: string | null): Promise<Resul
 }
 
 export async function publicar(id: string): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: false, erro: "Demonstração: a playlist não é publicada." };
   const d = await donoDe(id);
   if (!d) return { ok: false, erro: "Playlist não encontrada." };
   const { count } = await d.supabase.from("playlist_tracks").select("track_id", { count: "exact", head: true }).eq("playlist_id", id);
@@ -170,6 +177,7 @@ export async function publicar(id: string): Promise<Resultado> {
  * recusa qualquer outra (ninguém marca uma semana passada). Desmarcar só limpa a marca desta semana.
  */
 export async function marcarTema(id: string, marcar: boolean): Promise<Resultado> {
+  if (await editorDemo(id)) return { ok: true }; // E2E: demonstração, nada é gravado.
   const d = await donoDe(id);
   if (!d || typeof marcar !== "boolean") return { ok: false, erro: "Playlist não encontrada." };
   const semana = semanaIso(Date.now());

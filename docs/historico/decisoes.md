@@ -770,3 +770,13 @@ são derivados a cada leitura (perfil, faixas, stories com `track_id`, `presenca
 (cartão 1200x630 quando o aparelho aceita arquivo) ou pelo Compartilhar de faixa em Meus envios. (c) Completa, a trilha some e
 vira o botão "Trilha do artista completa · ver selos". Após publicar uma faixa, o envio mostra o link "Ver primeiros passos".
 Regras puras em `lib/artista/trilha.ts`.
+
+## 127. E2E logado do editor de playlist (2026-11-18, #122)
+(a) A prévia não tem conta de teste e criar uma exigiria credencial nova. Em vez de simular a sessão do Supabase, o E2E abre
+um rascunho de demonstração: com `demoAtivo()` (nunca em produção) e o cookie de teste `radioon_demo_editor=1`, a playlist
+`00000000-0000-4000-8000-000000000701` sai de `obterPlaylist` como rascunho do próprio visitante (`mine: true`, 3 faixas demo).
+(b) As server actions do editor (título/descrição, adicionar, remover, reordenar, curadoria, Tema da semana) respondem
+`{ ok: true }` para esse id sem tocar no banco; publicar responde com aviso ("Demonstração: a playlist não é publicada.").
+Nenhuma permissão é ampliada: o atalho só vale para o id fixo de demonstração, só fora de produção, e não grava nada.
+(c) E2E: `e2e/playlist-editor-mobile-visual.spec.ts` (fluxo completo, com prints) e axe do editor e do painel de adicionar em
+`e2e/acessibilidade-mobile-visual.spec.ts`. Sem o cookie, o id de demonstração dá 404. Código em `lib/playlists/demo-editor.ts`.

@@ -130,3 +130,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 124. Aba Artista no perfil: só para artista com faixa publicada, métricas privadas pelo service_role só-leitura, 7 dias em UTC
 125. Perfil "Você" e perfil público: estatísticas só das escutas do dono (RLS), dia em UTC; público só com foto, selos e seguidores
 126. Trilha do artista: 5 passos na aba Artista, derivados do banco a cada leitura; "compartilhar" só no aparelho (localStorage)
+127. E2E logado do editor de playlist: rascunho de demonstração …0701 por cookie de teste, só fora de produção, ações sem banco

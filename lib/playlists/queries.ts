@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import { urlCapaPlaylist } from "./capa";
+import { editorDemo, playlistDemoEditor } from "./demo-editor";
 import { contarPresenca, rankPlaylists, type LinhaPresenca, type PlaylistResumo, type Presenca } from "./rules";
 
 type Linha = { id: string; title: string; created_at: string; playlist_tracks: { count: number }[] };
@@ -39,6 +40,7 @@ export type PlaylistPagina = {
 
 export async function obterPlaylist(id: string): Promise<PlaylistPagina | null> {
   try {
+    if (await editorDemo(id)) return playlistDemoEditor();
     const supabase = await createClient();
     const { data: u } = await supabase.auth.getUser();
     const uid = u.user && !u.user.is_anonymous ? u.user.id : null;

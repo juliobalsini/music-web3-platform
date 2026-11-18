@@ -108,3 +108,14 @@ test("axe: tema claro (Home, Explorar, Configurações)", async ({ page }, testI
     await auditar(page, nome, testInfo);
   }
 });
+
+// Editor de playlist logado (#122): rascunho de demonstração aberto como dono pelo cookie de teste (só fora de produção).
+test("axe: editor de playlist e painel de adicionar faixas", async ({ page, baseURL }, testInfo) => {
+  await page.context().addCookies([{ name: "radioon_demo_editor", value: "1", url: baseURL! }]);
+  await abrir(page, "/playlist/00000000-0000-4000-8000-000000000701");
+  await expect(page.getByTestId("editor-playlist")).toBeVisible({ timeout: 20_000 });
+  await auditar(page, "editor-playlist", testInfo);
+  await page.getByTestId("adicionar-faixas").click();
+  await expect(page.getByRole("dialog", { name: "Adicionar faixas" })).toBeVisible();
+  await auditar(page, "editor-adicionar", testInfo);
+});
