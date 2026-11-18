@@ -128,3 +128,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 122. Primeiro acesso: `/onboarding/gostos` pulável depois do perfil, até 3 gêneros; quem já tem gostos segue direto
 123. Meus envios v2: abas na URL (`?aba=`), números por service_role só-leitura, duplicatas por título normalizado e duração ±1 s
 124. Aba Artista no perfil: só para artista com faixa publicada, métricas privadas pelo service_role só-leitura, 7 dias em UTC
+125. Perfil "Você" e perfil público: estatísticas só das escutas do dono (RLS), dia em UTC; público só com foto, selos e seguidores

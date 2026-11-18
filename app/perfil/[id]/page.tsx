@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- foto de perfil (Google ou rota própria), sem otimizador (cota). */
 import { BadgeCheck, ListMusic, Lock } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -15,6 +16,7 @@ import Link from "next/link";
 import { curadoresAtivos, curadorOficial, IDS_OFICIAIS, selecoesDoCurador } from "@/lib/radio/curadores";
 import { PLATAFORMA_ID, selecaoRadioOn, type Selecao } from "@/lib/radio/home";
 import { carregarRadio } from "@/lib/radio/queries";
+import { fotosDePerfis } from "@/lib/stories/bio-queries";
 import { carregarStories } from "@/lib/stories/queries";
 import { ativo } from "@/lib/stories/rules";
 import { podeSeguir } from "@/lib/seguir/rules";
@@ -121,6 +123,7 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
   if (faixas.length === 0 && playlists.length === 0 && stories.length === 0) notFound();
   const nome = faixas[0]?.artistName ?? playlists[0]?.curator ?? stories[0]?.authorName ?? "Perfil";
   const plays = faixas.reduce((n, f) => n + f.plays, 0);
+  const seguidores = radio.seguidores[id] ?? 0;
   // Configurações › Perfil público desligado: quem visita vê só o nome (o dono vê tudo). As faixas e playlists
   // publicadas seguem tocando no resto da radioOn.
   if (!publico && seguir.eu !== id) {
@@ -136,17 +139,28 @@ async function Conteudo({ params }: Pick<PageProps<"/perfil/[id]">, "params">) {
       </div>
     );
   }
+  const foto = (await fotosDePerfis([id]).catch(() => new Map<string, string>())).get(id) ?? null;
   return (
     <>
       <RegistrarVisita tipo="perfil" id={id} titulo={nome} sub={id === PLATAFORMA_ID ? "Perfil oficial" : "Perfil"} />
       <div className="flex items-center gap-4">
-        <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-sobre-destaque">
-          {nome.charAt(0).toUpperCase()}
-        </span>
+        {foto ? (
+          <img src={foto} alt="" width={64} height={64} referrerPolicy="no-referrer" className="size-16 shrink-0 rounded-full bg-[var(--ds-surface-2)] object-cover" />
+        ) : (
+          <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-2 text-2xl font-bold text-sobre-destaque">
+            {nome.charAt(0).toUpperCase()}
+          </span>
+        )}
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-semibold">{nome}</h1>
+          <h1 translate="no" className="truncate text-2xl font-semibold">{nome}</h1>
           {id === PLATAFORMA_ID && <p className="text-sm font-semibold text-brand">Perfil oficial</p>}
-          {id !== PLATAFORMA_ID && playlists.length > 0 && <p data-testid="selo-playlister" className="text-sm font-semibold text-brand">Playlister</p>}
+          {id !== PLATAFORMA_ID && (faixas.length > 0 || playlists.length > 0) && (
+            <ul aria-label="Selos" className="my-1 flex flex-wrap gap-1.5">
+              {faixas.length > 0 && <li data-testid="selo-artista"><ChipStatus tom="destaque">Artista</ChipStatus></li>}
+              {playlists.length > 0 && <li data-testid="selo-playlister"><ChipStatus tom="destaque">Playlister</ChipStatus></li>}
+            </ul>
+          )}
+          <p data-testid="seguidores" className="text-sm text-tinta/70 tabular-nums">{seguidores.toLocaleString("pt-BR")} {seguidores === 1 ? "seguidor" : "seguidores"}</p>
           <p className="text-sm text-tinta/70">
             {[faixas.length > 0 && `${faixas.length} ${faixas.length === 1 ? "faixa" : "faixas"}`, faixas.length > 0 && `${plays} escutas`, playlists.length > 0 && `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"}`].filter(Boolean).join(" · ")}
           </p>

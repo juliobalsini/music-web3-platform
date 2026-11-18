@@ -9,7 +9,7 @@ import type { FaixaListada } from "@/lib/radio/rules";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-import { storiesDeBio, type PerfilBio } from "./bio";
+import { fotoSegura, storiesDeBio, type PerfilBio } from "./bio";
 import type { Story } from "./rules";
 
 type LinhaPerfil = { id: string; display_name: string | null; bio: string | null; avatar_url: string | null; deleted_at: string | null };
@@ -66,3 +66,20 @@ export const carregarBios = cache(async (faixas: FaixaListada[]): Promise<Story[
   const lista = faixas.map((f) => ({ id: f.id, artistId: f.artistId, genre: f.genre, plays: f.plays, createdAt: f.createdAt }));
   return storiesDeBio(perfis, lista, (g) => rotuloGenero(g) ?? null);
 });
+
+/** Fotos públicas (validadas por `fotoSegura`) de alguns perfis, para listas curtas. Falha → mapa vazio. */
+export async function fotosDePerfis(ids: string[]): Promise<Map<string, string>> {
+  const r = new Map<string, string>();
+  const reais = ids.filter((id) => !(id in PERFIS_DEMO));
+  for (const id of ids) {
+    const f = id in PERFIS_DEMO ? PERFIS_DEMO[id].foto : null;
+    if (f) r.set(id, f);
+  }
+  if (reais.length > 0) {
+    for (const l of await lerPerfis(reais)) {
+      const f = l.deleted_at ? null : fotoSegura(l.avatar_url);
+      if (f) r.set(l.id, f);
+    }
+  }
+  return r;
+}
