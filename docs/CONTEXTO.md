@@ -28,16 +28,17 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
   `item-125-fechamento` (fecha a #125 ao mergear).
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
-- [ ] **#147 Trilha do artista.**
+- [x] **#147 Trilha do artista** — PR `item-147-trilha` (DECISIONS 126); fechar a issue ao mergear.
 - [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-125-fechamento` mergeou e o deploy subiu (`/api/health`); se a #125 ficou aberta, fechá-la
-   (remover `fila`). Artistas demo agora em …0601–0603 (`lib/radio/demo.ts`; antes colidiam com os curadores oficiais).
-2. **#147 Trilha do artista** (próximo item livre do Sprint): ler a issue, propor fatias, começar pela 1ª.
-3. #122: avaliar sessão simulada no E2E do editor de playlist logado.
+1. Conferir se o PR `item-147-trilha` mergeou e o deploy subiu (`/api/health`); se a #147 ficou aberta, comentar, remover
+   `fila` e fechar. Trilha em `components/trilha-artista.tsx` (regras em `lib/artista/trilha.ts`).
+2. **#122 Playlists v2** (único item livre): avaliar sessão simulada no E2E do editor de playlist logado (a prévia não tem
+   conta de teste); ver como `radioon_demo_segue` simula estado em `lib/seguir/queries.ts`.
+3. #188 item 6 só em 2026-11-23. #78: propor leitura do KV `ctl` no PR protegido de segunda (2026-11-23).
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -59,7 +60,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
-- 2026-11-18 (42ª) — #201 em produção. #125: aba "Você" + perfil público (#202) em produção; protótipo e ids demo no PR `item-125-fechamento`.
+- 2026-11-18 (42ª) — #125 fechada: aba "Você" + perfil público (#202) e protótipo/ids demo (#203) em produção. #147 no PR `item-147-trilha`.
 - 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
 - 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
 - 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).

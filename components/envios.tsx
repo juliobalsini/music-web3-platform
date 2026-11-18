@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { apagar, desfazer, renomear } from "@/app/meus-envios/actions";
 import { MenuMais, PainelInferior, type ItemMenu } from "@/components/ds/interativos";
 import { campo } from "@/components/ui";
+import { marcarCompartilhou } from "@/lib/artista/trilha-cliente";
 import { DIAS_DESFAZER, MAX_TITULO, ROTULO_TIPO, type TipoEnvio } from "@/lib/envios/rules";
 
 const APAGADO: Record<TipoEnvio, string> = { faixa: "Faixa apagada.", album: "Álbum apagado.", playlist: "Playlist apagada.", story: "Story apagado." };
@@ -38,6 +39,7 @@ export function MenuEnvio({ tipo, id, titulo, depois, compartilhavel = false }: 
     if (navigator.share) {
       try {
         await navigator.share({ title: titulo, url });
+        if (tipo === "faixa") marcarCompartilhou();
       } catch {
         /* cancelado */
       }
@@ -45,6 +47,7 @@ export function MenuEnvio({ tipo, id, titulo, depois, compartilhavel = false }: 
     }
     try {
       await navigator.clipboard.writeText(url);
+      if (tipo === "faixa") marcarCompartilhou();
       setCopiado(true);
       window.setTimeout(() => setCopiado(false), 2500);
     } catch {
