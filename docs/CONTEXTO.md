@@ -21,24 +21,23 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 - [~] **#188 Eficiência do agente (urgente).** Partes A (#190) e B (#191, protegida) em produção; #88–#90 fechados.
   Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
-- [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
-- [x] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
-  (#195); exportar dados (#196); Seus gostos (#197); foto própria (#198); primeiro acesso e item 7 (#199); Meus envios v2
-  (#200, DECISIONS 123); aba Artista (#201, DECISIONS 124); itens 1 e 2 (#202, DECISIONS 125); protótipo e ids demo no PR
-  `item-125-fechamento` (fecha a #125 ao mergear).
+- [x] **#122 Playlists v2** — E2E logado do editor (rascunho de demonstração por cookie de teste, DECISIONS 127) no PR
+  `item-122-e2e-editor`; fechar a #122 ao mergear.
+- [x] **#125 Perfil e Configurações v2** — concluída e fechada (#195–#203; item 7 é pós-beta no PLANO.md).
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
-- [x] **#147 Trilha do artista** — PR `item-147-trilha` (DECISIONS 126); fechar a issue ao mergear.
+- [x] **#147 Trilha do artista** — em produção (#204), issue fechada.
 - [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-147-trilha` mergeou e o deploy subiu (`/api/health`); se a #147 ficou aberta, comentar, remover
-   `fila` e fechar. Trilha em `components/trilha-artista.tsx` (regras em `lib/artista/trilha.ts`).
-2. **#122 Playlists v2** (único item livre): avaliar sessão simulada no E2E do editor de playlist logado (a prévia não tem
-   conta de teste); ver como `radioon_demo_segue` simula estado em `lib/seguir/queries.ts`.
-3. #188 item 6 só em 2026-11-23. #78: propor leitura do KV `ctl` no PR protegido de segunda (2026-11-23).
+1. Conferir se o PR `item-122-e2e-editor` mergeou e o deploy subiu (`/api/health`); se a #122 ficou aberta, comentar, remover
+   `fila` e fechar.
+2. Sem item livre até segunda: #188 item 6 só em 2026-11-23; #78 (leitura do KV `ctl`) entra no PR protegido de 2026-11-23;
+   #120 espera o SMTP (#135). Execução sem item livre: só resumo e `scripts/painel.sh` (sem branch nem PR).
+3. Segunda 2026-11-23: Sprint 2026-48 a partir do `docs/PLANO.md` (backlog: Dependabot major TS 6 e @types/node 26; pausados
+   #140, #189, #145, #146 voltam só depois do beta) e auditoria de segurança semanal.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -60,6 +59,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-18 (43ª) — #147 em produção (#204). #122: E2E logado do editor de playlist no PR `item-122-e2e-editor` (sem migration).
 - 2026-11-18 (42ª) — #125 fechada: aba "Você" + perfil público (#202) e protótipo/ids demo (#203) em produção. #147 no PR `item-147-trilha`.
 - 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
 - 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).

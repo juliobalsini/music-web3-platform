@@ -10,13 +10,12 @@ com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estima
 inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
 
 **Sprint 2026-47 (replanejado pelo Julio em 16/11, foco no beta):** (1) #188 Eficiência do agente (urgente); (2) #156 ✅;
-(3) #122 fim da fase 1 (só E2E logado); (4) #125 restante; (5) #78 Fase C; (6) #185 ✅; (7) #147 Trilha do artista.
+(3) #122 ✅ (E2E logado, DECISIONS 127); (4) #125 ✅; (5) #78 Fase C; (6) #185 ✅; (7) #147 ✅.
 #120 entra assim que a Sessão manual do SMTP (#135) for concluída.
 
 **Backlog priorizado (entrada do próximo sprint; issues `fila` do Julio passam à frente):**
-1. Perfil, Meus envios e Configurações v2 (#125) — complexa, migrations aditivas. Configurações fatia 1 entregue (DECISIONS 99).
-   Faltam: Aparência, Som (equalizador), Seus gostos, exportar dados, foto própria, itens 1–4, 6 e 7.
-2. Playlists v2 (#122) — fases 1 e 2 entregues; falta só o E2E logado (sem conta de teste na prévia).
+1. Perfil, Meus envios e Configurações v2 (#125) — ✅ concluída (item 7 é pós-beta).
+2. Playlists v2 (#122) — ✅ concluída (E2E logado do editor por rascunho de demonstração, DECISIONS 127).
 3. Login v2 (#120) — só ligar o código de 6 dígitos depois do item 6 da Sessão manual.
 4. Entrega de áudio, Fase C (#78) — verificação após 48 h com o proxy ligado — baixo.
 5. Trilha do artista (#147).
