@@ -748,3 +748,15 @@ publicada; os demais veem o perfil como antes. (b) A aba mostra ouvintes únicos
 em UTC como o dia de pontos) com a variação contra os 7 anteriores, e a lista das faixas com link para Meus envios.
 (c) Dados de `metricasDoArtista` (service_role só leitura, ids das faixas do dono, 10 mil escutas mais recentes); regras puras
 em `resumoArtista`/`variacaoSemana` (`lib/tracks/rules.ts`). Estatísticas são privadas: nada disso vai para o perfil público.
+
+## 125. Aba "Você" com estatísticas e perfil público v2 (2026-11-18, #125 itens 1 e 2)
+(a) `/minha-radio`: cabeçalho com foto, nome, selos (Artista pelo papel; Playlister com playlist pública), seguidores/seguindo
+(contagens de `follows` pela sessão, RLS) e lápis para Configurações. Vale para as duas abas; visitante anônimo segue com o
+título "Perfil". (b) Aba "Você": `AnelProgresso` da meta diária + dias seguidos ouvindo (hoje sem escuta mantém a sequência
+de ontem); "Seu som da semana" com gêneros (`GraficoCircular`, 4 maiores + Outros), 3 artistas mais ouvidos com foto
+(`fotosDePerfis`, validada por `fotoSegura`), Descobertas (% das escutas da semana em artistas ouvidos pela 1ª vez na semana,
+janela das 5 mil escutas mais recentes) e minutos por dia (`BarrasLeves`, 7 dias em UTC). "Seu perfil sonoro" por regra fixa
+(`perfilSonoro`: descoberta ≥ 50% → Explorador; gênero ≥ 60% → Fã; ≥ 3 gêneros → Ouvido eclético; senão Na onda de). Regras em
+`lib/radio/perfil.ts`. Regras de pontos viraram a `Ajuda` "Como ganhar pontos"; com escuta válida em faixa própria aparece
+"Faixas suas não contam pontos". (c) Perfil público (`/perfil/[id]`): foto, selos Artista/Playlister e contagem de seguidores
+(`Radio.seguidores`, só números). Nada das estatísticas privadas.

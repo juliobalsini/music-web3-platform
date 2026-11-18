@@ -70,6 +70,8 @@ export type Radio = {
   noAr: { faixa: FaixaListada; fila: FaixaListada[]; continuo: boolean } | null;
   /** Ouvintes agora, contando você: nunca menos de 1 (sem service_role, só você). */
   ouvindo: number;
+  /** Seguidores por perfil (só contagens, sem quem segue). */
+  seguidores: Record<string, number>;
 };
 
 const VAZIO: Radio = {
@@ -86,6 +88,7 @@ const VAZIO: Radio = {
   programa: { atual: null, proximo: null },
   noAr: null,
   ouvindo: 1,
+  seguidores: {},
 };
 
 type Cliente = Awaited<ReturnType<typeof createClient>>;
@@ -411,6 +414,7 @@ export const carregarRadio = cache(async (): Promise<Radio> => {
 
     return {
       hub,
+      seguidores: Object.fromEntries(seguidores),
       faixas,
       noAr,
       emAlta,
