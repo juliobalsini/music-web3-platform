@@ -14,10 +14,16 @@ async function semGraves(page: Page, escopo: string) {
   expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
 }
 
+/** Espera o cabeçalho sair do fallback do Suspense (por um instante há dois botões ☰) e abre o menu. */
+async function abrirMenu(page: Page) {
+  await expect(page.getByTestId("menu-abrir")).toHaveCount(1, { timeout: 20_000 });
+  await page.getByTestId("menu-abrir").click();
+}
+
 async function abrirGaveta(page: Page) {
   await page.goto("/");
   await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("menu-abrir").click();
+  await abrirMenu(page);
   await expect(page.getByTestId("gaveta")).toBeVisible();
 }
 
@@ -101,7 +107,7 @@ test("Home: aviso só a partir da 2ª visita; fechado, não volta", async ({ pag
   test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("menu-abrir").click(); // garante a hidratação
+  await abrirMenu(page); // garante a hidratação
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("instalar-aviso")).toHaveCount(0); // 1ª visita
 
@@ -110,6 +116,8 @@ test("Home: aviso só a partir da 2ª visita; fechado, não volta", async ({ pag
   await page.reload();
   const aviso = page.getByTestId("instalar-aviso");
   await expect(aviso).toBeVisible({ timeout: 20_000 });
+  // No centro da tela: na borda de baixo a navegação fixa (e a barra da Vercel na prévia) ficam por cima.
+  await aviso.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await expect(aviso.getByRole("button", { name: "Instalar", exact: true })).toBeVisible();
   await foto(page, "instalar-04-aviso-home", testInfo);
   await semGraves(page, "[data-testid=instalar-aviso]");
@@ -119,6 +127,6 @@ test("Home: aviso só a partir da 2ª visita; fechado, não volta", async ({ pag
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
   await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("menu-abrir").click();
+  await abrirMenu(page);
   await expect(page.getByTestId("instalar-aviso")).toHaveCount(0);
 });
