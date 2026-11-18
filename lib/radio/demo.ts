@@ -15,16 +15,17 @@ export function demoAtivo(): boolean {
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 export const ehFaixaDemo = (faixaId: string) => /^00000000-0000-4000-8000-0000000000[0-9a-f]{2}$/i.test(faixaId);
 
+// Artistas demo em …0601–0603: os ids …01NN são dos curadores oficiais (lib/radio/curadores.ts).
 const ARTISTAS = [
-  { id: id(101), nome: "Lia Norte" },
-  { id: id(102), nome: "Maré Alta" },
-  { id: id(103), nome: "Duo Vitrola" },
+  { id: id(601), nome: "Lia Norte" },
+  { id: id(602), nome: "Maré Alta" },
+  { id: id(603), nome: "Duo Vitrola" },
 ];
 /** Perfil público dos artistas demo (story de bio). Duo Vitrola não tem foto: sem story de bio. */
 export const PERFIS_DEMO: Record<string, { foto: string | null; bio: string | null }> = {
-  [id(101)]: { foto: "/demo/artista-lia.svg", bio: "Canções de porto, violão e voz para ouvir devagar." },
-  [id(102)]: { foto: "/demo/artista-mare.svg", bio: null },
-  [id(103)]: { foto: null, bio: "Dois amigos e uma vitrola." },
+  [id(601)]: { foto: "/demo/artista-lia.svg", bio: "Canções de porto, violão e voz para ouvir devagar." },
+  [id(602)]: { foto: "/demo/artista-mare.svg", bio: null },
+  [id(603)]: { foto: null, bio: "Dois amigos e uma vitrola." },
 };
 
 const CURADORES = [
