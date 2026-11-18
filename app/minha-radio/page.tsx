@@ -2,8 +2,11 @@ import { BookOpen, Clock, Compass, Headphones, Play, Plus, UserRound } from "luc
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { AbasPerfil } from "@/components/abas-perfil";
 import { ConviteVisitante } from "@/components/convite-visitante";
+import { BarrasLeves, LinhaEstatistica } from "@/components/ds";
 import { botao, linha, Mensagem, Tela } from "@/components/ui";
+import { contagem } from "@/lib/envios/rules";
 import { listenConfig } from "@/lib/listen/config";
 import { acoesMinhaRadio } from "@/lib/menu";
 import { progressoMeta, resumirMinhaRadio } from "@/lib/radio/minha";
@@ -12,7 +15,9 @@ import { rotuloGenero } from "@/lib/radio/generos";
 import { resumoSemana } from "@/lib/radio/rules";
 import { getSessaoAny } from "@/lib/session";
 import { ativo, idsDaPlataforma, podePublicarStory } from "@/lib/stories/rules";
-import { metricasDoArtista } from "@/lib/tracks/queries";
+import { presencaEmPlaylists } from "@/lib/playlists/queries";
+import { metricasDoArtista, type PainelArtista } from "@/lib/tracks/queries";
+import { variacaoSemana } from "@/lib/tracks/rules";
 
 export const metadata = { title: "Perfil · radioOn" };
 
@@ -30,7 +35,59 @@ function SecaoTitulo({ titulo, href, rotulo }: { titulo: string; href: string; r
 
 const motivos: Record<string, string> = { listen: "Escuta" };
 
-async function Conteudo() {
+/** Aba Artista: ouvintes, reproduções, faixa mais tocada, presença em playlists, 7 dias e faixas. Privada. */
+function PainelDoArtista({ painel, emPlaylists }: { painel: PainelArtista; emPlaylists: number }) {
+  const r = painel.resumo;
+  const variacao = variacaoSemana(r.semana, r.semanaAnterior);
+  return (
+    <>
+      <section aria-label="Seus números" className="flex flex-col rounded-[var(--ds-raio)] bg-[var(--ds-surface)] px-4 py-1">
+        <LinhaEstatistica rotulo="Ouvintes" valor={r.ouvintes.toLocaleString("pt-BR")} apoio="Pessoas diferentes que ouviram" />
+        <LinhaEstatistica rotulo="Reproduções" valor={r.reproducoes.toLocaleString("pt-BR")} apoio="Escutas válidas, de 30 s ou mais" />
+        <LinhaEstatistica rotulo="Em playlists" valor={emPlaylists.toLocaleString("pt-BR")} apoio="Playlists públicas de outras pessoas" />
+        {r.maisTocada && (
+          <LinhaEstatistica
+            rotulo="Mais tocada"
+            apoio={r.maisTocada.title}
+            valor={<Link href={`/faixa/${r.maisTocada.id}`} className="underline-offset-4 hover:underline">{contagem(r.maisTocada.reproducoes, "vez", "vezes")}</Link>}
+          />
+        )}
+      </section>
+
+      <section aria-label="Últimos 7 dias" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-lg font-bold">Últimos 7 dias</h2>
+          <p className="text-sm text-[var(--ds-texto-2)] tabular-nums">
+            {contagem(r.semana, "reprodução", "reproduções")}
+            {variacao ? ` · ${variacao}` : ""}
+          </p>
+        </div>
+        <BarrasLeves rotulo="Reproduções por dia" dados={r.dias} />
+      </section>
+
+      <section aria-label="Minhas faixas" className="flex flex-col gap-2">
+        <SecaoTitulo titulo="Minhas faixas" href="/enviar" rotulo="Enviar música" />
+        <ul className="flex flex-col gap-2">
+          {painel.faixas.map(({ faixa, metrica }) => (
+            <li key={faixa.id}>
+              <Link href={`/faixa/${faixa.id}`} className={`${linha} min-h-12 flex-wrap`}>
+                <span className="min-w-0 flex-1 basis-40 truncate font-medium">{faixa.title}</span>
+                <span className="shrink-0 text-sm text-[var(--ds-texto-2)] tabular-nums">
+                  {contagem(metrica.escutas, "reprodução", "reproduções")} · {contagem(metrica.ouvintes, "ouvinte", "ouvintes")}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <Link href="/meus-envios" className="self-start py-2 text-sm font-semibold text-[var(--ds-destaque)] underline-offset-4 hover:underline">
+          Ver todos os envios
+        </Link>
+      </section>
+    </>
+  );
+}
+
+async function Conteudo({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sessao = await getSessaoAny();
   if (!sessao) {
     return (
@@ -41,6 +98,7 @@ async function Conteudo() {
     );
   }
   const { supabase, userId, role, anonimo } = sessao;
+  const abaPedida = (await searchParams).aba;
   const cfg = listenConfig();
   const inicioDoDia = new Date();
   inicioDoDia.setUTCHours(0, 0, 0, 0); // dia de pontos em UTC (igual ao banco)
@@ -59,7 +117,11 @@ async function Conteudo() {
   const plays = new Map(radio.faixas.map((f) => [f.id, f.plays]));
   const resumo = resumirMinhaRadio(eventos ?? [], plays);
   const meta = progressoMeta(hoje, cfg.dailyLimit);
-  const minhasFaixas = role === "artist" ? await metricasDoArtista(userId) : [];
+  const painel = role === "artist" ? await metricasDoArtista(userId) : null;
+  const minhasFaixas = role !== "artist" ? [] : painel === null ? null : painel.faixas;
+  // Aba Artista: só para quem tem faixas publicadas (as métricas são privadas, só do dono).
+  const temAba = !anonimo && role === "artist" && !!painel && painel.faixas.length > 0;
+  const presenca = temAba ? await presencaEmPlaylists(userId) : null;
   const semana = resumoSemana(eventos ?? [], radio.faixas, new Date().getTime());
   // RLS: o autor enxerga os próprios stories, inclusive os ocultos por denúncias.
   const { data: meusStories } = anonimo
@@ -78,9 +140,8 @@ async function Conteudo() {
     { Icone: BookOpen, rotulo: "Pontos no total", valor: total },
   ];
 
-  return (
+  const voce = (
     <>
-      <h1 className="text-2xl font-semibold text-balance">Perfil</h1>
 
       <section aria-label="Meta de hoje" className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
@@ -172,7 +233,7 @@ async function Conteudo() {
             )}
           </section>
 
-          <section aria-label="Minhas faixas" className="flex flex-col gap-2">
+          {!temAba && <section aria-label="Minhas faixas" className="flex flex-col gap-2">
             <SecaoTitulo titulo="Minhas faixas" href="/enviar" rotulo="Enviar música" />
             {role !== "artist" ? (
               <p className="text-tinta/70 text-pretty">Artista? Envie sua primeira música: o perfil de artista é ativado na hora.</p>
@@ -192,7 +253,7 @@ async function Conteudo() {
                 ))}
               </ul>
             )}
-          </section>
+          </section>}
 
           <section aria-label="Minhas playlists" className="flex flex-col gap-2">
             <SecaoTitulo titulo="Minhas playlists" href="/playlist/nova" rotulo="Criar playlist" />
@@ -258,13 +319,28 @@ async function Conteudo() {
       )}
     </>
   );
+
+  return (
+    <>
+      <h1 className="text-2xl font-semibold text-balance">Perfil</h1>
+      {temAba && painel ? (
+        <AbasPerfil
+          inicial={abaPedida === "artista" ? "artista" : "voce"}
+          voce={voce}
+          artista={<PainelDoArtista painel={painel} emPlaylists={presenca?.total ?? 0} />}
+        />
+      ) : (
+        voce
+      )}
+    </>
+  );
 }
 
-export default function MinhaRadioPage() {
+export default function MinhaRadioPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <Tela>
       <Suspense>
-        <Conteudo />
+        <Conteudo searchParams={searchParams} />
       </Suspense>
     </Tela>
   );
