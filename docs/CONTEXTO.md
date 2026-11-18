@@ -22,10 +22,10 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - [~] **#188 Eficiência do agente (urgente).** Partes A (#190) e B (#191, protegida) em produção; #88–#90 fechados.
   Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
-- [~] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
+- [x] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
   (#195); exportar dados (#196); Seus gostos (#197); foto própria (#198); primeiro acesso e item 7 (#199); Meus envios v2
-  (#200, DECISIONS 123); aba Artista (#201, DECISIONS 124); itens 1 e 2, aba "Você" e perfil público (PR `item-125-perfil-voce`,
-  DECISIONS 125). Falta só atualizar `docs/prototipo-mobile.html` (Configurações, primeiro acesso, Meus envios, Perfil).
+  (#200, DECISIONS 123); aba Artista (#201, DECISIONS 124); itens 1 e 2 (#202, DECISIONS 125); protótipo e ids demo no PR
+  `item-125-fechamento` (fecha a #125 ao mergear).
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -34,13 +34,10 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-125-perfil-voce` mergeou e o deploy subiu (`/api/health`). Aba "Você" em `app/minha-radio/page.tsx`
-   (regras em `lib/radio/perfil.ts`); perfil público em `app/perfil/[id]/page.tsx`.
-2. **#125, fechamento:** atualizar `docs/prototipo-mobile.html` com Configurações, primeiro acesso, Meus envios e Perfil (abas
-   Você/Artista); comentar o resumo na #125, remover `fila` e fechar.
-3. Correção pequena: ids dos artistas demo (`lib/radio/demo.ts`, …0101–0103) colidem com os curadores oficiais
-   (`lib/radio/curadores.ts`), então `/perfil/<Lia>` abre "radioOn Indie" nas prévias; trocar os ids demo e o `LIA` dos E2E.
-4. **#147 Trilha do artista** (próximo item do Sprint). Depois #122: avaliar sessão simulada no E2E do editor logado.
+1. Conferir se o PR `item-125-fechamento` mergeou e o deploy subiu (`/api/health`); se a #125 ficou aberta, fechá-la
+   (remover `fila`). Artistas demo agora em …0601–0603 (`lib/radio/demo.ts`; antes colidiam com os curadores oficiais).
+2. **#147 Trilha do artista** (próximo item livre do Sprint): ler a issue, propor fatias, começar pela 1ª.
+3. #122: avaliar sessão simulada no E2E do editor de playlist logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -62,7 +59,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
-- 2026-11-18 (42ª) — #201 (aba Artista) em produção. #125: aba "Você" com estatísticas + perfil público no PR `item-125-perfil-voce`.
+- 2026-11-18 (42ª) — #201 em produção. #125: aba "Você" + perfil público (#202) em produção; protótipo e ids demo no PR `item-125-fechamento`.
 - 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
 - 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
 - 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).

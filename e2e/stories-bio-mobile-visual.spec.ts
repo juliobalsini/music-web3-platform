@@ -10,7 +10,7 @@ const DEMO = /radioOn|Lia Norte|Maré Alta/;
 const rotulos = async (page: Page) =>
   (await page.getByRole("region", { name: "Stories", exact: true }).getByRole("button").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""))).filter((r) => DEMO.test(r));
 
-const LIA = "00000000-0000-4000-8000-000000000101";
+const LIA = "00000000-0000-4000-8000-000000000601";
 
 async function foto(page: Page, nome: string, testInfo: TestInfo) {
   await testInfo.attach(`${testInfo.project.name}-${nome}`, { body: await page.screenshot(), contentType: "image/png" });
