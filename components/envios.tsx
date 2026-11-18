@@ -17,18 +17,40 @@ const botao = "min-h-11 flex-1 rounded-full px-4 text-sm font-bold disabled:opac
  * Apagar é lógico e reversível por 30 dias. `depois`: para onde ir ao apagar estando na página do item
  * (lá o aviso com Desfazer aparece); sem ele, a lista se atualiza e o aviso aparece aqui mesmo.
  */
-export function MenuEnvio({ tipo, id, titulo, depois }: { tipo: TipoEnvio; id: string; titulo: string; depois?: string }) {
+export function MenuEnvio({ tipo, id, titulo, depois, compartilhavel = false }: { tipo: TipoEnvio; id: string; titulo: string; depois?: string; compartilhavel?: boolean }) {
   const router = useRouter();
   const [painel, setPainel] = useState<"apagar" | "editar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [apagado, setApagado] = useState(false);
   const [nome, setNome] = useState(titulo);
   const [pendente, iniciar] = useTransition();
+  const [copiado, setCopiado] = useState(false);
 
   const itens: ItemMenu[] = [];
   if (tipo === "playlist") itens.push({ rotulo: "Editar", aoEscolher: () => router.push(`/playlist/${id}?editar=1`) });
   if (tipo === "faixa" || tipo === "album") itens.push({ rotulo: "Editar título", aoEscolher: () => (setErro(null), setPainel("editar")) });
+  if (compartilhavel) itens.push({ rotulo: "Compartilhar", aoEscolher: () => void compartilhar() });
   itens.push({ rotulo: "Apagar", perigo: true, aoEscolher: () => (setErro(null), setPainel("apagar")) });
+
+  /** Compartilhar: menu nativo do celular; sem ele, copia o link. */
+  async function compartilhar() {
+    const url = `${window.location.origin}/${tipo}/${id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: titulo, url });
+      } catch {
+        /* cancelado */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      window.setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      /* sem permissão: nada a fazer */
+    }
+  }
 
   function confirmarApagar() {
     iniciar(async () => {
@@ -55,6 +77,9 @@ export function MenuEnvio({ tipo, id, titulo, depois }: { tipo: TipoEnvio; id: s
   return (
     <>
       <MenuMais itens={itens} rotulo={`Mais ações: ${titulo}`} />
+      <p role="status" className={copiado ? "fixed inset-x-4 bottom-24 z-50 mx-auto max-w-sm rounded-full border border-[var(--ds-borda)] bg-[var(--ds-bg)] px-4 py-3 text-center text-sm font-semibold text-[var(--ds-texto)] shadow-lg" : "sr-only"}>
+        {copiado ? "Link copiado." : ""}
+      </p>
       {apagado && <AvisoApagado tipo={tipo} id={id} aoDesfazer={() => setApagado(false)} />}
       <PainelInferior aberto={painel === "apagar"} aoFechar={() => setPainel(null)} titulo={`Apagar ${ROTULO_TIPO[tipo].toLowerCase()}?`}>
         <p className="text-pretty">

@@ -727,3 +727,16 @@ Configurações continua com até 5. (c) "Salvar e continuar" grava no aparelho 
 (`salvarPreferencias`, que saneia no servidor); falha na conta não trava a entrada. "Pular" (ou nenhum gênero) segue sem
 gravar. (d) Quem já tem gostos na conta é redirecionado direto. Destino: artista → `/enviar`; demais → Home (`destinoInicio`).
 (e) Visitante sem conta não vê a tela: o produto é "entrar e dar play já". "Climas" ficam para quando houver lista de climas.
+
+## 123. Meus envios v2 (2026-11-18, #125 item 4)
+(a) Abas Faixas · Álbuns · Playlists · Stories (`Abas` do DS); a aba fica em `?aba=` e, sem ela, abre a primeira com
+conteúdo. Os painéis são montados no servidor e só alternados no cliente (`components/meus-envios.tsx`). (b) Cada item usa
+`CartaoCapa` horizontal com capa (faixa: própria ou arte; álbum: capa da 1ª faixa com capa; playlist: foto própria ou arte;
+story: imagem ou arte), `ChipStatus` e `MenuEnvio` (Editar, Compartilhar, Apagar). (c) Status: faixa Publicada · Preparando
+áudio (a lista se atualiza a cada 15 s, no máx. 20 vezes, só com a aba visível) · Falhou com motivo e "Tentar de novo"
+(→ `/enviar`; não há reprocessamento no servidor). Playlist privada = Rascunho. Não existe progresso real do preparo no
+banco: o chip mostra só o estado, sem porcentagem. (d) Números (`lib/envios/numeros.ts`): reproduções válidas e salvamentos
+das faixas, salvamentos das playlists e visualizações dos stories, lidos com service_role só para os ids já filtrados pelo
+dono (as policies não deixam o dono ler reações/escutas de terceiros); falha → zero. (e) Duplicatas: mesmo título
+normalizado (sem acento, caixa e pontuação) e duração ±1 s; aviso sugere manter a mais ouvida e apagar as outras pelo ⋯
+(nada é apagado sozinho). (f) Estados vazios por aba com atalho (Enviar música/álbum, Criar playlist, Criar story).
