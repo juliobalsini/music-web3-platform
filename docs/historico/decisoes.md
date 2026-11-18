@@ -780,3 +780,16 @@ um rascunho de demonstração: com `demoAtivo()` (nunca em produção) e o cooki
 Nenhuma permissão é ampliada: o atalho só vale para o id fixo de demonstração, só fora de produção, e não grava nada.
 (c) E2E: `e2e/playlist-editor-mobile-visual.spec.ts` (fluxo completo, com prints) e axe do editor e do painel de adicionar em
 `e2e/acessibilidade-mobile-visual.spec.ts`. Sem o cookie, o id de demonstração dá 404. Código em `lib/playlists/demo-editor.ts`.
+
+## 128. Botão "Instalar a radioOn" (2026-11-18, #206)
+(a) `beforeinstallprompt` é capturado no carregamento do app (`lib/instalar-cliente.ts`, importado por `RegistrarSW`) com
+`preventDefault`: a faixa automática do navegador some e a radioOn oferece o botão (gaveta ☰ e aviso na Home). Um toque chama
+`prompt()`; o evento só vale uma vez (recusou → o item passa a mostrar os passos do menu ⋮).
+(b) Plataforma pelo user agent (`lib/instalar.ts`, testado): app interno (WhatsApp, Instagram, Facebook, WebView `; wv)`) →
+"Abra no navegador para instalar" + copiar link; iPhone/iPad → 3 passos (Compartilhar → Adicionar à Tela de Início →
+Adicionar); Android sem o evento → 3 passos do menu ⋮; computador sem o evento → nada. `display-mode: standalone` ou
+`navigator.standalone` (já instalado) → nada.
+(c) Aviso da Home: visitas contadas uma vez por sessão do navegador (`radioon_visitas` no localStorage); aparece a partir da
+2ª; fechar grava `radioon_instalar_fechado` e esconde por 14 dias. Tudo no aparelho: nada vai ao servidor nem ao banco.
+(d) E2E `e2e/instalar-mobile-visual.spec.ts` (iPhone e Android, com prints e axe do painel e do aviso); o evento do Chrome é
+simulado, porque a emulação não instala de verdade. **Conferir no celular** após o deploy.

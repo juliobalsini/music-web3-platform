@@ -7,6 +7,7 @@ import { CartaoNoAr } from "@/components/cartao-no-ar";
 import { CarrosselFaixas } from "@/components/carrossel-faixas";
 import type { FaixaDoStory } from "@/lib/stories/viewer";
 import { ContinueOuvindo } from "@/components/continue-ouvindo";
+import { AvisoInstalar } from "@/components/instalar-app";
 import { LinhaStories } from "@/components/faixa-stories";
 import { GradeAlbuns, GradePlaylists } from "@/components/grades";
 import { ListaFaixas } from "@/components/lista-faixas";
@@ -127,6 +128,7 @@ export function RadioCliente({
         ) : (
           <>
             <CartaoNoAr faixa={radio.noAr!.faixa} fila={radio.noAr!.fila} continuo={radio.noAr!.continuo} atual={radio.programa.atual} proximo={radio.programa.proximo} ouvindo={radio.ouvindo} />
+            <AvisoInstalar />
             <CarrosselFaixas
               titulo={`Agora combina com ${rotuloClima(clima.clima)}`}
               dica={clima.recentes ? "Ainda sem faixas deste clima: as mais recentes" : undefined}

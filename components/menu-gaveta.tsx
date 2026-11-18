@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { entrarComGoogle, sair } from "@/app/login/actions";
+import { ItemInstalar } from "@/components/instalar-app";
 import { botao } from "@/components/ui";
 import { gravarPreferencias } from "@/lib/preferencias/cliente";
 import type { ResumoConta } from "@/lib/session";
@@ -119,6 +120,8 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
               </Link>
             </section>
           )}
+
+          <ItemInstalar className={item} />
 
           <nav aria-label="Legal" className="mt-auto flex flex-col border-t border-tinta/10 pt-2">
             <Link href="/privacidade" className={item}><ShieldCheck className="size-5 text-tinta/70" aria-hidden="true" />Privacidade</Link>
