@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AbasPerfil } from "@/components/abas-perfil";
+import { TrilhaArtista } from "@/components/trilha-artista";
 import { ConviteVisitante } from "@/components/convite-visitante";
 import { AnelProgresso, BarrasLeves, ChipStatus, GraficoCircular, LinhaEstatistica } from "@/components/ds";
 import { Ajuda } from "@/components/ds/interativos";
 import { botao, linha, Mensagem, Tela } from "@/components/ui";
+import { passosDaTrilha, type Passo } from "@/lib/artista/trilha";
 import { contagem } from "@/lib/envios/rules";
 import { listenConfig } from "@/lib/listen/config";
 import { acoesMinhaRadio } from "@/lib/menu";
@@ -75,11 +77,13 @@ function Cabecalho({ nome, foto, selos, seguidores, seguindo }: { nome: string; 
 }
 
 /** Aba Artista: ouvintes, reproduções, faixa mais tocada, presença em playlists, 7 dias e faixas. Privada. */
-function PainelDoArtista({ painel, emPlaylists }: { painel: PainelArtista; emPlaylists: number }) {
+function PainelDoArtista({ painel, emPlaylists, trilha }: { painel: PainelArtista; emPlaylists: number; trilha: Passo[] }) {
   const r = painel.resumo;
   const variacao = variacaoSemana(r.semana, r.semanaAnterior);
+  const paraCompartilhar = r.maisTocada ?? painel.faixas[0]?.faixa ?? null;
   return (
     <>
+      <TrilhaArtista passos={trilha} faixa={paraCompartilhar && { id: paraCompartilhar.id, title: paraCompartilhar.title }} />
       <section aria-label="Seus números" className="flex flex-col rounded-[var(--ds-raio)] bg-[var(--ds-surface)] px-4 py-1">
         <LinhaEstatistica rotulo="Ouvintes" valor={r.ouvintes.toLocaleString("pt-BR")} apoio="Pessoas diferentes que ouviram" />
         <LinhaEstatistica rotulo="Reproduções" valor={r.reproducoes.toLocaleString("pt-BR")} apoio="Escutas válidas, de 30 s ou mais" />
@@ -181,11 +185,21 @@ async function Conteudo({ searchParams }: { searchParams: Promise<Record<string,
     // RLS: o autor enxerga os próprios stories, inclusive os ocultos por denúncias.
     anonimo
       ? { data: [] }
-      : supabase.from("stories").select("id,body,created_at,hidden").eq("author_id", userId).order("created_at", { ascending: false }).limit(20),
+      : supabase.from("stories").select("id,body,created_at,hidden,track_id").eq("author_id", userId).order("created_at", { ascending: false }).limit(20),
     anonimo
       ? { data: [] }
       : supabase.from("playlists").select("id,title,is_public,playlist_tracks(count)").eq("curator_id", userId).order("created_at", { ascending: false }).limit(20),
   ]);
+  // Trilha do artista (#147): depois do primeiro envio; perfis são de leitura pública (RLS).
+  const { data: perfilArtista } = temAba ? await supabase.from("profiles").select("bio,avatar_url").eq("id", userId).maybeSingle() : { data: null };
+  const trilha = passosDaTrilha({
+    bio: perfilArtista?.bio ?? null,
+    foto: perfilArtista?.avatar_url ?? null,
+    faixas: painel?.faixas.length ?? 0,
+    storiesComTrecho: (meusStories ?? []).filter((st) => !!(st as { track_id?: string | null }).track_id).length,
+    emPlaylists: presenca?.total ?? 0,
+    compartilhou: false, // fica no aparelho: o componente lê do localStorage
+  });
   const publicaStory = podePublicarStory(role, userId, idsDaPlataforma(process.env.PLATFORM_STORY_IDS)).pode;
   const selos = [
     ...(role === "artist" ? ["Artista"] : []),
@@ -392,7 +406,7 @@ async function Conteudo({ searchParams }: { searchParams: Promise<Record<string,
         <AbasPerfil
           inicial={abaPedida === "artista" ? "artista" : "voce"}
           voce={voce}
-          artista={<PainelDoArtista painel={painel} emPlaylists={presenca?.total ?? 0} />}
+          artista={<PainelDoArtista painel={painel} emPlaylists={presenca?.total ?? 0} trilha={trilha} />}
         />
       ) : (
         voce

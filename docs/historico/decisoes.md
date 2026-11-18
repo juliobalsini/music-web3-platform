@@ -760,3 +760,13 @@ janela das 5 mil escutas mais recentes) e minutos por dia (`BarrasLeves`, 7 dias
 `lib/radio/perfil.ts`. Regras de pontos viraram a `Ajuda` "Como ganhar pontos"; com escuta válida em faixa própria aparece
 "Faixas suas não contam pontos". (c) Perfil público (`/perfil/[id]`): foto, selos Artista/Playlister e contagem de seguidores
 (`Radio.seguidores`, só números). Nada das estatísticas privadas.
+
+## 126. Trilha do artista (2026-11-18, #147)
+(a) Depois do primeiro envio publicado, a aba Artista do Perfil abre com "Primeiros passos" (`components/trilha-artista.tsx`):
+completar o perfil (foto e frase do artista), enviar a segunda faixa, publicar story com trecho, compartilhar o cartão da faixa
+e entrar em uma playlist pública de outra pessoa; barra "N de 5"; cada passo feito vira um selo (`ChipStatus`). (b) Os passos
+são derivados a cada leitura (perfil, faixas, stories com `track_id`, `presencaEmPlaylists`): nada novo no banco, sem migration.
+"Compartilhar" não tem registro no servidor: fica no aparelho (`radioon_trilha_compartilhou`), marcado pelo botão da trilha
+(cartão 1200x630 quando o aparelho aceita arquivo) ou pelo Compartilhar de faixa em Meus envios. (c) Completa, a trilha some e
+vira o botão "Trilha do artista completa · ver selos". Após publicar uma faixa, o envio mostra o link "Ver primeiros passos".
+Regras puras em `lib/artista/trilha.ts`.

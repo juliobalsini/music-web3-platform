@@ -1,6 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { botao, campo, Mensagem } from "@/components/ui";
@@ -386,6 +387,11 @@ export function UploadForm() {
         </div>
       )}
       {msg && <Mensagem tipo={msg.erro ? "erro" : "info"}>{msg.texto}</Mensagem>}
+      {msg && !msg.erro && msg.texto.startsWith("Faixa publicada") && (
+        <Link href="/minha-radio?aba=artista" className="self-start py-2 text-sm font-semibold text-[var(--ds-destaque)] underline-offset-4 hover:underline" data-testid="ver-trilha">
+          Ver primeiros passos
+        </Link>
+      )}
     </form>
   );
 }
