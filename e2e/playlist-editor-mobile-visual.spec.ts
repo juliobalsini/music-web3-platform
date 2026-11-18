@@ -23,7 +23,8 @@ test("editor logado: adicionar, publicar, reordenar, remover, curadoria e Tema d
   test.setTimeout(120_000);
   await page.context().addCookies([{ name: "radioon_demo_editor", value: "1", url: baseURL! }]);
   await page.goto(PL);
-  const editor = page.getByTestId("editor-playlist");
+  // Só o do <main>: por um instante o HTML do Suspense em streaming deixa uma cópia oculta fora dele.
+  const editor = page.getByRole("main").getByTestId("editor-playlist");
   await expect(editor).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("textbox", { name: "Título da playlist" })).toHaveValue("Rascunho de teste");
   await expect.poll(() => titulos(page)).toEqual(["Madrugada no Convés", "Faróis", "Ondas curtas"]);

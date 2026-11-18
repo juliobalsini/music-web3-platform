@@ -22,7 +22,7 @@ async function abrirMenu(page: Page) {
 
 async function abrirGaveta(page: Page) {
   await page.goto("/");
-  await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("main").getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
   await abrirMenu(page);
   await expect(page.getByTestId("gaveta")).toBeVisible();
 }
@@ -106,7 +106,7 @@ test("app já instalado (standalone): nada de instalar", async ({ page }) => {
 test("Home: aviso só a partir da 2ª visita; fechado, não volta", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/");
-  await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("main").getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
   await abrirMenu(page); // garante a hidratação
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("instalar-aviso")).toHaveCount(0); // 1ª visita
@@ -116,17 +116,17 @@ test("Home: aviso só a partir da 2ª visita; fechado, não volta", async ({ pag
   await page.reload();
   const aviso = page.getByTestId("instalar-aviso");
   await expect(aviso).toBeVisible({ timeout: 20_000 });
-  // No centro da tela: na borda de baixo a navegação fixa (e a barra da Vercel na prévia) ficam por cima.
   await aviso.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await expect(aviso.getByRole("button", { name: "Instalar", exact: true })).toBeVisible();
   await foto(page, "instalar-04-aviso-home", testInfo);
   await semGraves(page, "[data-testid=instalar-aviso]");
 
-  await aviso.getByRole("button", { name: "Fechar aviso de instalação" }).click();
+  // Clique direto: na prévia, a barra da Vercel e as barras fixas disputam o ponto do toque com o aviso.
+  await aviso.getByRole("button", { name: "Fechar aviso de instalação" }).evaluate((el: HTMLElement) => el.click());
   await expect(aviso).toHaveCount(0);
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
-  await expect(page.getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("main").getByTestId("visao-tudo")).toBeVisible({ timeout: 20_000 });
   await abrirMenu(page);
   await expect(page.getByTestId("instalar-aviso")).toHaveCount(0);
 });
