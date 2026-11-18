@@ -38,7 +38,9 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
    (regras em `lib/radio/perfil.ts`); perfil público em `app/perfil/[id]/page.tsx`.
 2. **#125, fechamento:** atualizar `docs/prototipo-mobile.html` com Configurações, primeiro acesso, Meus envios e Perfil (abas
    Você/Artista); comentar o resumo na #125, remover `fila` e fechar.
-3. **#147 Trilha do artista** (próximo item do Sprint). Depois #122: avaliar sessão simulada no E2E do editor logado.
+3. Correção pequena: ids dos artistas demo (`lib/radio/demo.ts`, …0101–0103) colidem com os curadores oficiais
+   (`lib/radio/curadores.ts`), então `/perfil/<Lia>` abre "radioOn Indie" nas prévias; trocar os ids demo e o `LIA` dos E2E.
+4. **#147 Trilha do artista** (próximo item do Sprint). Depois #122: avaliar sessão simulada no E2E do editor logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
