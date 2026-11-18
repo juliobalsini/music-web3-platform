@@ -740,3 +740,11 @@ das faixas, salvamentos das playlists e visualizações dos stories, lidos com s
 dono (as policies não deixam o dono ler reações/escutas de terceiros); falha → zero. (e) Duplicatas: mesmo título
 normalizado (sem acento, caixa e pontuação) e duração ±1 s; aviso sugere manter a mais ouvida e apagar as outras pelo ⋯
 (nada é apagado sozinho). (f) Estados vazios por aba com atalho (Enviar música/álbum, Criar playlist, Criar story).
+
+## 124. Aba Artista no próprio perfil (2026-11-18, #125 item 3)
+(a) `/minha-radio` ganha as abas Você · Artista (`components/abas-perfil.tsx`, `?aba=artista`) só para artista com faixa
+publicada; os demais veem o perfil como antes. (b) A aba mostra ouvintes únicos, reproduções válidas, "em N playlists"
+(públicas de outras pessoas, `presencaEmPlaylists`), faixa mais tocada, reproduções dos últimos 7 dias (`BarrasLeves`, dias
+em UTC como o dia de pontos) com a variação contra os 7 anteriores, e a lista das faixas com link para Meus envios.
+(c) Dados de `metricasDoArtista` (service_role só leitura, ids das faixas do dono, 10 mil escutas mais recentes); regras puras
+em `resumoArtista`/`variacaoSemana` (`lib/tracks/rules.ts`). Estatísticas são privadas: nada disso vai para o perfil público.

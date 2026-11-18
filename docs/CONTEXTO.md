@@ -24,7 +24,8 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - [ ] **#122 Playlists v2** — só falta o E2E logado (a prévia não tem conta de teste; avaliar sessão simulada no E2E).
 - [~] **#125 Perfil e Configurações v2** — Aparência completa (DECISIONS 116–117); Som: equalizador com 4 predefinições
   (#195); exportar dados (#196); Seus gostos (#197); foto própria (#198); primeiro acesso e item 7 (#199); Meus envios v2
-  (PR `item-125-meus-envios`, DECISIONS 123). Faltam: itens 1–3 (perfil com estatísticas, perfil público, aba artista).
+  (#200, DECISIONS 123); aba Artista (PR `item-125-aba-artista`, DECISIONS 124). Faltam: itens 1 (perfil com estatísticas)
+  e 2 (perfil público).
 - [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
   ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
 - [ ] **#147 Trilha do artista.**
@@ -33,12 +34,13 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-125-meus-envios` mergeou e o deploy subiu (`/api/health`). Tela: `app/meus-envios/page.tsx`,
-   abas em `components/meus-envios.tsx`, números em `lib/envios/numeros.ts`, regras em `lib/envios/rules.ts`.
-2. **#125, item 3 (aba Artista no próprio perfil):** reaproveitar `metricasDoArtista` (`lib/tracks/queries.ts`) e
-   `presencaEmPlaylists`; ouvintes, reproduções, faixa mais tocada, "em N playlists", 7 dias com `BarrasLeves`. Depois
-   itens 1 (perfil com estatísticas: `GraficoCircular`, `AnelProgresso`) e 2 (perfil público).
-   Pendente do issue: atualizar `docs/prototipo-mobile.html` com Configurações/primeiro acesso/Meus envios.
+1. Conferir se o PR `item-125-aba-artista` mergeou e o deploy subiu (`/api/health`). Aba em `app/minha-radio/page.tsx`
+   (`PainelDoArtista`) + `components/abas-perfil.tsx`; regras em `lib/tracks/rules.ts` (`resumoArtista`).
+2. **#125, item 1 (perfil com estatísticas, aba "Você"):** cabeçalho com foto/nome/selos/seguidores; `AnelProgresso` da meta
+   diária + sequência de dias; "Seu som da semana" (`GraficoCircular` de gêneros, 3 artistas com foto, `BarrasLeves` de
+   minutos/dia: estender `resumoSemana` em `lib/radio/rules.ts`); "Descobertas" em %; rótulo "Seu perfil sonoro"; regras de
+   pontos em `Ajuda` "Como ganhar pontos". Depois item 2 (perfil público em `app/perfil/[id]`).
+   Pendente do issue: atualizar `docs/prototipo-mobile.html` com Configurações/primeiro acesso/Meus envios/aba Artista.
 3. #122: avaliar sessão simulada no E2E para o editor de playlist logado.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
@@ -61,7 +63,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
-- 2026-11-18 (41ª) — #199 (primeiro acesso) em produção. #125 item 4: Meus envios v2 no PR `item-125-meus-envios` (sem migration).
+- 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
 - 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
 - 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).
 - 2026-11-17 (38ª) — #194 (tema claro) em produção. #125: equalizador (#195) e exportar dados (#196) em produção; Seus gostos no PR `item-125-gostos`.
