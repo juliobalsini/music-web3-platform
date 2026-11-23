@@ -5,6 +5,12 @@ on:
     branches: [main]
     paths: ["workers/audio-proxy/**"]
   workflow_dispatch:
+    inputs:
+      acao:
+        description: "deploy (padrão) ou ler-ctl (só lê os contadores do KV, sem deploy; #78 Fase C)"
+        type: choice
+        options: [deploy, ler-ctl]
+        default: deploy
 permissions: { contents: read }
 jobs:
   deploy:
@@ -17,7 +23,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 24 }
       - run: npm install --no-audit --no-fund
       - name: Namespace KV (cria se não existir)
@@ -29,7 +35,15 @@ jobs:
           fi
           cp wrangler.toml wrangler.generated.toml
           printf '\n[[kv_namespaces]]\nbinding = "CACHE"\nid = "%s"\n' "$ID" >> wrangler.generated.toml
+          echo "KV_ID=$ID" >> "$GITHUB_ENV"
+      - name: Contadores do dia no KV (chave ctl; só números, sem segredo)
+        run: |
+          ctl=$(npx wrangler kv key get ctl --namespace-id "$KV_ID" --remote 2>/dev/null || true)
+          [ -n "$ctl" ] || ctl='{}'
+          echo "ctl: $ctl"
+          printf '### KV `ctl` (Worker de áudio)\n\n```json\n%s\n```\n' "$ctl" >> "$GITHUB_STEP_SUMMARY"
       - name: Subdomínio workers.dev (registra via API se a conta ainda não tiver)
+        if: inputs.acao != 'ler-ctl'
         run: |
           api="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/subdomain"
           atual=$(curl -fsS -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "$api" | jq -r '.result.subdomain // empty')
@@ -42,6 +56,7 @@ jobs:
           [ -n "$atual" ] || { echo "::error::Não foi possível registrar o subdomínio workers.dev (token sem permissão Workers Scripts: Edit?)"; exit 1; }
           echo "Subdomínio workers.dev: $atual"
       - name: Deploy
+        if: inputs.acao != 'ler-ctl'
         run: |
           set -o pipefail
           npx wrangler deploy --config wrangler.generated.toml 2>&1 | tee deploy.log
@@ -50,6 +65,7 @@ jobs:
           echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): $url"
           echo "URL do Worker (NEXT_PUBLIC_AUDIO_BASE_URL): \`$url\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Derivar endpoint/região/bucket do B2 (valores públicos)
+        if: inputs.acao != 'ler-ctl'
         env:
           B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
           B2_READ_KEY: ${{ secrets.B2_READ_KEY }}
@@ -58,6 +74,7 @@ jobs:
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
         run: bash "$GITHUB_WORKSPACE/scripts/ci/derivar-env.sh"
       - name: Secrets do Worker (chave B2 SOMENTE LEITURA; valores nunca aparecem no log)
+        if: inputs.acao != 'ler-ctl'
         env:
           B2_READ_KEY_ID: ${{ secrets.B2_READ_KEY_ID }}
           B2_READ_KEY: ${{ secrets.B2_READ_KEY }}
