@@ -243,12 +243,14 @@ export function EstudioCapa({
 
       {aba === "texto" && (
         <div className="flex flex-col gap-3">
-          <label className="flex items-center gap-3 rounded-lg bg-[var(--ds-surface)] px-3">
+          <label className="flex items-center gap-3 rounded-lg bg-[var(--ds-surface)] px-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--ds-destaque)]">
             <Type className="size-5 shrink-0 text-[var(--ds-texto-2)]" aria-hidden="true" />
             <span className="sr-only">Texto da capa</span>
             <input
               value={comp.texto}
               maxLength={MAX_TITULO}
+              name="texto-capa"
+              autoComplete="off"
               onChange={(e) => setComp((c) => ({ ...c, texto: e.target.value }))}
               className="min-h-11 w-full bg-transparent outline-none"
               data-testid="texto-capa"

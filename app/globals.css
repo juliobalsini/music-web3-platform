@@ -17,6 +17,9 @@
 
 html {
   color-scheme: dark;
+  /* Toque: sem atraso de duplo toque para zoom e sem o realce cinza padrão (cada controle tem o próprio estado ativo). */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {

@@ -324,7 +324,7 @@ export function VisualizadorStories({
             <p className="text-lg font-semibold">Story apagado.</p>
           ) : bio ? (
             <div data-testid="story-bio" className="flex w-full flex-col items-center gap-4 text-center">
-              <img src={bio.foto} alt={`Foto de ${grupo.authorName}`} referrerPolicy="no-referrer" className="size-40 rounded-full object-cover shadow-[0_12px_32px_rgba(0,0,0,0.45)] ring-4 ring-white/15" />
+              <img src={bio.foto} alt={`Foto de ${grupo.authorName}`} width={160} height={160} referrerPolicy="no-referrer" className="size-40 rounded-full object-cover shadow-[0_12px_32px_rgba(0,0,0,0.45)] ring-4 ring-white/15" />
               <div className="flex flex-col items-center gap-1">
                 <h2 className="text-3xl font-bold text-balance drop-shadow">{grupo.authorName}</h2>
                 {bio.genero && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">{bio.genero}</span>}
@@ -398,7 +398,7 @@ export function VisualizadorStories({
           </div>
           <header className="flex items-center gap-2">
             {bio ? (
-              <img src={bio.foto} alt="" referrerPolicy="no-referrer" className="size-9 shrink-0 rounded-full object-cover" />
+              <img src={bio.foto} alt="" width={36} height={36} referrerPolicy="no-referrer" className="size-9 shrink-0 rounded-full object-cover" />
             ) : (
               <span aria-hidden="true" style={grupo.isPlatform ? undefined : { background: fundo }} className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${grupo.isPlatform ? "bg-night-800" : ""}`}>
                 {grupo.isPlatform ? <Logo className="h-6 w-auto" alt="" /> : grupo.authorName.charAt(0).toUpperCase()}
