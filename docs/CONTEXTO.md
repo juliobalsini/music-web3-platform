@@ -13,32 +13,28 @@ execuções antigas): `docs/historico/CONTEXTO-AAAA-MM.md`, não lido por padrã
   Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso), Aparência (destaque,
   texto maior, animações, tema claro/automático), Som (equalizador), exportar dados, Seus gostos, foto própria do perfil,
   primeiro acesso com gostos. CI verde na `main`.
-- **Sprint 2026-47** (#167) aprovado e replanejado pelo Julio (foco no beta). PRs protegidos da semana: #154 e #191 (mergeados).
+- **Sprint 2026-48** (#213) aberto em 2026-11-23 (aguarda aprovação); #167 (2026-47) fechado. PR protegido da semana: #212.
 
 ## Fila
 
-Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloqueado. Ordem do Sprint 2026-47.
+Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloqueado. Ordem do **Sprint 2026-48** (#213, aguarda "aprovado").
 
-- [~] **#188 Eficiência do agente (urgente).** Partes A (#190) e B (#191, protegida) em produção; #88–#90 fechados.
-  Só falta o item 6: em 2026-11-23, registrar na #71 (reabrir) PRs/item, minutos/item e itens/dia comparando com 09–16/11.
-- [x] **#206 Instalar a radioOn (urgente)** — botão na gaveta ☰ e aviso na Home (DECISIONS 128), PR `item-206-instalar`;
-  fechar a #206 ao mergear. Conferir no celular (Android: um toque instala; iPhone: 3 passos).
-- [x] **#122 Playlists v2** — E2E logado do editor em produção (#205), issue fechada.
-- [x] **#125 Perfil e Configurações v2** — concluída e fechada (#195–#203; item 7 é pós-beta no PLANO.md).
-- [ ] **#78 Fase C** — janela de 48 h fechou na noite de 2026-11-16. Contadores do KV `ctl` só com o token da Cloudflare do
-  ambiente `producao-db` (workflow protegido): propor um passo de leitura no próximo PR protegido semanal.
-- [x] **#147 Trilha do artista** — em produção (#204), issue fechada.
+- [~] **PR protegido semanal #212** — leitura do KV `ctl` no `worker-deploy` (entrada `acao=ler-ctl`, #78) + `setup-node` v7 e
+  `pnpm/action-setup` v6 (Dependabot #208/#209, fechados). Aguarda a trava do Julio.
+- [ ] **#78 Fase C** — depois do merge do #212: `gh workflow run worker-deploy.yml -f acao=ler-ctl`, ler o resumo, relatório de
+  cota na #78 e fechar.
+- [ ] **Revisão pré-beta (qualidade, executa direto)** — axe/Lighthouse/guidelines nas telas principais, correções em lote.
+- [ ] **TypeScript 6 e `@types/node` 26** (major; só com Sprint aprovado) — branch próprio, typecheck/build/testes/E2E.
 - [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
+- [x] **#188 Eficiência** — fechada em 2026-11-23 (medição na #71: PRs/item 6,9 → 3,0; minutos/item 67 → 36).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 
 ## Próximo passo (arranque rápido)
 
-1. Conferir se o PR `item-206-instalar` mergeou e o deploy subiu (`/api/health`); se a #206 ficou aberta, comentar com os
-   prints do E2E, remover `fila` e fechar.
-2. Sem item livre até segunda: #188 item 6 só em 2026-11-23; #78 (leitura do KV `ctl`) entra no PR protegido de 2026-11-23;
-   #120 espera o SMTP (#135). Execução sem item livre: só resumo e `scripts/painel.sh` (sem branch nem PR).
-3. Segunda 2026-11-23: Sprint 2026-48 a partir do `docs/PLANO.md` (backlog: Dependabot major TS 6 e @types/node 26; pausados
-   #140, #189, #145, #146 voltam só depois do beta) e auditoria de segurança semanal.
+1. Ler na #213 se o Julio aprovou o Sprint 2026-48; conferir se o #212 mergeou (trava). Se sim, disparar o `ler-ctl` (#78).
+2. Revisão pré-beta: rodar `e2e/acessibilidade-mobile-visual.spec.ts` e o Lighthouse do gate nas telas Home, Explorar,
+   Playlist, Perfil e Configurações; corrigir achados em lote (skills `impeccable` + `web-design-guidelines`), um PR.
+3. Com Sprint aprovado: TS 6 / `@types/node` 26 num branch `deps-ts6` (`pnpm add -D typescript@6 @types/node@26`).
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -60,6 +56,8 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-23 (45ª) — Segunda: auditoria (4 baixos conhecidos), #211 (Dependabot minor) mergeado, Sprint 2026-48 (#213),
+  PR protegido #212, #188 fechada com a medição na #71. Sem entrega de código não protegida (PR só de docs, exceção).
 - 2026-11-18 (44ª) — Caixa de entrada: pacote das 21:10 virou a #206 (urgente). #206 (instalar o app) no PR `item-206-instalar`.
 - 2026-11-18 (43ª) — #147 em produção (#204). #122: E2E logado do editor de playlist no PR `item-122-e2e-editor` (sem migration).
 - 2026-11-18 (42ª) — #125 fechada: aba "Você" + perfil público (#202) e protótipo/ids demo (#203) em produção. #147 no PR `item-147-trilha`.
