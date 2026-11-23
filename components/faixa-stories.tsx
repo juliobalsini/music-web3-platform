@@ -21,7 +21,7 @@ function Avatar({ g }: { g: GrupoStories }) {
       </span>
     );
   }
-  if (foto) return <img src={foto} alt="" referrerPolicy="no-referrer" className="size-9 rounded-full border-2 border-night-900 object-cover" />;
+  if (foto) return <img src={foto} alt="" width={36} height={36} referrerPolicy="no-referrer" className="size-9 rounded-full border-2 border-night-900 object-cover" />;
   return (
     <span aria-hidden="true" style={{ background: capaGerada(g.authorName).fundo }} className="flex size-9 items-center justify-center rounded-full border-2 border-night-900 text-sm font-bold text-white">
       {g.authorName.charAt(0).toUpperCase()}
@@ -29,12 +29,16 @@ function Avatar({ g }: { g: GrupoStories }) {
   );
 }
 
-/** Fundo do card: foto do artista (bio), capa da faixa do story, ou o gradiente do perfil. */
-function Fundo({ story, faixa }: { story: Story; faixa: FaixaDoStory | null }) {
-  if (story.bio) return <img src={story.bio.foto} alt="" loading="lazy" referrerPolicy="no-referrer" className="absolute inset-0 size-full object-cover" />;
+/**
+ * Fundo do card: foto do artista (bio), capa da faixa do story, ou o gradiente do perfil. Os primeiros cards já aparecem
+ * na tela (um deles costuma ser o LCP): carregam sem `lazy`; os demais, só ao rolar.
+ */
+function Fundo({ story, faixa, visivel }: { story: Story; faixa: FaixaDoStory | null; visivel: boolean }) {
+  const loading = visivel ? undefined : "lazy";
+  if (story.bio) return <img src={story.bio.foto} alt="" loading={loading} referrerPolicy="no-referrer" className="absolute inset-0 size-full object-cover" />;
   if (!faixa) return null;
   return faixa.hasCover ? (
-    <img src={`/api/tracks/${faixa.id}/capa`} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+    <img src={`/api/tracks/${faixa.id}/capa`} alt="" loading={loading} className="absolute inset-0 size-full object-cover" />
   ) : (
     <CapaArte title={faixa.title} className="absolute inset-0 size-full !rounded-none" />
   );
@@ -44,7 +48,7 @@ function Fundo({ story, faixa }: { story: Story; faixa: FaixaDoStory | null }) {
  * Card vertical de story (mesmo componente na Home e no Explorar). Bio: foto do artista em destaque, nome e gênero.
  * Novidade: story postado por quem a pessoa segue, com anel âmbar e selo "Novo".
  */
-function CartaoStory({ g, tipo, vistos, faixas, onAbrir }: { g: GrupoStories; tipo: CardHome["tipo"] | "postado"; vistos: ReadonlySet<string>; faixas: Record<string, FaixaDoStory>; onAbrir: () => void }) {
+function CartaoStory({ g, tipo, vistos, faixas, visivel, onAbrir }: { g: GrupoStories; tipo: CardHome["tipo"] | "postado"; vistos: ReadonlySet<string>; faixas: Record<string, FaixaDoStory>; visivel: boolean; onAbrir: () => void }) {
   const visto = tudoVisto(g, vistos);
   const alvo = g.stories.find((s) => !vistos.has(s.id)) ?? g.stories[g.stories.length - 1];
   const faixa = alvo.trackId ? (faixas[alvo.trackId] ?? null) : null;
@@ -68,7 +72,7 @@ function CartaoStory({ g, tipo, vistos, faixas, onAbrir }: { g: GrupoStories; ti
       style={{ background: g.isPlatform ? undefined : capaGerada(g.authorName).fundo }}
     >
       {g.isPlatform && <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-br from-night-800 to-night-900" />}
-      <Fundo story={alvo} faixa={faixa} />
+      <Fundo story={alvo} faixa={faixa} visivel={visivel} />
       <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night-900/90 via-night-900/15 to-night-900/30" />
       <span className="relative flex items-start justify-between gap-1">
         {bio ? <span /> : <Avatar g={g} />}
@@ -132,7 +136,7 @@ export function LinhaStories({
       {cards.length > 0 && <ul data-testid={modo === "home" ? "linha-artistas" : "stories-linha"} className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-1">
         {cards.map((c, idx) => (
           <li key={c.grupo.authorId} className="w-32 shrink-0 snap-start">
-            <CartaoStory g={c.grupo} tipo={c.tipo} vistos={vistos} faixas={faixas} onAbrir={() => abrir(idx)} />
+            <CartaoStory g={c.grupo} tipo={c.tipo} vistos={vistos} faixas={faixas} visivel={idx < 3} onAbrir={() => abrir(idx)} />
           </li>
         ))}
       </ul>}

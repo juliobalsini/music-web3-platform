@@ -23,7 +23,8 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
   `pnpm/action-setup` v6 (Dependabot #208/#209, fechados). Aguarda a trava do Julio.
 - [ ] **#78 Fase C** — depois do merge do #212: `gh workflow run worker-deploy.yml -f acao=ler-ctl`, ler o resumo, relatório de
   cota na #78 e fechar.
-- [ ] **Revisão pré-beta (qualidade, executa direto)** — axe/Lighthouse/guidelines nas telas principais, correções em lote.
+- [~] **Revisão pré-beta (qualidade, executa direto)** — fatia 1 no PR `revisao-pre-beta` (DECISIONS 129: axe limpo em 17
+  rotas, logo WebP, cards de story sem lazy, foco e CLS). Fatia 2: JS não usado (~75 KB) e bf-cache (`no-store`).
 - [ ] **TypeScript 6 e `@types/node` 26** (major; só com Sprint aprovado) — branch próprio, typecheck/build/testes/E2E.
 - [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
 - [x] **#188 Eficiência** — fechada em 2026-11-23 (medição na #71: PRs/item 6,9 → 3,0; minutos/item 67 → 36).
@@ -32,8 +33,10 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 ## Próximo passo (arranque rápido)
 
 1. Ler na #213 se o Julio aprovou o Sprint 2026-48; conferir se o #212 mergeou (trava). Se sim, disparar o `ler-ctl` (#78).
-2. Revisão pré-beta: rodar `e2e/acessibilidade-mobile-visual.spec.ts` e o Lighthouse do gate nas telas Home, Explorar,
-   Playlist, Perfil e Configurações; corrigir achados em lote (skills `impeccable` + `web-design-guidelines`), um PR.
+2. Revisão pré-beta fatia 2: `pnpm build` com `NEXT_PUBLIC_SUPABASE_URL=https://e2e.invalid`, `pnpm start`,
+   `npx -y @lhci/cli@0.16.1 collect` (CHROME_PATH = Chromium do Playwright); ver `unused-javascript` (quais chunks entram
+   na Home: player, visualizador de stories → `next/dynamic`?) e por que a página sai `no-store` (bf-cache). Apagar
+   `playwright-report/` antes do `pnpm lint` (artefatos locais dão erro).
 3. Com Sprint aprovado: TS 6 / `@types/node` 26 num branch `deps-ts6` (`pnpm add -D typescript@6 @types/node@26`).
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
@@ -56,6 +59,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-23 (46ª) — Sprint 2026-48 sem aprovação; #212 aguarda a trava. Revisão pré-beta fatia 1 no PR `revisao-pre-beta`.
 - 2026-11-23 (45ª) — Segunda: auditoria (4 baixos conhecidos), #211 (Dependabot minor) mergeado, Sprint 2026-48 (#213),
   PR protegido #212, #188 fechada com a medição na #71. Sem entrega de código não protegida (PR só de docs, exceção).
 - 2026-11-18 (44ª) — Caixa de entrada: pacote das 21:10 virou a #206 (urgente). #206 (instalar o app) no PR `item-206-instalar`.

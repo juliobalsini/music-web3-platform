@@ -793,3 +793,19 @@ Adicionar); Android sem o evento → 3 passos do menu ⋮; computador sem o even
 2ª; fechar grava `radioon_instalar_fechado` e esconde por 14 dias. Tudo no aparelho: nada vai ao servidor nem ao banco.
 (d) E2E `e2e/instalar-mobile-visual.spec.ts` (iPhone e Android, com prints e axe do painel e do aviso); o evento do Chrome é
 simulado, porque a emulação não instala de verdade. **Conferir no celular** após o deploy.
+
+## 129. Revisão pré-beta, fatia 1 (2026-11-23)
+(a) axe completo (todas as regras, inclusive "moderate"/"minor") em 17 rotas públicas no Android emulado: só a exceção já
+aceita dos cartões (`label-content-name-mismatch`, DECISIONS 113). Lighthouse local (celular, simulado): acessibilidade 100
+nas 3 URLs; desempenho 86/93/83, LCP 3,1–3,7 s (aviso; meta 2,5 s).
+(b) Logo da interface (`components/logo.tsx`) em WebP sem perda (`scripts/brand/gerar-logo-webp.mjs`): 30 → 14 KB (escuro) e
+26 → 12 KB (claro), sem diferença visual. Os PNG continuam em `public/brand/` para os cartões OG (o gerador só aceita
+PNG/JPEG), o e-mail do login e o teste de `/brand/logo.png`.
+(c) Cards de story (Home e Explorar): os 3 primeiros carregam sem `loading="lazy"` (um deles é o LCP do Explorar); os demais
+seguem lazy.
+(d) Guidelines: foco visível no campo de texto da capa (o input tinha `outline-none` sem substituto; o contorno vai no
+rótulo por `focus-within`); largura e altura nas fotos redondas dos stories (CLS); `touch-action: manipulation` e
+`-webkit-tap-highlight-color: transparent` no `<html>` (pinça para zoom continua; só o duplo toque deixa de dar zoom).
+(e) Speed Index de 11,8 s na faixa no Lighthouse local é artefato: o servidor local espera o Supabase fictício
+(`e2e.invalid`) e o `load` só dispara após ~32 s; não reproduz em produção. Restante (fatia 2): JS não usado (~75 KB) e
+bf-cache (`no-store` na página), a avaliar sem quebrar sessão.
