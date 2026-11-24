@@ -13,33 +13,33 @@ execuções antigas): `docs/historico/CONTEXTO-AAAA-MM.md`, não lido por padrã
   Login v2 (fatias 1–2), Playlists v2 (fases 1–2), Skills de qualidade + axe + Lighthouse (aviso), Aparência (destaque,
   texto maior, animações, tema claro/automático), Som (equalizador), exportar dados, Seus gostos, foto própria do perfil,
   primeiro acesso com gostos. CI verde na `main`.
-- **Sprint 2026-48** (#213) aberto em 2026-11-23 (aguarda aprovação); #167 (2026-47) fechado. PR protegido da semana: #212 (mergeado).
+- **Sprint 2026-48** (#213) aprovado pelo Julio em 2026-11-24; #167 (2026-47) fechado. PR protegido da semana: #212 (mergeado).
 - **Vercel:** em 2026-11-24 o push do #217 não gerou deploy (sem status no commit). Correção sem o Julio: `POST /v13/deployments`
   com `gitSource` (github, `ref` main, `sha`) e `target: production`, com o `VERCEL_TOKEN` do agente; conferir `/api/health`.
 
 ## Fila
 
-Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloqueado. Ordem do **Sprint 2026-48** (#213, aguarda "aprovado").
+Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloqueado. Ordem do **Sprint 2026-48** (#213, aprovado em 24/11).
 
 - [x] **PR protegido semanal #212** — mergeado em 2026-11-24 (trava aprovada): `ler-ctl` no `worker-deploy` + actions majors.
 - [x] **#78 Fase C** — fechada em 2026-11-24: `ctl` com 4 escritas/dia (0,4% da cota), 16,7 MB no KV, 0 direto ao B2.
   Medir de novo após o beta: `gh workflow run worker-deploy.yml -f acao=ler-ctl` (sem trava).
 - [x] **Revisão pré-beta (qualidade)** — fatias 1 (#215) e 2 (#216) em produção; fatia 3 em produção
   (#217; DECISIONS 131: TBT alto da Home era artefato do ambiente; Explorar em paralelo; favicon 63 → 20 KB).
-- [ ] **TypeScript 6 e `@types/node` 26** (major; só com Sprint aprovado) — branch próprio, typecheck/build/testes/E2E.
+- [x] **TypeScript 6 e `@types/node` 26** — PR `deps-ts6` (49ª): sem mudança de código nem do tsconfig (DECISIONS 132).
 - [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
 - [x] **#188 Eficiência** — fechada em 2026-11-23 (medição na #71: PRs/item 6,9 → 3,0; minutos/item 67 → 36).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 
 ## Próximo passo (arranque rápido)
 
-1. Ler na #213 se o Julio aprovou o Sprint 2026-48 (só TS 6 / `@types/node` 26 depende disso).
-2. Sem Sprint aprovado e sem `fila` livre: só qualidade direta. LCP simulado 3,2–3,8 s vem do caminho crítico de JS
+1. Sprint 2026-48 sem item livre: só #120 (bloqueado pelo SMTP, #135). Conferir `fila`/`feedback` novas e a Caixa de entrada (#128).
+2. Sem item livre: qualidade direta. LCP simulado 3,2–3,8 s vem do caminho crítico de JS
    (chunks `32zdoe…`/`37qiu…`, ~135 KB gzip, React + Next); o render do elemento já é rápido. Próximo alvo possível: JS não
    usado nesses chunks (Lighthouse "unused-javascript") ou fontes (2 WOFF, 53 KB). Medir sempre lado a lado com a
    `main` (`git worktree` em :3001), servidor recém-iniciado (`ss -ltnp`; `lsof` não acha o `next-server`), `npx lighthouse@12`
    (`CHROME_PATH=/usr/bin/google-chrome`). Números do Lighthouse no CI variam muito (Supabase fictício; DECISIONS 131).
-3. Com Sprint aprovado: TS 6 / `@types/node` 26 num branch `deps-ts6` (`pnpm add -D typescript@6 @types/node@26`).
+3. Segunda 2026-11-30: auditoria semanal, fechar Sprint 2026-48 (#213) e abrir o 2026-49.
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
@@ -61,6 +61,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-24 (49ª) — Sprint 2026-48 aprovado. TS 6 / `@types/node` 26 no PR `deps-ts6` (typecheck, testes e build verdes sem mudar código).
 - 2026-11-24 (48ª) — Sprint 2026-48 sem aprovação. #212 mergeado (trava); #78 fechada (Fase C). Fatia 3 (#217) em produção (deploy criado pela API: webhook falhou).
 - 2026-11-24 (47ª) — Sprint 2026-48 sem aprovação; #212 aguarda a trava. Revisão pré-beta fatia 2 no PR `revisao-pre-beta-2`.
 - 2026-11-23 (46ª) — Sprint 2026-48 sem aprovação; #212 aguarda a trava. Revisão pré-beta fatia 1 no PR `revisao-pre-beta`.

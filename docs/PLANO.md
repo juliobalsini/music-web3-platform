@@ -9,8 +9,8 @@ Toda segunda, a 1ª execução abre a issue **"Sprint AAAA-SS"** (label `sprint`
 com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estimadas. "aprovado" do Julio aprova o sprint
 inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
 
-**Sprint 2026-48 (#213, aberto em 23/11):** (1) PR protegido #212; (2) #78 Fase C; (3) TS 6 / @types/node 26;
-(4) revisão pré-beta de qualidade (fatias 1 e 2 ✅, DECISIONS 129–130); (5) #120 após o SMTP.
+**Sprint 2026-48 (#213, aberto em 23/11):** aprovado em 24/11. (1) PR protegido #212 ✅; (2) #78 Fase C ✅; (3) TS 6 / @types/node 26 ✅ (DECISIONS 132);
+(4) revisão pré-beta de qualidade (fatias 1–3 ✅, DECISIONS 129–131); (5) #120 após o SMTP.
 
 **Sprint 2026-47 (fechado em 23/11; replanejado pelo Julio em 16/11, foco no beta):** (1) #188 Eficiência do agente (urgente); (2) #156 ✅;
 (3) #122 ✅ (E2E logado, DECISIONS 127); (4) #125 ✅; (5) #78 Fase C; (6) #185 ✅; (7) #147 ✅.
@@ -22,8 +22,7 @@ inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou vol
 3. Login v2 (#120) — só ligar o código de 6 dígitos depois do item 6 da Sessão manual.
 4. Entrega de áudio, Fase C (#78) — verificação após 48 h com o proxy ligado — baixo.
 5. Trilha do artista (#147).
-6. **Avaliar no próximo sprint (Dependabot major, #188):** TypeScript 6 (#92) e `@types/node` 26 (#93), fechados com comentário;
-   testar num branch próprio (typecheck, build, testes) antes de aceitar.
+6. TypeScript 6 (#92) e `@types/node` 26 (#93) — ✅ aceitos no Sprint 2026-48 (DECISIONS 132).
 
 ## Depois do beta (pausados pelo Julio em 2026-11-16; label `pausado`, sem `fila`)
 
