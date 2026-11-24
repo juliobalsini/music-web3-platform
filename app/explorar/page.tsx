@@ -57,10 +57,11 @@ async function Conteudo({ q, genero, clima }: { q: string; genero: string | null
     );
   }
   const agora = new Date().getTime();
-  const [todos, bios, seguidos] = await Promise.all([carregarStories().catch(() => []), carregarBios(radio.faixas), meusSeguidos()]);
+  // Tudo em paralelo: cada consulta ao Supabase é uma ida e volta (e, com a rede falhando, ~7 s de retentativas).
+  const [todos, bios, seguidos, reacoes] = await Promise.all([carregarStories().catch(() => []), carregarBios(radio.faixas), meusSeguidos(), reacoesDoUsuario()]);
   const stories = storiesAtivos(todos, agora);
   const faixasDosStories = mapaFaixas(radio.faixas, [...stories, ...bios]);
-  const curtidas = (await reacoesDoUsuario()).like;
+  const curtidas = reacoes.like;
   const paraVoce = recomendar(radio.faixas, curtidas);
   const artistas = contarCampo(radio.faixas, (f) => f.artistId).map(({ id, total }) => ({ id, nome: radio.faixas.find((f) => f.artistId === id)?.artistName ?? "Artista", faixas: total }));
   const generos = contarCampo(radio.faixas, (f) => f.genre).flatMap(({ id, total }) => (rotuloGenero(id) ? [{ id, rotulo: rotuloGenero(id)!, href: `/explorar?genero=${id}`, detalhe: `${total} ${total === 1 ? "faixa" : "faixas"}` }] : []));

@@ -10,13 +10,14 @@ const logo = "public/brand/logo.png";
 mkdirSync("public/icons", { recursive: true });
 
 // fracao = largura do logo / lado do ícone.
-async function icone(arquivo, lado, fracao) {
+// paleta: PNG com paleta de 256 cores (o favicon baixa em toda página: 63 → 20 KB, sem diferença visível).
+async function icone(arquivo, lado, fracao, paleta = false) {
   const w = Math.round(lado * fracao);
   const img = await sharp(logo).resize({ width: w }).toBuffer();
   await sharp({ create: { width: lado, height: lado, channels: 4, background: MARINHO } })
     .composite([{ input: img, gravity: "center" }])
     .flatten({ background: MARINHO })
-    .png()
+    .png(paleta ? { palette: true, quality: 90, effort: 10, compressionLevel: 9 } : {})
     .toFile(arquivo);
   return arquivo;
 }
@@ -27,7 +28,7 @@ for (const s of [192, 512]) {
   saidas.push([await icone(`public/icons/icon-any-${s}.png`, s, 0.64), s, false]);
   saidas.push([await icone(`public/icons/icon-maskable-${s}.png`, s, 0.6), s, true]);
 }
-await icone("app/icon.png", 512, 0.64);
+await icone("app/icon.png", 512, 0.64, true);
 await icone("app/apple-icon.png", 180, 0.64);
 
 // Validação: todo pixel que difere do marinho precisa estar dentro do círculo de raio 40% (zona segura).
