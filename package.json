@@ -29,7 +29,7 @@
     "@electric-sql/pglite": "^0.5.17",
     "@playwright/test": "^1.65.1",
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -37,7 +37,7 @@
     "eslint-config-next": "16.4.6",
     "pg": "^8.23.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@12.16.1",
   "engines": {

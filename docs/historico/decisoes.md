@@ -834,3 +834,10 @@ Supabase; independente das demais).
 (c) Favicon `app/icon.png` (baixado em toda página) em PNG com paleta: 63 → 20 KB, sem diferença visível
 (`scripts/brand/gerar-icones.mjs`, opção `paleta`). Ícones do PWA não mudam (só baixam na instalação).
 (d) LCP simulado 3,2–3,8 s nas duas versões: caminho crítico de JS (React + Next); o render do elemento já é rápido.
+
+## 132. TypeScript 6 e `@types/node` 26 (2026-11-24)
+Item 3 do Sprint 2026-48 (aprovado pelo Julio em 24/11; majors #92/#93 do Dependabot). `typescript` 5.9.3 → 6.0.3 e
+`@types/node` 20 → 26 num branch próprio: typecheck, lint (só os avisos já existentes), 390 testes e build verdes sem
+mudar código nem o `tsconfig.json` (o `target: ES2017` explícito e `moduleResolution: bundler` não usam opções
+depreciadas no TS 6). Risco aceito: `@types/node` 26 descreve APIs mais novas que o Node 24 da Vercel e do CI; os testes
+rodam em Node 24 e pegam o uso de API inexistente. Se aparecer, fixar `@types/node` na major do runtime.
