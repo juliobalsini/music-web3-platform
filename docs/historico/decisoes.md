@@ -809,3 +809,15 @@ rótulo por `focus-within`); largura e altura nas fotos redondas dos stories (CL
 (e) Speed Index de 11,8 s na faixa no Lighthouse local é artefato: o servidor local espera o Supabase fictício
 (`e2e.invalid`) e o `load` só dispara após ~32 s; não reproduz em produção. Restante (fatia 2): JS não usado (~75 KB) e
 bf-cache (`no-store` na página), a avaliar sem quebrar sessão.
+
+## 130. Revisão pré-beta, fatia 2 (2026-11-24)
+(a) JS inicial (soma gzip dos chunks citados no HTML, build local): Home 300 → 224 KB e Explorar 293 → 217 KB (−25%).
+(b) Import dinâmico manual (`import()` guardado em estado, sem `next/dynamic`) no visualizador de stories
+(`components/faixa-stories.tsx`; o chunk começa a baixar no primeiro toque ou foco da linha) e no conteúdo do login
+contextual (`components/login-contextual.tsx`; placeholder `role="status"` "Carregando…" com altura fixa). Com
+`next/dynamic` o Suspense depende de timers e o E2E de stories (relógio congelado por `page.clock.pauseAt`) travava. A rota `/story/...` e `/entrar` seguem com import estático.
+(c) O cliente do Supabase (~65 KB gzip) sai do JS inicial: o `LoginContextualProvider` o importa dentro do efeito que lê a
+sessão; falha do import ou sem Supabase → visitante (mesmo comportamento de antes). O `sessao-lida` continua sendo a marca dos E2E.
+(d) Não mexidos: `PlayerCheio` (diálogo sempre montado para a animação; ganho pequeno) e `react-dom`.
+(e) bf-cache: o `no-store` vem do Next em páginas dinâmicas (cookies da sessão); trocar exigiria cache de páginas com
+sessão, risco de mostrar dados de outra conta. Aceito; reavaliar só se o Next oferecer opção segura.
