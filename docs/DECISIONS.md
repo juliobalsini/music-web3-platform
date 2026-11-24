@@ -133,3 +133,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 127. E2E logado do editor de playlist: rascunho de demonstração …0701 por cookie de teste, só fora de produção, ações sem banco
 128. Botão "Instalar a radioOn": evento nativo capturado no cliente; iPhone e Android sem evento → 3 passos; app interno → abrir no navegador
 129. Revisão pré-beta (fatia 1): logo da interface em WebP sem perda (PNG só nos cartões OG); 3 primeiros cards de story sem lazy
+130. Revisão pré-beta (fatia 2): visualizador de stories, login e cliente Supabase por import dinâmico (Home 300 → 224 KB gzip); bf-cache aceito

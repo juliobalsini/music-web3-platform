@@ -10,7 +10,7 @@ com objetivo, risco (baixo/médio/alto), se toca protegidos e execuções estima
 inteiro ("aprovado exceto X" remove itens). Ao fechar o sprint, o que sobrou volta para o backlog abaixo.
 
 **Sprint 2026-48 (#213, aberto em 23/11):** (1) PR protegido #212; (2) #78 Fase C; (3) TS 6 / @types/node 26;
-(4) revisão pré-beta de qualidade (fatia 1 ✅, DECISIONS 129); (5) #120 após o SMTP.
+(4) revisão pré-beta de qualidade (fatias 1 e 2 ✅, DECISIONS 129–130); (5) #120 após o SMTP.
 
 **Sprint 2026-47 (fechado em 23/11; replanejado pelo Julio em 16/11, foco no beta):** (1) #188 Eficiência do agente (urgente); (2) #156 ✅;
 (3) #122 ✅ (E2E logado, DECISIONS 127); (4) #125 ✅; (5) #78 Fase C; (6) #185 ✅; (7) #147 ✅.

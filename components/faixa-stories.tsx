@@ -6,11 +6,17 @@ import { useMemo, useState, type ReactNode } from "react";
 import { CapaArte } from "@/components/capa";
 import { Logo } from "@/components/logo";
 import { useVistos } from "@/components/stories-vistos";
-import { VisualizadorStories } from "@/components/visualizador-stories";
 import { capaGerada } from "@/lib/radio/rules";
 import { gruposDoExplorar, linhaDaHome, type CardHome } from "@/lib/stories/bio";
 import type { GrupoStories, Story } from "@/lib/stories/rules";
 import { primeiroNaoVisto, tudoVisto, type FaixaDoStory, type Posicao } from "@/lib/stories/viewer";
+
+// O visualizador só aparece depois de um toque: sai do JS inicial da Home e do Explorar (revisão pré-beta, fatia 2).
+// Import manual em vez de `next/dynamic`: sem Suspense, a troca não depende de timers (relógio congelado nos E2E).
+type Visualizador = typeof import("@/components/visualizador-stories").VisualizadorStories;
+const carregarVisualizador = () => import("@/components/visualizador-stories").then((m) => m.VisualizadorStories);
+// Começa a baixar no primeiro toque ou foco da linha, antes do clique terminar.
+const precarregar = () => void carregarVisualizador();
 
 function Avatar({ g }: { g: GrupoStories }) {
   const foto = g.stories[0]?.bio?.foto;
@@ -123,17 +129,21 @@ export function LinhaStories({
     return gruposDoExplorar({ bios, postados, seguidos, vistos, agora }).map((g) => ({ grupo: g, tipo: g.stories[0]?.bio ? "bio" : "postado" }));
   }, [modo, bios, postados, seguidos, vistos, visitante, agora]);
   const [aberto, setAberto] = useState<{ grupos: GrupoStories[]; inicio: Posicao } | null>(null);
+  const [VisualizadorStories, setVisualizador] = useState<Visualizador | null>(null);
 
   const reserva = bios.length === 0 ? semBios : null;
   if (cards.length === 0 && !reserva) return null;
   const grupos = cards.map((c) => c.grupo);
-  const abrir = (idx: number) => setAberto({ grupos, inicio: { g: idx, i: primeiroNaoVisto(grupos[idx], vistos) } });
+  const abrir = (idx: number) => {
+    setAberto({ grupos, inicio: { g: idx, i: primeiroNaoVisto(grupos[idx], vistos) } });
+    void carregarVisualizador().then((v) => setVisualizador(() => v));
+  };
   const titulo = modo === "home" ? "Artistas para conhecer" : "Stories";
 
   return (
     <section aria-label={titulo} className="flex flex-col gap-2">
       <h2 className="text-lg font-bold">{titulo}</h2>
-      {cards.length > 0 && <ul data-testid={modo === "home" ? "linha-artistas" : "stories-linha"} className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-1">
+      {cards.length > 0 && <ul data-testid={modo === "home" ? "linha-artistas" : "stories-linha"} onPointerDown={precarregar} onFocus={precarregar} className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-1">
         {cards.map((c, idx) => (
           <li key={c.grupo.authorId} className="w-32 shrink-0 snap-start">
             <CartaoStory g={c.grupo} tipo={c.tipo} vistos={vistos} faixas={faixas} visivel={idx < 3} onAbrir={() => abrir(idx)} />
@@ -141,7 +151,7 @@ export function LinhaStories({
         ))}
       </ul>}
       {reserva}
-      {aberto && <VisualizadorStories grupos={aberto.grupos} faixas={faixas} agora={agora} inicio={aberto.inicio} seguidos={seguidosIds} onFechar={() => setAberto(null)} />}
+      {aberto && VisualizadorStories && <VisualizadorStories grupos={aberto.grupos} faixas={faixas} agora={agora} inicio={aberto.inicio} seguidos={seguidosIds} onFechar={() => setAberto(null)} />}
     </section>
   );
 }

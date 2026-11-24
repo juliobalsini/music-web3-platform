@@ -4,12 +4,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 
-import { ConteudoLogin } from "@/components/conteudo-login";
 import { PainelInferior } from "@/components/ds/interativos";
 import { OneTapGoogle } from "@/components/google-gis";
 import { ACAO_PENDENTE_CHAVE, acaoDaTela, lerAcao, serializarAcao } from "@/lib/auth/acao-pendente";
 import { destinoAtual, motivoPadrao } from "@/lib/auth/contextual";
-import { createClient } from "@/lib/supabase/client";
+
+// O formulário de login só aparece quando alguém pede para entrar: fica fora do JS inicial (revisão pré-beta, fatia 2).
+// Import manual em vez de `next/dynamic`: sem Suspense, a troca não depende de timers (relógio congelado nos E2E).
+type Conteudo = typeof import("@/components/conteudo-login").ConteudoLogin;
+const carregarConteudo = () => import("@/components/conteudo-login").then((m) => m.ConteudoLogin);
 
 type Pedido = { motivo: string; destino: string };
 type Contexto = {
@@ -28,20 +31,23 @@ const Ctx = createContext<Contexto | null>(null);
 export function LoginContextualProvider({ children }: { children: ReactNode }) {
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [conta, setConta] = useState<boolean | null>(null);
+  const [ConteudoLogin, setConteudoLogin] = useState<Conteudo | null>(null);
 
   // Lê a sessão do cookie local (sem ida à rede). Sem Supabase (testes/prévias): visitante.
+  // O cliente do Supabase (~65 KB gzip) vem por import dinâmico, fora do JS inicial (revisão pré-beta, fatia 2).
   useEffect(() => {
     let vivo = true;
     let cancelar = () => {};
-    try {
-      const supabase = createClient();
-      void supabase.auth.getSession().then(({ data }) => vivo && setConta(!!data.session?.user && !data.session.user.is_anonymous));
-      const { data } = supabase.auth.onAuthStateChange((_, s) => vivo && setConta(!!s?.user && !s.user.is_anonymous));
-      cancelar = () => data.subscription.unsubscribe();
-    } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sem Supabase configurado, decide uma vez
-      setConta(false);
-    }
+    import("@/lib/supabase/client")
+      .then(({ createClient }) => {
+        if (!vivo) return;
+        const supabase = createClient();
+        void supabase.auth.getSession().then(({ data }) => vivo && setConta(!!data.session?.user && !data.session.user.is_anonymous));
+        const { data } = supabase.auth.onAuthStateChange((_, s) => vivo && setConta(!!s?.user && !s.user.is_anonymous));
+        cancelar = () => data.subscription.unsubscribe();
+      })
+      // Sem Supabase configurado (ou sem rede para o chunk), decide uma vez: visitante.
+      .catch(() => vivo && setConta(false));
     return () => {
       vivo = false;
       cancelar();
@@ -52,6 +58,7 @@ export function LoginContextualProvider({ children }: { children: ReactNode }) {
     const alvo = destino ?? destinoAtual(window.location);
     guardarAcao(acao ? serializarAcao(acao, alvo, Date.now()) : null);
     setPedido({ motivo: motivo ?? motivoPadrao(), destino: alvo });
+    void carregarConteudo().then((c) => setConteudoLogin(() => c));
   }, []);
   // Fechar sem entrar desiste da ação (entrar recarrega a página antes de qualquer fechamento).
   const fechar = useCallback(() => {
@@ -76,7 +83,13 @@ export function LoginContextualProvider({ children }: { children: ReactNode }) {
       <PainelInferior aberto={!!pedido} aoFechar={fechar} titulo="Entre na radioOn">
         {pedido && (
           <div data-testid="login-contextual">
-            <ConteudoLogin key={pedido.destino} next={pedido.destino} motivo={pedido.motivo} />
+            {ConteudoLogin ? (
+              <ConteudoLogin key={pedido.destino} next={pedido.destino} motivo={pedido.motivo} />
+            ) : (
+              <div role="status" aria-busy="true" className="min-h-72">
+                <span className="sr-only">Carregando…</span>
+              </div>
+            )}
           </div>
         )}
       </PainelInferior>
