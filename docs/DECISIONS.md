@@ -134,3 +134,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 128. Botão "Instalar a radioOn": evento nativo capturado no cliente; iPhone e Android sem evento → 3 passos; app interno → abrir no navegador
 129. Revisão pré-beta (fatia 1): logo da interface em WebP sem perda (PNG só nos cartões OG); 3 primeiros cards de story sem lazy
 130. Revisão pré-beta (fatia 2): visualizador de stories, login e cliente Supabase por import dinâmico (Home 300 → 224 KB gzip); bf-cache aceito
+131. Revisão pré-beta (fatia 3): TBT alto da Home era artefato do Supabase fictício (medir contra a `main` lado a lado); Explorar em paralelo; favicon 63 → 20 KB

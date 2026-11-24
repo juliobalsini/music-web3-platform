@@ -821,3 +821,16 @@ sessão; falha do import ou sem Supabase → visitante (mesmo comportamento de a
 (d) Não mexidos: `PlayerCheio` (diálogo sempre montado para a animação; ganho pequeno) e `react-dom`.
 (e) bf-cache: o `no-store` vem do Next em páginas dinâmicas (cookies da sessão); trocar exigiria cache de páginas com
 sessão, risco de mostrar dados de outra conta. Aceito; reavaliar só se o Next oferecer opção segura.
+
+## 131. Revisão pré-beta, fatia 3: medição da Home, Explorar e favicon (2026-11-24)
+(a) O TBT de 2,4–5,7 s da Home no Lighthouse (CI e local) **não reproduz**: comparando `main` e branch lado a lado (servidor
+recém-iniciado, Long Animation Frames com CPU 4x, 3 rodadas), o bloqueio fica em ~0,3 s e o TBT do Lighthouse em 0,14–0,22 s
+nos dois. A troca da pré-montagem das visões escondidas por `<Activity>` foi testada e **revertida** (sem ganho medido).
+Os números altos vêm do ambiente: com o Supabase fictício (`e2e.invalid`) o `postgrest-js` retenta cada GET por ~7 s, o
+primeiro acesso frio ao Explorar leva ~35 s no servidor e o Lighthouse mede durante esse streaming. Lição: medir sempre
+contra um servidor recém-iniciado e comparar com a `main` na mesma máquina (porta 3001, `git worktree`) antes de concluir.
+(b) Explorar: `reacoesDoUsuario()` entra no mesmo `Promise.all` de stories/bios/seguidos (era uma ida e volta em série ao
+Supabase; independente das demais).
+(c) Favicon `app/icon.png` (baixado em toda página) em PNG com paleta: 63 → 20 KB, sem diferença visível
+(`scripts/brand/gerar-icones.mjs`, opção `paleta`). Ícones do PWA não mudam (só baixam na instalação).
+(d) LCP simulado 3,2–3,8 s nas duas versões: caminho crítico de JS (React + Next); o render do elemento já é rápido.
