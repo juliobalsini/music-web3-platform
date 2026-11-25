@@ -25,7 +25,7 @@ test("topo só tem logo e menu; a gaveta do visitante leva ao login", async ({ p
   await expect(gaveta.getByRole("region", { name: "Crie sua conta" })).toBeVisible();
   await expect(gaveta.getByRole("button", { name: "Continuar com Google" })).toBeVisible();
   await expect(gaveta.getByRole("link", { name: "Enviar música" })).toHaveCount(0);
-  await gaveta.getByRole("link", { name: "Entrar com link por e-mail" }).click();
+  await gaveta.getByRole("link", { name: /^Entrar com (código|link) por e-mail$/ }).click();
   await expect(page).toHaveURL(/\/login/);
   // O logo do cabeçalho volta ao início.
   await page.getByRole("link", { name: "radioOn, início" }).click();

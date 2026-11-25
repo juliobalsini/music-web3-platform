@@ -841,3 +841,10 @@ Item 3 do Sprint 2026-48 (aprovado pelo Julio em 24/11; majors #92/#93 do Depend
 mudar código nem o `tsconfig.json` (o `target: ES2017` explícito e `moduleResolution: bundler` não usam opções
 depreciadas no TS 6). Risco aceito: `@types/node` 26 descreve APIs mais novas que o Node 24 da Vercel e do CI; os testes
 rodam em Node 24 e pegam o uso de API inexistente. Se aparecer, fixar `@types/node` na major do runtime.
+
+## 133. Login por código de 6 dígitos ligado (2026-11-25)
+O Julio comentou "sessão manual 6 feita" na #120 em 24/11 (Gmail dedicado, SMTP, rate limit 20/h, OTP de 6 dígitos e
+modelos com `{{ .Token }}` no Supabase). `LOGIN_CODIGO_POR_PADRAO` passa a `true` em `lib/auth/codigo.ts`; o menu do
+visitante diz "Entrar com código por e-mail". O link mágico continua no código como reserva: se o e-mail com código
+falhar em produção, `NEXT_PUBLIC_LOGIN_CODIGO=0` na Vercel volta ao link sem mudar código (precisa de redeploy).
+Risco aceito: o agente não consegue ver o e-mail real; conferir no celular fica na lista do Julio (Sessão manual).

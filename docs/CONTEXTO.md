@@ -27,13 +27,14 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - [x] **Revisão pré-beta (qualidade)** — fatias 1 (#215) e 2 (#216) em produção; fatia 3 em produção
   (#217; DECISIONS 131: TBT alto da Home era artefato do ambiente; Explorar em paralelo; favicon 63 → 20 KB).
 - [x] **TypeScript 6 e `@types/node` 26** — PR `deps-ts6` (49ª): sem mudança de código nem do tsconfig (DECISIONS 132).
-- [!] **#120 Login v2** — só ligar `LOGIN_CODIGO_POR_PADRAO` depois do item 6 da Sessão manual (#135, SMTP).
+- [x] **#120 Login v2** — código de 6 dígitos ligado (50ª, PR `item-120-codigo-ligado`; DECISIONS 133) após o item 6 da
+  Sessão manual. Reverter sem código: `NEXT_PUBLIC_LOGIN_CODIGO=0` na Vercel.
 - [x] **#188 Eficiência** — fechada em 2026-11-23 (medição na #71: PRs/item 6,9 → 3,0; minutos/item 67 → 36).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 
 ## Próximo passo (arranque rápido)
 
-1. Sprint 2026-48 sem item livre: só #120 (bloqueado pelo SMTP, #135). Conferir `fila`/`feedback` novas e a Caixa de entrada (#128).
+1. Sprint 2026-48 concluído (todos os 5 itens). Conferir `fila`/`feedback` novas e a Caixa de entrada (#128).
 2. Sem item livre: qualidade direta. LCP simulado 3,2–3,8 s vem do caminho crítico de JS
    (chunks `32zdoe…`/`37qiu…`, ~135 KB gzip, React + Next); o render do elemento já é rápido. Próximo alvo possível: JS não
    usado nesses chunks (Lighthouse "unused-javascript") ou fontes (2 WOFF, 53 KB). Medir sempre lado a lado com a
@@ -43,7 +44,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Pendências do Julio (detalhes na issue "Sessão manual", #135)
 
-- Item 6 da Sessão manual (SMTP com a marca) → libera o código de 6 dígitos (#120).
+- Testar no celular o login por código (e-mail real com a marca e o código de 6 dígitos; #120).
 - Conferir logado no celular: playlists (editor, capa, Tema da semana), envio de álbum/story, Configurações, seguir.
 - Marco pré-lançamento: skill `security-audit` da Cloudflare; rotacionar chaves do Supabase e do B2 expostas em conversa
   (ordem segura: nova chave na Vercel → validar upload → revogar a antiga); apagar `B2_TEMP_*` do Codespaces.
@@ -61,6 +62,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 
 ## Últimas execuções (as anteriores estão no histórico)
 
+- 2026-11-25 (50ª) — #120: SMTP feito pelo Julio (24/11); login por código ligado no PR `item-120-codigo-ligado`. Sprint 2026-48 sem item pendente.
 - 2026-11-24 (49ª) — Sprint 2026-48 aprovado. TS 6 / `@types/node` 26 no PR `deps-ts6` (typecheck, testes e build verdes sem mudar código).
 - 2026-11-24 (48ª) — Sprint 2026-48 sem aprovação. #212 mergeado (trava); #78 fechada (Fase C). Fatia 3 (#217) em produção (deploy criado pela API: webhook falhou).
 - 2026-11-24 (47ª) — Sprint 2026-48 sem aprovação; #212 aguarda a trava. Revisão pré-beta fatia 2 no PR `revisao-pre-beta-2`.
@@ -69,15 +71,3 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
   PR protegido #212, #188 fechada com a medição na #71. Sem entrega de código não protegida (PR só de docs, exceção).
 - 2026-11-18 (44ª) — Caixa de entrada: pacote das 21:10 virou a #206 (urgente). #206 (instalar o app) no PR `item-206-instalar`.
 - 2026-11-18 (43ª) — #147 em produção (#204). #122: E2E logado do editor de playlist no PR `item-122-e2e-editor` (sem migration).
-- 2026-11-18 (42ª) — #125 fechada: aba "Você" + perfil público (#202) e protótipo/ids demo (#203) em produção. #147 no PR `item-147-trilha`.
-- 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
-- 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
-- 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).
-- 2026-11-17 (38ª) — #194 (tema claro) em produção. #125: equalizador (#195) e exportar dados (#196) em produção; Seus gostos no PR `item-125-gostos`.
-
-- 2026-11-17 (37ª) — #192 fechada (#191 mergeado). #125 tema claro/automático no PR `item-125-tema-claro` (sem migration).
-- 2026-11-16 (35ª) — #185 (skills de qualidade, axe, Lighthouse) em produção (PR #186).
-- 2026-11-16 (36ª) — Caixa de entrada: pacotes das 14:49–14:55 viraram #188 (urgente) e #189 (logo pausada); replanejamento
-  das 15:02 aplicado (Sprint #167, label `pausado`). #188 parte A no PR `item-188-eficiencia`; parte B em PR protegido.
-  Contexto fixo: CONTEXTO.md 43,5 → 5 KB; DECISIONS.md 68,6 → 4,8 KB; CLAUDE.md 15,2 → 15,9 KB (regras novas). #125 Aparência
-  no PR `item-125-aparencia` (sem migration).

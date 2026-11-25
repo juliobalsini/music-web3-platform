@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { entrarComGoogle, sair } from "@/app/login/actions";
 import { ItemInstalar } from "@/components/instalar-app";
 import { botao } from "@/components/ui";
+import { loginPorCodigoLigado } from "@/lib/auth/codigo";
 import { gravarPreferencias } from "@/lib/preferencias/cliente";
 import type { ResumoConta } from "@/lib/session";
 
@@ -116,7 +117,7 @@ export function MenuGaveta({ conta }: { conta: ResumoConta }) {
                 </button>
               </form>
               <Link href={`/login?next=${encodeURIComponent(caminho)}`} className="foco-claro flex min-h-11 items-center justify-center text-sm font-semibold text-brand underline underline-offset-2">
-                Entrar com link por e-mail
+                {loginPorCodigoLigado() ? "Entrar com código por e-mail" : "Entrar com link por e-mail"}
               </Link>
             </section>
           )}

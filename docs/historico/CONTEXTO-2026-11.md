@@ -458,3 +458,18 @@ Fora da fila até o Julio liberar: **Ciclo 6 (tokenização)**.
   no PLANO.md; Lighthouse vira bloqueio a partir de 2026-11-23 e a medição na prévia entra no PR protegido semanal.
   Fila restante (ordem do Sprint): #122 (só E2E logado), #125 (resto), #78 Fase C (a partir da noite de 2026-11-16), #147, #140;
   fora do sprint: #120 (só ligar o código), #145, #146.
+
+
+## Execuções movidas do CONTEXTO.md em 2026-11-25
+
+- 2026-11-18 (42ª) — #125 fechada: aba "Você" + perfil público (#202) e protótipo/ids demo (#203) em produção. #147 no PR `item-147-trilha`.
+- 2026-11-18 (41ª) — #199 em produção. #125: Meus envios v2 (#200) em produção; aba Artista no PR `item-125-aba-artista` (sem migration).
+- 2026-11-17 (40ª) — #198 (foto própria) em produção. #125: primeiro acesso com gostos + item 7 no PLANO.md (PR `item-125-inicio`).
+- 2026-11-17 (39ª) — #197 (Seus gostos) em produção. #125: foto própria do perfil no PR `item-125-foto` (sem migration).
+- 2026-11-17 (38ª) — #194 (tema claro) em produção. #125: equalizador (#195) e exportar dados (#196) em produção; Seus gostos no PR `item-125-gostos`.
+- 2026-11-17 (37ª) — #192 fechada (#191 mergeado). #125 tema claro/automático no PR `item-125-tema-claro` (sem migration).
+- 2026-11-16 (35ª) — #185 (skills de qualidade, axe, Lighthouse) em produção (PR #186).
+- 2026-11-16 (36ª) — Caixa de entrada: pacotes das 14:49–14:55 viraram #188 (urgente) e #189 (logo pausada); replanejamento
+  das 15:02 aplicado (Sprint #167, label `pausado`). #188 parte A no PR `item-188-eficiencia`; parte B em PR protegido.
+  Contexto fixo: CONTEXTO.md 43,5 → 5 KB; DECISIONS.md 68,6 → 4,8 KB; CLAUDE.md 15,2 → 15,9 KB (regras novas). #125 Aparência
+  no PR `item-125-aparencia` (sem migration).
