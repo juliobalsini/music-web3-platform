@@ -136,3 +136,4 @@ Nova decisão: texto completo no fim do histórico e uma linha aqui. Limite dest
 130. Revisão pré-beta (fatia 2): visualizador de stories, login e cliente Supabase por import dinâmico (Home 300 → 224 KB gzip); bf-cache aceito
 131. Revisão pré-beta (fatia 3): TBT alto da Home era artefato do Supabase fictício (medir contra a `main` lado a lado); Explorar em paralelo; favicon 63 → 20 KB
 132. TypeScript 6 e `@types/node` 26 aceitos (Sprint 2026-48): sem mudança de código nem do tsconfig; runtime segue Node 24
+133. Login por código ligado (#120): `LOGIN_CODIGO_POR_PADRAO = true` após o SMTP do Julio; reverter sem deploy com `NEXT_PUBLIC_LOGIN_CODIGO=0`

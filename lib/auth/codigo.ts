@@ -1,11 +1,10 @@
 /**
  * Login por código de 6 dígitos (OTP de e-mail; issue #120, DECISIONS 102).
  *
- * Fica atrás de uma flag até o Julio configurar o SMTP e colar os modelos de e-mail com `{{ .Token }}`
- * (antes disso o e-mail do Supabase só traz o link). Ligar: mudar `LOGIN_CODIGO_POR_PADRAO` para `true`
- * (ou `NEXT_PUBLIC_LOGIN_CODIGO=1` como sobrescrita).
+ * Ligado desde 2026-11-25 (SMTP e modelos com `{{ .Token }}` configurados pelo Julio, item 6 da Sessão manual).
+ * Voltar ao link mágico sem deploy de código: `NEXT_PUBLIC_LOGIN_CODIGO=0` na Vercel (sobrescrita).
  */
-export const LOGIN_CODIGO_POR_PADRAO = false;
+export const LOGIN_CODIGO_POR_PADRAO = true;
 
 /** Cookie de teste (E2E): liga o código na tela; fora de produção, o servidor também simula o envio. */
 export const COOKIE_TESTE_CODIGO = "radioon_teste_codigo";

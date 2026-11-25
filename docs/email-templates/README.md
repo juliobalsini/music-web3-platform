@@ -45,5 +45,5 @@ os logins. Subir só se o volume real pedir e com outro provedor gratuito.
 
 ## Ligar o código no app
 
-Depois de colar os modelos e configurar o SMTP: o agente muda `LOGIN_CODIGO_POR_PADRAO` para `true` em
-`lib/auth/codigo.ts` (ou `NEXT_PUBLIC_LOGIN_CODIGO=1` na Vercel, como sobrescrita). Até lá, o login segue pelo link.
+Ligado em 2026-11-25 (DECISIONS 133): `LOGIN_CODIGO_POR_PADRAO = true` em
+`lib/auth/codigo.ts`. Para voltar ao link sem mudar código: `NEXT_PUBLIC_LOGIN_CODIGO=0` na Vercel.
