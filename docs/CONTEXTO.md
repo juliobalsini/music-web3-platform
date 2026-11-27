@@ -29,6 +29,7 @@ Legenda: `[ ]` livre · `[~]` em andamento · `[x]` concluído · `[!]` bloquead
 - [x] **TypeScript 6 e `@types/node` 26** — PR `deps-ts6` (49ª): sem mudança de código nem do tsconfig (DECISIONS 132).
 - [x] **#120 Login v2** — código de 6 dígitos ligado (50ª, PR `item-120-codigo-ligado`; DECISIONS 133) após o item 6 da
   Sessão manual. Reverter sem código: `NEXT_PUBLIC_LOGIN_CODIGO=0` na Vercel.
+- [~] **#221 Vercel: Function Storage no limite** — PR `vercel-storage`: `scripts/vercel-ignore.sh` (sem prévia p/ PR só de .md e Dependabot; produção pula só .md). Medição: `.next/server` 42 MB; rotas OG/cartão (`next/og`) ~25–28 MB cada, demais ≤5 MB; nada podável sem remover o recurso. Retention Policy é do Julio.
 - [x] **#188 Eficiência** — fechada em 2026-11-23 (medição na #71: PRs/item 6,9 → 3,0; minutos/item 67 → 36).
 - Pausados até depois do beta (label `pausado`): #140, #189, #145, #146 (ver `docs/PLANO.md`).
 

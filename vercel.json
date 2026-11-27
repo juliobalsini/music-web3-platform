@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "regions": ["pdx1"],
-  "ignoreCommand": "[ \"$VERCEL_ENV\" = production ] && git diff --quiet HEAD^ HEAD -- . ':(exclude)*.md'"
+  "ignoreCommand": "bash scripts/vercel-ignore.sh"
 }
